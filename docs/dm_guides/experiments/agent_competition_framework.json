@@ -1,0 +1,205 @@
+{
+  "experimentMeta": {
+    "name": "Agent Competition: Subtask Decomposition Effectiveness Study",
+    "version": "1.0.0",
+    "purpose": "Evaluate whether task decomposition based on complexity scores improves or hinders development quality, speed, and repeatability",
+    "hypothesis": {
+      "primary": "Automated subtask decomposition for complex tasks (>threshold) improves quality and reduces risk",
+      "secondary": "Monolithic task approach may be faster but produces lower quality and less repeatable results",
+      "null": "Task decomposition creates busy work without meaningful quality improvement"
+    },
+    "timeline": "To be determined based on agent availability",
+    "riskLevel": "medium",
+    "learningValue": "high"
+  },
+  "experimentDesign": {
+    "methodology": "Controlled parallel development with identical task sets",
+    "control_group": "Agent A - Monolithic Task Approach",
+    "experimental_group": "Agent B - Decomposed Subtask Approach",
+    "independent_variable": "Task decomposition strategy",
+    "dependent_variables": [
+      "artifact_quality_score",
+      "time_to_completion", 
+      "bug_density",
+      "code_maintainability",
+      "documentation_completeness",
+      "test_coverage",
+      "repeatability_score"
+    ]
+  },
+  "taskSetup": {
+    "source_tasks": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "complexity_threshold": 7,
+    "tasks_above_threshold": [7, 8, 9, 10, 11, 12, 13, 14, 15],
+    "tasks_below_threshold": [6, 16],
+    "cloning_strategy": {
+      "branch_naming": "experiment/agent-{A|B}-task-{id}",
+      "isolation_method": "separate_git_branches",
+      "shared_dependencies": "engine_core_api"
+    }
+  },
+  "agentProfiles": {
+    "agent_a": {
+      "name": "Monolithic Mike",
+      "approach": "Single-unit task execution",
+      "strategy": "Read task description, plan implementation, execute as one cohesive unit",
+      "tools": ["standard_development_environment", "task_master_view_only"],
+      "constraints": ["no_subtask_decomposition", "direct_task_to_artifact_mapping"],
+      "success_criteria": "Complete each task 6-16 as described in original task list"
+    },
+    "agent_b": {
+      "name": "Decomposer Dave", 
+      "approach": "Complexity-based subtask decomposition",
+      "strategy": "Use task-master-ai to split complex tasks (>7) into subtasks, then execute sequentially",
+      "tools": ["task_master_ai", "complexity_analysis", "subtask_generator"],
+      "constraints": ["must_decompose_if_complexity_gt_threshold", "sequential_subtask_execution"],
+      "success_criteria": "Complete equivalent functionality through decomposed subtask approach"
+    }
+  },
+  "measurementFramework": {
+    "quality_metrics": {
+      "code_quality": {
+        "cyclomatic_complexity": "automated_analysis",
+        "maintainability_index": "code_analysis_tools",
+        "technical_debt_ratio": "sonarqube_or_equivalent"
+      },
+      "functional_quality": {
+        "test_coverage_percentage": "automated_coverage_tools",
+        "bug_density": "issues_per_kloc",
+        "feature_completeness": "requirements_satisfaction_score"
+      },
+      "documentation_quality": {
+        "api_documentation_coverage": "percentage_of_endpoints_documented",
+        "code_comments_ratio": "meaningful_comments_per_function",
+        "user_documentation_completeness": "manual_review_score"
+      }
+    },
+    "efficiency_metrics": {
+      "development_time": {
+        "planning_time": "hours_spent_in_design_phase",
+        "implementation_time": "hours_spent_coding",
+        "debugging_time": "hours_spent_fixing_issues",
+        "total_time_to_completion": "end_to_end_task_completion"
+      },
+      "resource_utilization": {
+        "cognitive_load": "self_reported_complexity_rating",
+        "context_switching": "number_of_task_interruptions",
+        "rework_percentage": "lines_of_code_rewritten"
+      }
+    },
+    "repeatability_metrics": {
+      "process_documentation": "completeness_of_step_by_step_process",
+      "dependency_clarity": "external_requirements_specification",
+      "reproducibility_score": "ability_for_third_party_to_replicate"
+    }
+  },
+  "dataCollection": {
+    "automated_metrics": [
+      "git_commit_frequency",
+      "lines_of_code_changed",
+      "test_execution_results", 
+      "build_success_rates",
+      "static_analysis_scores"
+    ],
+    "manual_metrics": [
+      "daily_progress_logs",
+      "problem_solving_approaches",
+      "decision_point_documentation",
+      "subjective_difficulty_ratings"
+    ],
+    "artifact_outputs": [
+      "completed_code_modules",
+      "test_suites",
+      "documentation_files",
+      "configuration_artifacts",
+      "deployment_scripts"
+    ]
+  },
+  "comparisonCriteria": {
+    "primary_outcomes": {
+      "overall_quality": {
+        "weight": 0.4,
+        "components": ["functional_correctness", "maintainability", "test_coverage"]
+      },
+      "development_efficiency": {
+        "weight": 0.3,
+        "components": ["time_to_completion", "resource_utilization", "rework_minimization"]
+      },
+      "process_repeatability": {
+        "weight": 0.2,
+        "components": ["documentation_quality", "process_clarity", "third_party_reproducibility"]
+      },
+      "learning_value": {
+        "weight": 0.1,
+        "components": ["skill_development", "knowledge_transfer", "best_practice_emergence"]
+      }
+    },
+    "success_thresholds": {
+      "meaningful_difference": "20% improvement in weighted score",
+      "statistical_significance": "p < 0.05 if multiple trials",
+      "practical_significance": "observable_difference_in_real_world_application"
+    }
+  },
+  "experimentExecution": {
+    "preparation_phase": {
+      "duration": "2-3 days",
+      "activities": [
+        "clone_tasks_6_through_16",
+        "setup_isolated_development_environments",
+        "establish_measurement_baselines",
+        "brief_agents_on_experiment_parameters"
+      ]
+    },
+    "execution_phase": {
+      "duration": "estimated_14_21_days",
+      "parallel_execution": true,
+      "daily_checkpoints": true,
+      "milestone_reviews": ["25%", "50%", "75%", "completion"]
+    },
+    "analysis_phase": {
+      "duration": "3_5_days",
+      "activities": [
+        "collect_all_metrics",
+        "compare_artifacts_side_by_side",
+        "statistical_analysis_of_quantitative_data",
+        "qualitative_assessment_of_approaches",
+        "generate_conclusions_and_recommendations"
+      ]
+    }
+  },
+  "expectedOutcomes": {
+    "scenario_1_decomposition_wins": {
+      "indicators": ["higher_test_coverage", "lower_bug_density", "better_documentation", "clearer_process"],
+      "implications": "Recommend complexity-based subtask decomposition for tasks >threshold",
+      "next_actions": "Integrate automatic decomposition into task-master workflow"
+    },
+    "scenario_2_monolithic_wins": {
+      "indicators": ["faster_completion", "less_overhead", "equivalent_quality", "simpler_workflow"],
+      "implications": "Question the value of automated task decomposition",
+      "next_actions": "Focus on improving task descriptions rather than breaking them down"
+    },
+    "scenario_3_mixed_results": {
+      "indicators": ["context_dependent_advantages", "task_specific_optimal_approaches"],
+      "implications": "Develop nuanced guidelines for when to decompose vs. keep monolithic",
+      "next_actions": "Create decision matrix for decomposition based on task characteristics"
+    },
+    "scenario_4_no_significant_difference": {
+      "indicators": ["equivalent_outcomes_across_all_metrics"],
+      "implications": "Developer preference and team context matter more than methodology",
+      "next_actions": "Focus on team training and preference accommodation"
+    }
+  },
+  "riskMitigation": {
+    "agent_availability": "ensure_committed_timeline_before_starting",
+    "task_complexity_variance": "select_tasks_with_similar_baseline_complexity",
+    "measurement_bias": "use_automated_tools_where_possible",
+    "external_dependencies": "isolate_shared_components_to_minimize_interference",
+    "scope_creep": "clearly_define_completion_criteria_upfront"
+  },
+  "futureExtensions": {
+    "multi_agent_scenarios": "test_with_teams_rather_than_individuals",
+    "domain_specific_studies": "repeat_experiment_for_frontend_vs_backend_tasks",
+    "tool_assisted_decomposition": "compare_ai_assisted_vs_manual_subtask_creation",
+    "long_term_maintenance": "track_maintenance_burden_over_6_month_period"
+  }
+}

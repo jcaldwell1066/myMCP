@@ -1,0 +1,61 @@
+{
+  "name": "mymcp",
+  "version": "0.1.0",
+  "description": "myMCP Lunch and Learn Project - Multi-interface chatbot system for lunch and learn demo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces --parallel",
+    "start": "npm run start --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist shared/*/node_modules shared/*/dist",
+    "dev:engine": "npm run dev --workspace=packages/engine",
+    "dev:cli": "npm run dev --workspace=packages/cli",
+    "dev:webapp": "npm run dev --workspace=packages/webapp",
+    "dev:admin": "npm run dev --workspace=packages/admin",
+    "dev:mcpserver": "npm run dev --workspace=packages/mcpserver"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "husky": "^8.0.0",
+    "jest": "^29.0.0",
+    "nodemon": "^3.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "file:///mnt/c/Users/JefferyCaldwell/myMCP"
+  },
+  "keywords": [
+    "chatbot",
+    "mcp",
+    "cli",
+    "webapp",
+    "typescript",
+    "node",
+    "lunch-learn",
+    "demo"
+  ],
+  "author": "Accesso Payments Breakaway Group",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/server-memory": "^2025.4.25",
+    "@modelcontextprotocol/server-sequential-thinking": "^0.6.2"
+  }
+}

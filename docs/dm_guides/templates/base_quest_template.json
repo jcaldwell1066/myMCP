@@ -1,0 +1,105 @@
+{
+  "questSystem": {
+    "meta": {
+      "questName": "TEMPLATE: [Domain] Chronicles",
+      "version": "1.0.0",
+      "protagonist": "The [Role] Artisan",
+      "setting": "The [Domain] Realm",
+      "objective": "[Primary Goal Description]",
+      "currentChapter": "Chapter 1: [Current Phase]",
+      "difficultyScale": {
+        "1-3": "Apprentice Level",
+        "4-6": "Journeyman Level", 
+        "7-8": "Master Level",
+        "9-10": "Grandmaster Level"
+      }
+    },
+    "gameState": {
+      "currentLocation": "[Current Progress State]",
+      "heroLevel": 1,
+      "artifactsForged": [],
+      "companionsGained": [],
+      "questsUnlocked": 0,
+      "reputation": {
+        "domain_specific_1": 0,
+        "domain_specific_2": 0,
+        "domain_specific_3": 0
+      }
+    },
+    "chapters": {
+      "chapter1": {
+        "title": "[Foundation Chapter Title]",
+        "description": "[Chapter narrative describing the initial challenge]",
+        "status": "pending",
+        "artifacts": [
+          {
+            "taskId": "TEMPLATE_ID",
+            "artifactName": "[Artifact Name]",
+            "description": "[Artifact description with domain-specific metaphors]",
+            "status": "awaiting_forge",
+            "dependencies": [],
+            "powerLevel": "[Foundation|Core|Interface|Integration|Mastery]",
+            "complexity": "1-10",
+            "forgeTime": "[estimated_duration]",
+            "craftingMaterials": ["[specific_technologies]", "[domain_tools]", "[skill_requirements]"],
+            "unlocks": ["[capabilities_enabled]"],
+            "warnings": ["[risk_factors]"]
+          }
+        ]
+      }
+    },
+    "pathConsequences": {
+      "template_path_1": {
+        "timeline": "[duration_estimate]",
+        "success_probability": 0.0,
+        "domain_readiness": 0.0,
+        "technical_debt": "[low|medium|high]",
+        "team_stress": "[low|medium|high]",
+        "learning_value": "[low|medium|high]"
+      }
+    },
+    "questMechanics": {
+      "progressTracking": {
+        "experience_per_task": "complexity_score * 100",
+        "level_thresholds": [0, 500, 1200, 2000, 3000, 4500, 6500, 9000, 12000, 16000],
+        "current_experience": 0,
+        "achievements_unlocked": []
+      },
+      "riskManagement": {
+        "complexity_modifiers": {
+          "6": {"success_rate": 0.85, "time_variance": 0.2},
+          "7": {"success_rate": 0.75, "time_variance": 0.3}, 
+          "8": {"success_rate": 0.65, "time_variance": 0.4},
+          "9": {"success_rate": 0.55, "time_variance": 0.5}
+        },
+        "domain_specific_penalties": {
+          "[domain_risk_1]": {"success_rate": -0.1, "complexity": +1},
+          "[domain_risk_2]": {"time_variance": +0.2, "stress": +0.3}
+        }
+      },
+      "decision_framework": {
+        "evaluation_criteria": [
+          "[domain_specific_criterion_1]",
+          "[domain_specific_criterion_2]", 
+          "[domain_specific_criterion_3]",
+          "risk_tolerance",
+          "team_capacity"
+        ],
+        "weight_matrix": {
+          "[primary_success_metric]": 0.4,
+          "[secondary_success_metric]": 0.3,
+          "risk_mitigation": 0.2,
+          "long_term_value": 0.1
+        }
+      }
+    },
+    "domainSpecific": {
+      "technologies": ["[primary_tech_stack]"],
+      "methodologies": ["[development_approaches]"],
+      "stakeholders": ["[key_audience_types]"],
+      "success_metrics": ["[domain_specific_kpis]"],
+      "common_challenges": ["[typical_obstacles]"],
+      "integration_points": ["[connection_to_other_domains]"]
+    }
+  }
+}

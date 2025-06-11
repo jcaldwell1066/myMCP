@@ -1,0 +1,998 @@
+{
+	"info": {
+		"_postman_id": "a84c18c8-9708-43f7-b056-75d80cc2cf39",
+		"name": "MCP TIME QUEST @myapi",
+		"description": "```\nmycli status          # ✅ Shows player state, engine connection\nmycli get-score       # ✅ Returns current score with level\nmycli set-score 150   # ✅ Updates score, auto-levels player\nmycli chat \"hello\"    # ✅ Single message mode working\nmycli chat -i         # ✅ Interactive mode functional\nmycli start-quest     # ✅ Lists available quests\nmycli quests          # ✅ Shows quest status\nmycli history         # ✅ Conversation history\nmycli config show     # ✅ Configuration display\n\n ```\n\nStartFragment\n\n**Next step: Start the engine**\n\nOpen a **second terminal/command prompt** and start the engine:\n\n``` bash\nbashcd C:\\Users\\JefferyCaldwell\\myMCP\nnpm run dev:engine\n\n ```\n\nYou should see something like:\n\n``` bash\n🚀 myMCP Engine running on port 3000\n🏥 Health check: http://localhost:3000/health\n📡 API base: http://localhost:3000/api\n🎮 Game states: 0 loaded\n⚡ Ready for service\n\n ```\n\nOnce the engine is running, go back to your first terminal and try the CLI command again:\n\n``` bash\nbashnpm run dev:cli -- status\n\n ```\n\nThis should now show your player status instead of the connection error.\n\n**Alternatively**, you can test the engine health directly in a browser by visiting:  \n`http://localhost:3000/health`\n\nLet me know what happens when you start the engine!\n\nEndFragment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28959788"
+	},
+	"item": [
+		{
+			"name": "health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/health",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[PASSED]",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/health",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"health"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "151"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"97-5CpTfEvuCQfIjmw4cVTqLNsKMGY\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Jun 2025 18:29:19 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"ok\",\n    \"message\": \"myMCP Engine is running strong!\",\n    \"timestamp\": \"2025-06-12T18:29:19.108Z\",\n    \"version\": \"1.0.0\",\n    \"activeStates\": 4,\n    \"wsConnections\": 0\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Player State",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/state/test-player",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"state",
+						"test-player"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[PASSED]",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/state/test-player",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"state",
+								"test-player"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2442"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"98a-LHRqpdoBRE7djoF/BZvKYi0tsAk\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Jun 2025 18:30:20 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"player\": {\n            \"id\": \"test-player\",\n            \"name\": \"Hero\",\n            \"score\": 0,\n            \"level\": \"novice\",\n            \"status\": \"idle\",\n            \"location\": \"town\"\n        },\n        \"quests\": {\n            \"available\": [\n                {\n                    \"id\": \"global-meeting\",\n                    \"title\": \"Council of Three Realms\",\n                    \"description\": \"Unite allies from distant kingdoms to coordinate a grand council meeting.\",\n                    \"realWorldSkill\": \"Timezone coordination and meeting scheduling\",\n                    \"fantasyTheme\": \"Gathering allies across distant realms\",\n                    \"status\": \"available\",\n                    \"steps\": [\n                        {\n                            \"id\": \"find-allies\",\n                            \"description\": \"Locate suitable allies in different time zones\",\n                            \"completed\": false\n                        },\n                        {\n                            \"id\": \"coordinate-meeting\",\n                            \"description\": \"Find optimal meeting time for all parties\",\n                            \"completed\": false\n                        },\n                        {\n                            \"id\": \"confirm-attendance\",\n                            \"description\": \"Confirm all allies can attend the council\",\n                            \"completed\": false\n                        }\n                    ],\n                    \"reward\": {\n                        \"score\": 100,\n                        \"items\": [\n                            \"Council Seal\",\n                            \"Diplomatic Medallion\"\n                        ]\n                    }\n                },\n                {\n                    \"id\": \"server-health\",\n                    \"title\": \"Dungeon Keeper's Vigil\",\n                    \"description\": \"Monitor the ancient servers deep in the Mountain of Processing.\",\n                    \"realWorldSkill\": \"Server monitoring and system health checks\",\n                    \"fantasyTheme\": \"Guardian of mystical computing crystals\",\n                    \"status\": \"available\",\n                    \"steps\": [\n                        {\n                            \"id\": \"enter-dungeon\",\n                            \"description\": \"Venture into the server caverns\",\n                            \"completed\": false\n                        },\n                        {\n                            \"id\": \"check-crystals\",\n                            \"description\": \"Examine the health of processing crystals\",\n                            \"completed\": false\n                        },\n                        {\n                            \"id\": \"report-status\",\n                            \"description\": \"Document crystal conditions\",\n                            \"completed\": false\n                        }\n                    ],\n                    \"reward\": {\n                        \"score\": 75,\n                        \"items\": [\n                            \"Crystal Monitor\",\n                            \"System Rune\"\n                        ]\n                    }\n                },\n                {\n                    \"id\": \"hmac-security\",\n                    \"title\": \"Cryptomancer's Seal\",\n                    \"description\": \"Master the arcane arts of message authentication and integrity.\",\n                    \"realWorldSkill\": \"HMAC cryptographic implementation\",\n                    \"fantasyTheme\": \"Forging magical seals of authenticity\",\n                    \"status\": \"available\",\n                    \"steps\": [\n                        {\n                            \"id\": \"learn-theory\",\n                            \"description\": \"Study the ancient cryptographic texts\",\n                            \"completed\": false\n                        },\n                        {\n                            \"id\": \"craft-seal\",\n                            \"description\": \"Create your first authentication seal\",\n                            \"completed\": false\n                        },\n                        {\n                            \"id\": \"verify-seal\",\n                            \"description\": \"Prove the seal's authenticity\",\n                            \"completed\": false\n                        }\n                    ],\n                    \"reward\": {\n                        \"score\": 125,\n                        \"items\": [\n                            \"Cryptomancer Staff\",\n                            \"HMAC Grimoire\"\n                        ]\n                    }\n                }\n            ],\n            \"active\": null,\n            \"completed\": []\n        },\n        \"inventory\": {\n            \"items\": [],\n            \"capacity\": 10,\n            \"status\": \"empty\"\n        },\n        \"session\": {\n            \"id\": \"46a1d339-d71a-4355-a006-370df8937739\",\n            \"startTime\": \"2025-06-11T05:23:11.635Z\",\n            \"lastAction\": \"2025-06-11T05:23:11.635Z\",\n            \"turnCount\": 0,\n            \"conversationHistory\": []\n        },\n        \"metadata\": {\n            \"version\": \"1.0.0\",\n            \"lastUpdated\": \"2025-06-11T05:23:11.635Z\"\n        }\n    },\n    \"timestamp\": \"2025-06-12T18:30:20.200Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Available Player Quests",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/quests/test-player",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"quests",
+						"test-player"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[PASSED]",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/quests/test-player",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"quests",
+								"test-player"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2024"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"7e8-iVB3j3IYUIHAa81nxFoMqOvDXRg\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Jun 2025 18:31:58 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"available\": [\n            {\n                \"id\": \"global-meeting\",\n                \"title\": \"Council of Three Realms\",\n                \"description\": \"Unite allies from distant kingdoms to coordinate a grand council meeting.\",\n                \"realWorldSkill\": \"Timezone coordination and meeting scheduling\",\n                \"fantasyTheme\": \"Gathering allies across distant realms\",\n                \"status\": \"available\",\n                \"steps\": [\n                    {\n                        \"id\": \"find-allies\",\n                        \"description\": \"Locate suitable allies in different time zones\",\n                        \"completed\": false\n                    },\n                    {\n                        \"id\": \"coordinate-meeting\",\n                        \"description\": \"Find optimal meeting time for all parties\",\n                        \"completed\": false\n                    },\n                    {\n                        \"id\": \"confirm-attendance\",\n                        \"description\": \"Confirm all allies can attend the council\",\n                        \"completed\": false\n                    }\n                ],\n                \"reward\": {\n                    \"score\": 100,\n                    \"items\": [\n                        \"Council Seal\",\n                        \"Diplomatic Medallion\"\n                    ]\n                }\n            },\n            {\n                \"id\": \"server-health\",\n                \"title\": \"Dungeon Keeper's Vigil\",\n                \"description\": \"Monitor the ancient servers deep in the Mountain of Processing.\",\n                \"realWorldSkill\": \"Server monitoring and system health checks\",\n                \"fantasyTheme\": \"Guardian of mystical computing crystals\",\n                \"status\": \"available\",\n                \"steps\": [\n                    {\n                        \"id\": \"enter-dungeon\",\n                        \"description\": \"Venture into the server caverns\",\n                        \"completed\": false\n                    },\n                    {\n                        \"id\": \"check-crystals\",\n                        \"description\": \"Examine the health of processing crystals\",\n                        \"completed\": false\n                    },\n                    {\n                        \"id\": \"report-status\",\n                        \"description\": \"Document crystal conditions\",\n                        \"completed\": false\n                    }\n                ],\n                \"reward\": {\n                    \"score\": 75,\n                    \"items\": [\n                        \"Crystal Monitor\",\n                        \"System Rune\"\n                    ]\n                }\n            },\n            {\n                \"id\": \"hmac-security\",\n                \"title\": \"Cryptomancer's Seal\",\n                \"description\": \"Master the arcane arts of message authentication and integrity.\",\n                \"realWorldSkill\": \"HMAC cryptographic implementation\",\n                \"fantasyTheme\": \"Forging magical seals of authenticity\",\n                \"status\": \"available\",\n                \"steps\": [\n                    {\n                        \"id\": \"learn-theory\",\n                        \"description\": \"Study the ancient cryptographic texts\",\n                        \"completed\": false\n                    },\n                    {\n                        \"id\": \"craft-seal\",\n                        \"description\": \"Create your first authentication seal\",\n                        \"completed\": false\n                    },\n                    {\n                        \"id\": \"verify-seal\",\n                        \"description\": \"Prove the seal's authenticity\",\n                        \"completed\": false\n                    }\n                ],\n                \"reward\": {\n                    \"score\": 125,\n                    \"items\": [\n                        \"Cryptomancer Staff\",\n                        \"HMAC Grimoire\"\n                    ]\n                }\n            }\n        ],\n        \"active\": null,\n        \"completed\": []\n    },\n    \"timestamp\": \"2025-06-12T18:31:58.385Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "[SET_SCORE]",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": "app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"SET_SCORE\",\r\n    \"payload\": {\"score\": 150},\r\n    \"playerId\": \"test-player\"\r\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/actions/test-player",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"actions",
+						"test-player"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[PASSED]",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"SET_SCORE\",\r\n    \"payload\": {\"score\": 150},\r\n    \"playerId\": \"test-player\"\r\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/actions/test-player",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"actions",
+								"test-player"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "76"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"4c-wkRFQPparVorG0YblqBa6TPTKEw\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Jun 2025 18:33:42 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"score\": 150\n    },\n    \"timestamp\": \"2025-06-12T18:33:42.827Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "[START_QUEST]",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": "app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"START_QUEST\",\r\n    \"payload\": {\"questId\": \"global-meeting\" },\r\n    \"playerId\": \"test-player\"\r\n  }"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/actions/test-player",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"actions",
+						"test-player"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[PASSED]",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"START_QUEST\",\r\n    \"payload\": {\"questId\": \"global-meeting\" },\r\n    \"playerId\": \"test-player\"\r\n  }"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/actions/test-player",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"actions",
+								"test-player"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "117"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"75-h40Q244whQ6oV931cysoiV4fGRM\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Jun 2025 18:37:05 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"quest\": \"Council of Three Realms\",\n        \"status\": \"started\"\n    },\n    \"timestamp\": \"2025-06-12T18:37:05.227Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "[CHAT]",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": "app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"CHAT\",\r\n    \"payload\": {\"message\": \"Hello, what is my current status?\"},\r\n    \"playerId\": \"test-player\"\r\n  }"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/actions/test-player",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"actions",
+						"test-player"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[PASSED]",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"CHAT\",\r\n    \"payload\": {\"message\": \"Hello, what is my current status?\"},\r\n    \"playerId\": \"test-player\"\r\n  }"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/actions/test-player",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"actions",
+								"test-player"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "517"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"205-2i7oMOZ5gfSj+BYDIZZbVlqxWNA\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Jun 2025 18:38:24 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"playerMessage\": {\n            \"id\": \"ac8240e1-49d1-4a1e-ab80-4998908c8da6\",\n            \"timestamp\": \"2025-06-12T18:38:24.388Z\",\n            \"sender\": \"player\",\n            \"message\": \"Hello, what is my current status?\",\n            \"type\": \"chat\"\n        },\n        \"botResponse\": {\n            \"id\": \"5d731e2d-117f-4176-a0e0-0bf6ee231236\",\n            \"timestamp\": \"2025-06-12T18:38:24.388Z\",\n            \"sender\": \"bot\",\n            \"message\": \"You are currently on the \\\"Council of Three Realms\\\" quest. Unite allies from distant kingdoms to coordinate a grand council meeting.\",\n            \"type\": \"chat\"\n        }\n    },\n    \"timestamp\": \"2025-06-12T18:38:24.395Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "[TabCompletion]",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/context/completions/test-player?prefix=quest",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"context",
+						"completions",
+						"test-player"
+					],
+					"query": [
+						{
+							"key": "prefix",
+							"value": "quest"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[TabCompletion]",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/context/completions/test-player?prefix=quest",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"context",
+								"completions",
+								"test-player"
+							],
+							"query": [
+								{
+									"key": "prefix",
+									"value": "quest"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Resource-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Origin-Agent-Cluster",
+							"value": "?1"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "65"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"41-/K7oHj7xcxUUCmPR2U1BsIQszGM\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 12 Jun 2025 18:39:34 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": [],\n    \"timestamp\": \"2025-06-12T18:39:34.827Z\"\n}"
+				}
+			]
+		}
+	]
+}
