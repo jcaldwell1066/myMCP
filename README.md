@@ -198,3 +198,184 @@ MIT License - see [LICENSE](LICENSE) file for details.
 *Transform your technical journey into an epic adventure!* ⚡✨
 
 </div>
+
+## Quest 1: 🧭 Council of Three Realms
+**Goal**: Synchronize three players for an initial shared session.
+### Theme
+```log
+🔮 Chapter 1: Preparing for the Quest
+Configuration Enchantments
+🎯 Objective: Prepare the configuration for launching the app.
+📜 Narrative: In the dark halls of the Merchant Sanctum, the adventurer gathers sacred parameters and configures their incantations.
+🛠️ Mechanics: Ensure engine and at leasat one of cli, webapp, or mcpserver are configured.
+📂 Artifact: global_meeting.json
+🏆 Victory Condition: Validated test config + item total check: 8.00 + 9.50 + 2.50 = 20.00
+🖼 Placeholder Image: Blueprint scroll with glowing inputs and tax symbols
+```
+> > “Summon the council by aligning the celestial clocks of three realms.”
+### Mechanics
+- Invite 2+ teammates.
+- Propose and confirm a meeting time.
+- Unlock the meeting portal
+- (e.g., shared calendar, virtual meeting, Discord room).
+### Optional NPC: Oracle of Echoes
+- Responds with riddle-like time zone translations or commentary on delay.
+```ts
+  quests: {
+      available: [
+        {
+          id: 'global-meeting',
+          title: 'Council of Three Realms',
+          description: 'Unite allies from distant kingdoms to coordinate a grand council meeting.',
+          realWorldSkill: 'Timezone coordination and meeting scheduling',
+          fantasyTheme: 'Gathering allies across distant realms',
+          status: 'available',
+          steps: [
+            {
+              id: 'find-allies',
+              description: 'Locate suitable allies in different time zones',
+              completed: false,
+            },
+            {
+              id: 'coordinate-meeting',
+              description: 'Find optimal meeting time for all parties',
+              completed: false,
+            },
+            {
+              id: 'confirm-attendance',
+              description: 'Confirm all allies can attend the council',
+              completed: false,
+            },
+          ],
+          reward: {
+            score: 100,
+            items: ['Council Seal', 'Diplomatic Medallion'],
+          },
+        },
+```
+
+
+## Quest 2: 🧪 Dungeon Keeper’s Vigil
+**Goal**: Introduce check-in culture and shared awareness of system/team/self.
+### Theme
+```log
+Purpose: Foster personal/team/system check-ins
+📜 Fantasy Theme: “Inspect the crystals of uptime deep in the Server Caverns.”
+💼 Skill: Monitoring, health checks, emotional well-being
+🎯 Objectives:
+Enter server dungeon (trigger /api/state)
+Check all 3 crystals (system, team, self)
+Report to guild (chat or WebSocket broadcast)
+🔮 LLM Option: Glynn comments on each check (“Your core temperature is stable, knight.”)
+```
+> > “Inspect the crystals of uptime deep in the Server Caverns.”
+### Mechanics
+- Visit `/api/state` or your monitoring dashboard.
+- Log a message for each of the three check types:
+- ✅ System health (is the app running?)
+- ✅ Team health (mood, blockers, conflicts?)
+- ✅ Personal health (energy, distractions, availability?)
+- ### Optional NPC: Server Warden
+- Comments on streaks, uptime stats, or sarcasm for neglected systems.
+
+```ts
+        {
+          id: 'server-health',
+          title: 'Dungeon Keeper\'s Vigil',
+          description: 'Monitor the ancient servers deep in the Mountain of Processing.',
+          realWorldSkill: 'Server monitoring and system health checks',
+          fantasyTheme: 'Guardian of mystical computing crystals',
+          status: 'available',
+          steps: [
+            {
+              id: 'enter-dungeon',
+              description: 'Venture into the server caverns',
+              completed: false,
+            },
+            {
+              id: 'check-crystals',
+              description: 'Examine the health of processing crystals',
+              completed: false,
+            },
+            {
+              id: 'report-status',
+              description: 'Document crystal conditions',
+              completed: false,
+            },
+          ],
+          reward: {
+            score: 75,
+            items: ['Crystal Monitor', 'System Rune'],
+          },
+        },
+```
+
+## Quest 3: 🔐 Cryptomancer’s Seal
+**Goal**: Teach secure request design and build trust in messaging via HMAC.
+### Theme> “Forge a seal no dark mage can forge.”
+```log
+📜 Fantasy Theme: “Forge a seal no dark mage can forge.”
+💼 Skill: Request signing, basic cryptographic integrity
+🎯 Objectives:
+Learn HMAC theory
+Craft the seal (HMAC(secret, message))
+Validate seal via NPC challenge
+🧙 NPC: Gatekeeper Glynn (already implemented!)
+“The seal is weak... Fetch the true signature!”
+```
+### Mechanics
+- Learn HMAC: `HMAC_SHA256(secret, payload)`
+- Generate a valid signature and submit to `/api/actions`
+- NPC (Gatekeeper Glynn) will validate and offer entry if correct
+### NPC: Gatekeeper Glynn
+- Already implemented in `npcScripts/gatekeeperGlynn.ts`
+- Gives lore-rich responses to success, failure, or help requests
+
+
+```ts
+  {
+          id: 'hmac-security',
+          title: 'Cryptomancer\'s Seal',
+          description: 'Master the arcane arts of message authentication and integrity.',
+          realWorldSkill: 'HMAC cryptographic implementation',
+          fantasyTheme: 'Forging magical seals of authenticity',
+          status: 'available',
+          steps: [
+            {
+              id: 'learn-theory',
+              description: 'Study the ancient cryptographic texts',
+              completed: false,
+            },
+            {
+              id: 'craft-seal',
+              description: 'Create your first authentication seal',
+              completed: false,
+            },
+            {
+              id: 'verify-seal',
+              description: 'Prove the seal\'s authenticity',
+              completed: false,
+            },
+          ],
+          reward: {
+            score: 125,
+            items: ['Cryptomancer Staff', 'HMAC Grimoire'],
+          },
+        }
+
+```
+
+⚙️ How to Use
+Quests Already structured in createDefaultGameState()
+Dialogue Static or NPC-scripted (gatekeeperGlynn.ts)
+Scoring/XP Quest rewards (add to score, items, level)
+Team Sync Achieved via shared meeting quest logic
+Engine Compatibility Fully aligns with existing GameAction → generateBotResponse flow
+Extensibility Each quest can optionally branch into a campaign tree later
+
+Would you like me to:
+📥 Bundle this into a Markdown PDF for printing?
+
+🎞 Generate Mermaid diagrams (quest lifecycle, message routing)?
+
+🧙 Add more NPCs for the onboarding series?
