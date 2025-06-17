@@ -1,0 +1,91 @@
+{
+  "testPlayers": [
+    {
+      "id": "fixture-player-1",
+      "name": "TestHero",
+      "score": 0,
+      "level": "novice",
+      "status": "idle",
+      "location": "town"
+    },
+    {
+      "id": "fixture-player-2", 
+      "name": "ExperiencedTester",
+      "score": 500,
+      "level": "expert",
+      "status": "exploring",
+      "location": "dungeon"
+    }
+  ],
+  
+  "testQuests": [
+    {
+      "id": "fixture-quest-1",
+      "title": "Test Quest Alpha",
+      "description": "A simple quest for testing purposes",
+      "realWorldSkill": "Test automation",
+      "fantasyTheme": "Mastering the mystical art of API testing",
+      "status": "available",
+      "steps": [
+        {
+          "id": "test-step-1",
+          "description": "Execute the first test step",
+          "completed": false
+        },
+        {
+          "id": "test-step-2", 
+          "description": "Validate the second test step",
+          "completed": false
+        }
+      ],
+      "reward": {
+        "score": 50,
+        "items": ["Test Badge", "Validation Token"]
+      }
+    }
+  ],
+  
+  "chatScenarios": [
+    {
+      "input": "Hello!",
+      "expectedKeywords": ["greetings", "hero", "assist", "journey"],
+      "description": "Basic greeting response"
+    },
+    {
+      "input": "What quests are available?",
+      "expectedKeywords": ["quest", "available", "realm"],
+      "description": "Quest inquiry response"
+    },
+    {
+      "input": "What is my current score?",
+      "expectedKeywords": ["score", "points", "level"],
+      "description": "Score inquiry response"
+    },
+    {
+      "input": "Help me please",
+      "expectedKeywords": ["help", "assist", "guide", "adventures"],
+      "description": "Help request response"
+    }
+  ],
+  
+  "gameActions": [
+    {
+      "type": "SET_SCORE",
+      "payload": { "score": 100 },
+      "description": "Set player score to 100",
+      "expectedResult": { "score": 100 }
+    },
+    {
+      "type": "CHAT",
+      "payload": { "message": "Test message" },
+      "description": "Send a test chat message",
+      "expectedResult": { "playerMessage": true, "botResponse": true }
+    },
+    {
+      "type": "START_QUEST",
+      "payload": { "questId": "server-health" },
+      "description": "Start the server health monitoring quest",
+      "expectedResult": { "quest": "Dungeon Keeper's Vigil", "status": "started" }
+    }
+  ]
+}

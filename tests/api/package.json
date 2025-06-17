@@ -1,15 +1,40 @@
 {
   "name": "@mymcp/engine-test",
-  "version": "1.0.0",
-  "description": "Test suite for myMCP Engine",
-  "main": "test-api.js",
+  "version": "2.0.0",
+  "description": "Comprehensive test automation suite for myMCP Engine",
+  "main": "runners/run-all.js",
   "scripts": {
-    "test": "node test-api.js",
-    "test-ws": "node test-websocket.js",
-    "start-engine": "cd ../packages/engine && npm start",
-    "build-all": "cd ../shared/types && npm run build && cd ../../packages/engine && npm run build"
+    "test": "node runners/run-all.js",
+    "test:unit": "node runners/run-unit.js",
+    "test:integration": "node runners/run-integration.js",
+    "test:smoke": "node runners/run-smoke.js",
+    "test:custom": "node runners/run-custom.js",
+    "test:verbose": "node runners/run-all.js --verbose",
+    "test:continue": "node runners/run-all.js --continue-on-failure",
+    "test:report": "node runners/run-all.js --html-report",
+    "test:export": "node runners/run-all.js --export-results",
+    "test:watch": "nodemon runners/run-all.js",
+    "clean": "rm -rf results/* || echo 'No results to clean'",
+    "start-engine": "cd ../../packages/engine && npm start",
+    "setup": "npm install && mkdir -p results",
+    "demo": "node full-test-updated.js"
   },
   "dependencies": {
     "ws": "^8.14.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "keywords": [
+    "testing",
+    "api",
+    "automation",
+    "mymcp",
+    "engine",
+    "integration",
+    "unit"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
   }
 }

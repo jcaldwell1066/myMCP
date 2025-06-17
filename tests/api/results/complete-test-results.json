@@ -1,0 +1,132 @@
+{
+  "unit": {
+    "total": 17,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "startTime": 1750128931708,
+    "endTime": 1750128931822,
+    "tests": [
+      {
+        "suite": "Health Endpoint",
+        "name": "should return 200 status code",
+        "status": "passed",
+        "error": null,
+        "duration": 62,
+        "startTime": 1750128931790
+      },
+      {
+        "suite": "Health Endpoint",
+        "name": "should return valid health information",
+        "status": "passed",
+        "error": null,
+        "duration": 62,
+        "startTime": 1750128931791
+      },
+      {
+        "suite": "Health Endpoint",
+        "name": "should have correct response structure",
+        "status": "passed",
+        "error": null,
+        "duration": 63,
+        "startTime": 1750128931791
+      },
+      {
+        "suite": "Health Endpoint",
+        "name": "should return timestamp in ISO format",
+        "status": "passed",
+        "error": null,
+        "duration": 66,
+        "startTime": 1750128931791
+      },
+      {
+        "suite": "Health Endpoint",
+        "name": "should handle concurrent requests",
+        "status": "passed",
+        "error": null,
+        "duration": 79,
+        "startTime": 1750128931791
+      },
+      {
+        "suite": "GET /api/state/:playerId",
+        "name": "should create default state for new player",
+        "status": "passed",
+        "error": null,
+        "duration": 71,
+        "startTime": 1750128931809
+      },
+      {
+        "suite": "GET /api/state/:playerId",
+        "name": "should include all required game state sections",
+        "status": "passed",
+        "error": null,
+        "duration": 81,
+        "startTime": 1750128931809
+      },
+      {
+        "suite": "GET /api/state/:playerId",
+        "name": "should return player with correct default values",
+        "status": "passed",
+        "error": null,
+        "duration": 91,
+        "startTime": 1750128931809
+      },
+      {
+        "suite": "GET /api/state/:playerId",
+        "name": "should include default quests",
+        "status": "passed",
+        "error": null,
+        "duration": 101,
+        "startTime": 1750128931809
+      },
+      {
+        "suite": "GET /api/state/:playerId",
+        "name": "should work with default player ID when none provided",
+        "status": "passed",
+        "error": null,
+        "duration": 104,
+        "startTime": 1750128931809
+      },
+      {
+        "suite": "PUT /api/state/:playerId/player",
+        "name": "should update player score",
+        "status": "passed",
+        "error": null,
+        "duration": 125,
+        "startTime": 1750128931810
+      },
+      {
+        "suite": "PUT /api/state/:playerId/player",
+        "name": "should update player level based on score",
+        "status": "passed",
+        "error": null,
+        "duration": 134,
+        "startTime": 1750128931810
+      },
+      {
+        "suite": "PUT /api/state/:playerId/player",
+        "name": "should update multiple player fields",
+        "status": "passed",
+        "error": null,
+        "duration": 145,
+        "startTime": 1750128931811
+      }
+    ]
+  },
+  "integration": {
+    "total": 6,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "startTime": 1750128931825,
+    "endTime": 1750128931988,
+    "tests": []
+  },
+  "overall": {
+    "total": 23,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 284
+  }
+}
