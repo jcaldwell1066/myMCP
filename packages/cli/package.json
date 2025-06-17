@@ -22,7 +22,10 @@
     "build:full": "node build.js build",
     "install-global": "npm link",
     "shell": "node interactive-shell.js",
-    "simple": "node src/simple-cli.js"
+    "guide": "node enhanced-shell.js",
+    "adventure": "node enhanced-shell.js",
+    "simple": "node src/simple-cli.js",
+    "unified": "node unified-shell.js"
   },
   "dependencies": {
     "@mymcp/types": "file:../../shared/types",

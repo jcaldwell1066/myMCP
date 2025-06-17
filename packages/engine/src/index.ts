@@ -25,6 +25,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { config } from 'dotenv';
 import { LLMService, LLMProvider } from './services/LLMService';
+import { UnifiedChatService } from './services/UnifiedChatService';
 
 // Load environment variables from project root
 config({ path: join(__dirname, '..', '..', '..', '.env') });
@@ -49,6 +50,9 @@ let gameStatesCache: Record<string, GameState> = {};
 
 // Initialize LLM service
 const llmService = new LLMService();
+
+// Initialize unified chat service
+const unifiedChatService = new UnifiedChatService();
 
 // Load game states from file
 function loadGameStates(): Record<string, GameState> {
@@ -845,3 +849,4 @@ process.on('SIGTERM', () => {
 });
 
 export default app;
+

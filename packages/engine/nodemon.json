@@ -1,0 +1,19 @@
+{
+  "watch": ["src"],
+  "ext": "ts,js,json",
+  "ignore": [
+    "dist/**/*",
+    "node_modules/**/*",
+    "data/**/*",
+    "*.log",
+    "*.test.ts",
+    "**/*.test.ts"
+  ],
+  "exec": "npm run build && node dist/index.js",
+  "delay": 2000,
+  "verbose": false,
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

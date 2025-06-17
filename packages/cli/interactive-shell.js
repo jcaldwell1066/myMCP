@@ -39,19 +39,21 @@ function handleApiError(error, defaultMessage = 'An error occurred') {
 function showBanner() {
   console.log(
     chalk.cyan(
-      figlet.textSync('myMCP Shell', { 
+      figlet.textSync('Adventure Guide', { 
         font: 'Standard',
         horizontalLayout: 'default' 
       })
     )
   );
-  console.log(chalk.yellow('🗡️  Interactive Fantasy CLI Shell'));
+  console.log(chalk.yellow('🧙‍♂️ Interactive Fantasy Adventure with AI Guide'));
   console.log(chalk.gray('─'.repeat(50)));
-  console.log(chalk.blue('Available commands:'));
-  console.log(chalk.gray('  status, get-score, set-score <num>, chat <msg>'));
-  console.log(chalk.gray('  start-quest [id], quests, quest-steps, next, progress'));
-  console.log(chalk.gray('  complete-step <id>, complete-quest, history, config'));
-  console.log(chalk.gray('  health, help, clear, exit'));
+  console.log(chalk.blue('Natural conversation mode:'));
+  console.log(chalk.gray('  Just speak naturally: "I want to start a quest"'));
+  console.log(chalk.gray('  Your guide understands: "I completed finding allies"'));
+  console.log(chalk.gray('  Ask anything: "What should I do next?"'));
+  console.log();
+  console.log(chalk.blue('Quick commands (optional):'));
+  console.log(chalk.gray('  status, quests, history, help, clear, exit'));
   console.log(chalk.gray('─'.repeat(50)));
   console.log();
 }
@@ -106,20 +108,40 @@ async function checkEngineHealth() {
   }
 }
 
-async function executeCommand(input) {
+async function processInput(input) {
   const trimmed = input.trim();
   
   if (!trimmed) return;
   
+  // Handle exit commands
+  if (['exit', 'quit', 'bye', 'farewell'].includes(trimmed.toLowerCase())) {
+    console.log(chalk.green('🌟 Farewell, brave adventurer! May thy journey continue with wisdom and courage!'));
+    process.exit(0);
+  }
+  
+  // Handle clear
+  if (trimmed.toLowerCase() === 'clear') {
+    console.clear();
+    showBanner();
+    return;
+  }
+  
+  // Check if it's a quick command
   const parts = trimmed.split(' ');
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
   
-  // Handle exit commands
-  if (['exit', 'quit', 'bye', 'q'].includes(command)) {
-    console.log(chalk.green('🎮 Thanks for playing! Goodbye, adventurer!'));
-    process.exit(0);
+  const quickCommands = ['status', 'quests', 'history', 'help', 'health', 'config', 'get-score', 'set-score'];
+  
+  if (quickCommands.includes(command)) {
+    await executeCommand(command + ' ' + args.join(' '));
+  } else {
+    // Everything else goes to chat (remove the 'chat' prefix requirement)
+    console.log(chalk.green(`🗣️  You: ${trimmed}`));
+    console.log(chalk.gray('🤖 Your guide ponders thy words...'));
+    await executeCommand('chat ' + trimmed);
   }
+}
   
   // Handle help
   if (command === 'help') {
@@ -402,11 +424,11 @@ async function startShell() {
       const { command } = await inquirer.prompt([{
         type: 'input',
         name: 'command',
-        message: chalk.cyan('myMCP>'),
+        message: chalk.cyan('Adventure>'), // Changed from myMCP>
         validate: () => true // Allow empty input
       }]);
       
-      await executeCommand(command);
+      await processInput(command);
       
     } catch (error) {
       if (error.name === 'ExitPromptError') {

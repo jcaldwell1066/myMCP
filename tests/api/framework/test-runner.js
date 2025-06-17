@@ -55,26 +55,30 @@ class TestRunner {
     this.afterEachHooks = [];
     this.beforeAllHooks = [];
     this.afterAllHooks = [];
+    this.pendingTests = [];
     
+    // Call the suite function to register tests
     suiteFunction();
+    
+    // Return promise to execute all tests in this suite
+    return this.executePendingTests();
+  }
+  
+  /**
+   * Execute all pending tests for current suite
+   */
+  async executePendingTests() {
+    for (const test of this.pendingTests || []) {
+      await this.executeTest(test);
+    }
+    this.pendingTests = [];
     this.currentSuite = null;
   }
-
+  
   /**
-   * Define a test case
+   * Execute a single test
    */
-  async it(testName, testFunction, options = {}) {
-    const test = {
-      suite: this.currentSuite,
-      name: testName,
-      status: 'pending',
-      error: null,
-      duration: 0,
-      startTime: Date.now()
-    };
-    
-    this.results.total++;
-    
+  async executeTest(test) {
     try {
       // Setup
       if (this.config.cleanupBetweenTests) {
@@ -94,7 +98,7 @@ class TestRunner {
         skip: () => { throw new Error('SKIP_TEST'); }
       };
       
-      await testFunction.call(testContext, testContext);
+      await test.testFunction.call(testContext, testContext);
       
       // Run afterEach hooks
       for (const hook of this.afterEachHooks) {
@@ -105,7 +109,7 @@ class TestRunner {
       test.duration = Date.now() - test.startTime;
       this.results.passed++;
       
-      console.log(`  ✅ ${testName} (${test.duration}ms)`);
+      console.log(`  ✅ ${test.name} (${test.duration}ms)`);
       
     } catch (error) {
       test.duration = Date.now() - test.startTime;
@@ -113,12 +117,12 @@ class TestRunner {
       if (error.message === 'SKIP_TEST') {
         test.status = 'skipped';
         this.results.skipped++;
-        console.log(`  ⏭️  ${testName} (skipped)`);
+        console.log(`  ⏭️  ${test.name} (skipped)`);
       } else {
         test.status = 'failed';
         test.error = error.message;
         this.results.failed++;
-        console.log(`  ❌ ${testName} (${test.duration}ms)`);
+        console.log(`  ❌ ${test.name} (${test.duration}ms)`);
         console.log(`     ${error.message}`);
         
         if (this.config.stopOnFailure) {
@@ -128,6 +132,34 @@ class TestRunner {
     }
     
     this.results.tests.push(test);
+    
+    if (test.resolve) {
+      test.resolve();
+    }
+  }
+
+  /**
+   * Define a test case
+   */
+  it(testName, testFunction, options = {}) {
+    const test = {
+      suite: this.currentSuite,
+      name: testName,
+      status: 'pending',
+      error: null,
+      duration: 0,
+      startTime: Date.now(),
+      testFunction: testFunction
+    };
+    
+    this.results.total++;
+    this.pendingTests = this.pendingTests || [];
+    this.pendingTests.push(test);
+    
+    // Return a promise that will be resolved when the test runs
+    return new Promise((resolve) => {
+      test.resolve = resolve;
+    });
   }
 
   /**
