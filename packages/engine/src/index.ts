@@ -456,12 +456,20 @@ app.post('/api/actions/:playerId?', async (req, res) => {
     });
   }
   
-  const action: GameAction = {
-    ...value,
-    timestamp: new Date(),
-    playerId,
+  // Type the validated value
+  const validatedAction = value as {
+    type: GameAction['type'];
+    payload: any;
+    playerId: string;
   };
   
+  const action: GameAction = {
+    type: validatedAction.type,
+    payload: validatedAction.payload,
+    playerId: validatedAction.playerId,
+    timestamp: new Date(),
+  };
+
   let gameState = gameStatesCache[playerId];
   if (!gameState) {
     gameState = createDefaultGameState(playerId);

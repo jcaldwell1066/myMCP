@@ -7,6 +7,7 @@ const axios = require('axios');
 const path = require('path');
 
 const StepLauncher = require('./src/stepLauncher');
+const { getStepDifficulty } = require('./src/questStepTypes');
 
 // Configuration
 const config = {
@@ -406,7 +407,8 @@ function getStepDifficultyInfo(step) {
     hard: '🔴 Hard'
   };
   
-  return difficultyEmojis[step.metadata.difficulty] || '🔘 Unknown';
+  const difficulty = getStepDifficulty(step);
+  return difficultyEmojis[difficulty] || '🔘 Unknown';
 }
 
 async function startShell() {

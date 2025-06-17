@@ -7,8 +7,8 @@ const { spawn, exec } = require('child_process');
 const { promises: fs } = require('fs');
 const path = require('path');
 
-// Import enhanced quest step types (will need to be compiled from TypeScript)
-const { isEnhancedQuestStep, getStepPoints } = require('../../engine/dist/types/QuestStep');
+// Import enhanced quest step types
+const { isEnhancedQuestStep, getStepPoints } = require('./questStepTypes');
 
 class StepLauncher {
   constructor(apiClient) {
