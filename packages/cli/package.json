@@ -6,12 +6,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "mycli": "dist/mycli.js"
+    "mycli": "src/simple-cli.js"
   },
   "files": [
     "dist/**/*",
-    "src/**/*",
-    "bin/**/*"
+    "src/**/*"
   ],
   "scripts": {
     "build": "tsc",
@@ -22,7 +21,8 @@
     "prebuild": "npm run clean",
     "build:full": "node build.js build",
     "install-global": "npm link",
-    "shell": "node interactive-shell.js"
+    "shell": "node interactive-shell.js",
+    "simple": "node src/simple-cli.js"
   },
   "dependencies": {
     "@mymcp/types": "file:../../shared/types",

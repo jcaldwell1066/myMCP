@@ -14,15 +14,8 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "composite": false,
-    "incremental": true,
-    "noEmit": false,
-    "emitDeclarationOnly": false,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@mymcp/types": ["../../shared/types/dist/index.d.ts"]
-    }
+    "types": ["node"]
   },
   "include": [
     "src/**/*"

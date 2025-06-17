@@ -23,6 +23,11 @@ import {
 } from '@mymcp/types';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
+import { config } from 'dotenv';
+import { LLMService, LLMProvider } from './services/LLMService';
+
+// Load environment variables from project root
+config({ path: join(__dirname, '..', '..', '..', '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +46,9 @@ const wsClients = new Set<WebSocket>();
 
 // Game state cache (in-memory for performance)
 let gameStatesCache: Record<string, GameState> = {};
+
+// Initialize LLM service
+const llmService = new LLMService();
 
 // Load game states from file
 function loadGameStates(): Record<string, GameState> {
@@ -251,8 +259,11 @@ function broadcastStateUpdate(playerId: string, update: StateUpdate) {
 
 // API Routes
 
-// Health check
+// Health check with LLM status
 app.get('/health', (req, res) => {
+  const llmStatus = llmService.getProviderStatus();
+  const hasWorkingLLM = Object.values(llmStatus).some(working => working);
+  
   res.json({
     status: 'ok',
     message: 'myMCP Engine is running strong!',
@@ -260,6 +271,11 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
     activeStates: Object.keys(gameStatesCache).length,
     wsConnections: wsClients.size,
+    llm: {
+      enabled: hasWorkingLLM,
+      providers: llmStatus,
+      availableProviders: llmService.getAvailableProviders(),
+    },
   });
 });
 
@@ -463,19 +479,23 @@ app.post('/api/actions/:playerId?', async (req, res) => {
       };
       gameState.session.conversationHistory.push(message);
       
-      // Simple bot response (will be enhanced with LLM in Task 7)
+      // Generate LLM response (now async)
+      const botResponseData = await generateBotResponse(action.payload.message, gameState);
+      
       const botResponse: ChatMessage = {
         id: uuidv4(),
         timestamp: new Date(),
         sender: 'bot',
-        message: generateBotResponse(action.payload.message, gameState),
+        message: botResponseData.message,
         type: 'chat',
+        metadata: botResponseData.metadata, // Store LLM metadata
       };
       gameState.session.conversationHistory.push(botResponse);
       
       result = { 
         playerMessage: message,
-        botResponse: botResponse 
+        botResponse: botResponse,
+        llmMetadata: botResponseData.metadata,
       };
       break;
       
@@ -541,6 +561,66 @@ app.get('/api/quests/:playerId?', (req, res) => {
   });
 });
 
+// LLM status endpoint
+app.get('/api/llm/status', (req, res) => {
+  const providers = llmService.getAvailableProviders();
+  const status = llmService.getProviderStatus();
+  
+  res.json({
+    success: true,
+    data: {
+      availableProviders: providers,
+      providerStatus: status,
+      totalProviders: providers.length,
+      hasWorkingProvider: Object.values(status).some(working => working),
+    },
+    timestamp: new Date(),
+  });
+});
+
+// Streaming chat endpoint
+app.get('/api/chat/:playerId/stream', async (req, res) => {
+  const playerId = req.params.playerId || 'default-player';
+  const message = req.query.message as string;
+  
+  if (!message) {
+    return res.status(400).json({
+      success: false,
+      error: 'Message parameter required',
+      timestamp: new Date(),
+    });
+  }
+  
+  let gameState = gameStatesCache[playerId];
+  if (!gameState) {
+    gameState = createDefaultGameState(playerId);
+  }
+  
+  // Set up Server-Sent Events
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control',
+  });
+  
+  try {
+    let fullResponse = '';
+    
+    for await (const chunk of llmService.generateResponseStream(message, gameState)) {
+      fullResponse += chunk;
+      res.write(`data: ${JSON.stringify({ chunk, fullResponse })}\n\n`);
+    }
+    
+    res.write(`data: ${JSON.stringify({ done: true, fullResponse })}\n\n`);
+  } catch (error) {
+    res.write(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`);
+  } finally {
+    res.end();
+  }
+});
+
 // Get tab completion suggestions
 app.get('/api/context/completions/:playerId?', (req, res) => {
   const playerId = req.params.playerId || 'default-player';
@@ -584,43 +664,123 @@ app.get('/api/context/completions/:playerId?', (req, res) => {
   });
 });
 
-// Simple bot response generation (will be enhanced with LLM)
-function generateBotResponse(userMessage: string, gameState: GameState): string {
+// LLM-powered bot response generation
+async function generateBotResponse(userMessage: string, gameState: GameState): Promise<{
+  message: string;
+  metadata: any;
+}> {
+  try {
+    const llmResponse = await llmService.generateResponse(userMessage, gameState);
+    
+    return {
+      message: llmResponse.text,
+      metadata: llmResponse.metadata,
+    };
+  } catch (error) {
+    console.error('LLM response generation failed:', error);
+    
+    // Enhanced fallback that still uses context
+    const contextualFallback = generateContextualFallback(userMessage, gameState);
+    return {
+      message: contextualFallback,
+      metadata: {
+        provider: 'fallback' as LLMProvider,
+        model: 'contextual-template',
+        tokensUsed: 0,
+        responseTime: 0,
+        cached: false,
+        confidence: 0.2,
+        contentFiltered: false,
+        error: (error as Error).message,
+      },
+    };
+  }
+}
+
+// Enhanced fallback function that leverages game context
+function generateContextualFallback(userMessage: string, gameState: GameState): string {
   const message = userMessage.toLowerCase();
+  const playerName = gameState.player.name;
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? 'this fine morning' : 
+                      currentHour < 18 ? 'this day' : 'this evening';
   
-  // Context-aware responses
+  // Quest-specific responses
   if (gameState.quests.active) {
-    if (message.includes('quest') || message.includes('current')) {
-      return `You are currently on the "${gameState.quests.active.title}" quest. ${gameState.quests.active.description}`;
+    const quest = gameState.quests.active;
+    const completedSteps = quest.steps.filter(s => s.completed).length;
+    const totalSteps = quest.steps.length;
+    const nextStep = quest.steps.find(s => !s.completed);
+    
+    if (message.includes('quest') || message.includes('current') || message.includes('progress')) {
+      return `Greetings, ${playerName}! Thou art currently engaged in the noble quest "${quest.title}". Progress stands at ${completedSteps} of ${totalSteps} steps completed. ${nextStep ? `Thy next challenge: ${nextStep.description}` : 'Thou art nearly finished with this grand adventure!'}`;
+    }
+    
+    if (message.includes('help') || message.includes('stuck') || message.includes('what')) {
+      return `Fear not, brave ${playerName}! In thy current quest "${quest.title}", remember: ${quest.description} ${nextStep ? `Focus thy efforts on: ${nextStep.description}` : 'Thou hast made excellent progress!'}`;
     }
   }
   
-  if (message.includes('score') || message.includes('points')) {
-    return `Your current score is ${gameState.player.score} points. You are a ${gameState.player.level} level adventurer!`;
+  // Score and level responses
+  if (message.includes('score') || message.includes('points') || message.includes('level')) {
+    const levelMessages = {
+      novice: 'Every master was once a beginner, young adventurer.',
+      apprentice: 'Thy skills grow stronger with each challenge overcome.',
+      expert: 'Impressive prowess! The realm takes notice of thy deeds.',
+      master: 'Legendary! Thy name shall be remembered in the annals of history.',
+    };
+    
+    return `Thy current score stands at ${gameState.player.score} points, marking thee as a ${gameState.player.level} among adventurers. ${levelMessages[gameState.player.level as keyof typeof levelMessages]} Keep questing onwards!`;
   }
   
-  if (message.includes('quest') || message.includes('adventure')) {
+  // Location-based responses
+  if (message.includes('where') || message.includes('location')) {
+    const locationDescriptions = {
+      town: 'the bustling merchant town, where adventures begin and tales are told',
+      forest: 'the mystical woodland, where ancient secrets whisper through the leaves',
+      cave: 'the shadowy caverns, where treasures and dangers lurk in equal measure',
+      shop: 'the magical emporium, where wonders and necessities can be procured',
+    };
+    
+    return `Thou findest thyself in ${locationDescriptions[gameState.player.location as keyof typeof locationDescriptions] || 'an unknown realm'}. What adventures shall we pursue ${timeGreeting}?`;
+  }
+  
+  // Greeting responses
+  if (message.includes('hello') || message.includes('hi') || message.includes('greet')) {
+    return `Hail and well met, ${playerName}! 'Tis good to see thee ${timeGreeting}. ${gameState.quests.active ? `Thy quest "${gameState.quests.active.title}" awaits thy attention.` : `The realm offers many adventures for one of thy ${gameState.player.level} standing.`} How may this humble guide assist thee?`;
+  }
+  
+  // Quest-related inquiries
+  if (message.includes('adventure') || message.includes('quest') && !gameState.quests.active) {
     const availableCount = gameState.quests.available.length;
-    return `You have ${availableCount} quests available! The realm needs heroes like you.`;
+    return `Excellent timing, ${playerName}! The realm currently offers ${availableCount} quests worthy of thy ${gameState.player.level} skills. Each promises great rewards and the chance to grow thy abilities. Shall we explore these opportunities together?`;
   }
   
-  if (message.includes('hello') || message.includes('hi')) {
-    return `Greetings, ${gameState.player.name}! How may I assist you on your journey?`;
+  // Help responses
+  if (message.includes('help') || message.includes('commands') || message.includes('what can')) {
+    return `Of course, ${playerName}! I can aid thee with managing quests, tracking thy progress, understanding thy current standing, and providing guidance on thy adventures. Ask me about thy score, available quests, current objectives, or simply converse about the mysteries of our realm.`;
   }
   
-  if (message.includes('help')) {
-    return 'I can help you manage quests, track your progress, and guide your adventures. What would you like to know?';
+  // Inventory responses
+  if (message.includes('item') || message.includes('inventory') || message.includes('treasure')) {
+    const itemCount = gameState.inventory.items.length;
+    if (itemCount > 0) {
+      const itemNames = gameState.inventory.items.map(item => item.name).join(', ');
+      return `Thy inventory contains ${itemCount} items of note: ${itemNames}. Each has been earned through thy noble deeds and adventures.`;
+    } else {
+      return `Thy inventory awaits treasures from future adventures, ${playerName}. Complete quests and explore the realm to gather items of power and value.`;
+    }
   }
   
-  // Default responses
-  const defaults = [
-    'The ancient texts speak of such things... tell me more.',
-    'Interesting perspective, brave adventurer.',
-    'Your wisdom grows with each question you ask.',
-    'The realm is full of mysteries. Keep exploring!',
+  // Default thoughtful responses based on game state
+  const generalResponses = [
+    `The ancient wisdom suggests many paths, ${playerName}. Share more of thy thoughts that I might offer fitting counsel.`,
+    `Interesting perspective, brave adventurer. The mysteries of the realm often reveal themselves through such inquiries.`,
+    `Thy ${gameState.player.level} wisdom grows with each question posed. Tell me more about what troubles or intrigues thee.`,
+    `The winds of ${gameState.player.location} carry whispers of such things. What specific guidance dost thou seek ${timeGreeting}?`,
   ];
   
-  return defaults[Math.floor(Math.random() * defaults.length)];
+  return generalResponses[Math.floor(Math.random() * generalResponses.length)];
 }
 
 // Error handling middleware

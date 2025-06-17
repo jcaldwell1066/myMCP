@@ -13,12 +13,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "composite": true,
-    "incremental": true,
-    "noEmit": false,
-    "emitDeclarationOnly": false,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"]
   },
   "include": [
     "src/**/*"
@@ -28,8 +25,5 @@
     "node_modules",
     "**/*.test.ts",
     "**/*.spec.ts"
-  ],
-  "references": [
-    { "path": "../../shared/types" }
   ]
 }
