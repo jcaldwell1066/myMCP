@@ -6,6 +6,8 @@ const inquirer = require('inquirer');
 const axios = require('axios');
 const path = require('path');
 
+const StepLauncher = require('./src/stepLauncher');
+
 // Configuration
 const config = {
   engineUrl: 'http://localhost:3000',
@@ -23,6 +25,9 @@ function createApiClient() {
     },
   });
 }
+
+// Initialize step launcher
+const stepLauncher = new StepLauncher(createApiClient());
 
 // Error handling utility
 function handleApiError(error, defaultMessage = 'An error occurred') {
@@ -151,6 +156,22 @@ async function handleQuickCommand(command, args) {
         });
       }
       break;
+
+    case 'steps':
+      await showQuestSteps();
+      break;
+
+    case 'step':
+      if (args.length > 0) {
+        await launchQuestStep(args[0]);
+      } else {
+        console.log(chalk.red('❌ Please specify a step ID: step <step-id>'));
+      }
+      break;
+
+    case 'next':
+      await launchNextStep();
+      break;
       
     case 'health':
       const health = await checkEngineHealth();
@@ -211,6 +232,9 @@ async function handleQuickCommand(command, args) {
       console.log(chalk.cyan('⚡ Quick Commands:'));
       console.log(chalk.gray('   status    - Show adventure status'));
       console.log(chalk.gray('   quests    - List available quests'));
+      console.log(chalk.gray('   steps     - Show current quest steps'));
+      console.log(chalk.gray('   step <id> - Launch specific step'));
+      console.log(chalk.gray('   next      - Launch next available step'));
       console.log(chalk.gray('   history   - Show recent conversations'));
       console.log(chalk.gray('   health    - Check realm connection'));
       console.log(chalk.gray('   clear     - Clear the screen'));
@@ -265,7 +289,7 @@ async function processInput(input) {
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
   
-  const quickCommands = ['status', 'quests', 'history', 'help', 'health'];
+  const quickCommands = ['status', 'quests', 'steps', 'step', 'next', 'history', 'help', 'health'];
   
   if (quickCommands.includes(command)) {
     await handleQuickCommand(command, args);
@@ -273,6 +297,116 @@ async function processInput(input) {
     // Everything else goes to natural language chat
     await handleChat(trimmed);
   }
+}
+
+// Enhanced step management functions
+async function showQuestSteps() {
+  const state = await getPlayerState();
+  if (!state || !state.quests.active) {
+    console.log(chalk.yellow('⚠️  No active quest. Start a quest first!'));
+    return;
+  }
+
+  const quest = state.quests.active;
+  console.log(chalk.bold.blue(`🎯 Quest Steps: ${quest.title}`));
+  console.log(chalk.gray('─'.repeat(50)));
+  console.log(chalk.white(quest.description));
+  console.log();
+
+  console.log(chalk.blue('📋 Steps:'));
+  quest.steps.forEach((step, index) => {
+    const status = step.completed ? chalk.green('✅') : chalk.gray('○');
+    const difficulty = getStepDifficultyInfo(step);
+    
+    console.log(`${status} ${index + 1}. ${step.title || step.description}`);
+    
+    if (step.metadata) {
+      console.log(chalk.gray(`      ${difficulty} • ${step.metadata.points} points • ${step.metadata.estimatedDuration || 'No time estimate'}`));
+      if (step.metadata.tags && step.metadata.tags.length > 0) {
+        console.log(chalk.gray(`      Tags: ${step.metadata.tags.join(', ')}`));
+      }
+    }
+    
+    if (!step.completed && step.execution && step.execution.hints) {
+      console.log(chalk.yellow(`      💡 Hint: ${step.execution.hints[0]}`));
+    }
+    
+    console.log();
+  });
+  
+  const nextStep = quest.steps.find(s => !s.completed);
+  if (nextStep) {
+    console.log(chalk.cyan(`⭕ Next step: ${nextStep.title || nextStep.description}`));
+    console.log(chalk.gray('   Use "next" or "step ' + nextStep.id + '" to launch it'));
+  } else {
+    console.log(chalk.green('✨ All steps completed! Use natural language to complete the quest.'));
+  }
+}
+
+async function launchQuestStep(stepId) {
+  const state = await getPlayerState();
+  if (!state || !state.quests.active) {
+    console.log(chalk.yellow('⚠️  No active quest. Start a quest first!'));
+    return;
+  }
+
+  const step = state.quests.active.steps.find(s => s.id === stepId);
+  if (!step) {
+    console.log(chalk.red(`❌ Step '${stepId}' not found in current quest.`));
+    return;
+  }
+
+  if (step.completed) {
+    console.log(chalk.yellow(`✅ Step '${step.title || step.description}' is already completed!`));
+    return;
+  }
+
+  // Check prerequisites
+  if (step.metadata && step.metadata.prerequisites) {
+    const unmetPrereqs = step.metadata.prerequisites.filter(prereqId => {
+      const prereqStep = state.quests.active.steps.find(s => s.id === prereqId);
+      return !prereqStep || !prereqStep.completed;
+    });
+    
+    if (unmetPrereqs.length > 0) {
+      console.log(chalk.yellow(`⚠️  Prerequisites not met: ${unmetPrereqs.join(', ')}`));
+      console.log(chalk.gray('Complete the required steps first.'));
+      return;
+    }
+  }
+
+  // Launch the step using the enhanced step launcher
+  await stepLauncher.launchStep(step, config.playerId);
+}
+
+async function launchNextStep() {
+  const state = await getPlayerState();
+  if (!state || !state.quests.active) {
+    console.log(chalk.yellow('⚠️  No active quest. Start a quest first!'));
+    return;
+  }
+
+  const nextStep = state.quests.active.steps.find(s => !s.completed);
+  if (!nextStep) {
+    console.log(chalk.green('✨ All steps completed! Your quest awaits final completion.'));
+    console.log(chalk.gray('Use natural language like "I completed the quest" to finish.'));
+    return;
+  }
+
+  console.log(chalk.blue(`🎯 Launching next step: ${nextStep.title || nextStep.description}`));
+  await launchQuestStep(nextStep.id);
+}
+
+function getStepDifficultyInfo(step) {
+  if (!step.metadata) return '🔘 Unknown';
+  
+  const difficultyEmojis = {
+    easy: '🟢 Easy',
+    medium: '🟡 Medium', 
+    hard: '🔴 Hard'
+  };
+  
+  return difficultyEmojis[step.metadata.difficulty] || '🔘 Unknown';
 }
 
 async function startShell() {

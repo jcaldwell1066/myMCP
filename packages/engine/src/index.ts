@@ -379,6 +379,69 @@ app.put('/api/state/:playerId/player', (req, res) => {
   res.json(response);
 });
 
+// Helper function to execute game actions (used by LLM intent system)
+async function executeGameAction(action: GameAction, gameState: GameState): Promise<any> {
+  switch (action.type) {
+    case 'START_QUEST':
+      const questId = action.payload.questId;
+      const quest = gameState.quests.available.find(q => q.id === questId);
+      if (quest) {
+        quest.status = 'active';
+        gameState.quests.active = quest;
+        gameState.quests.available = gameState.quests.available.filter(q => q.id !== questId);
+        gameState.player.currentQuest = quest.id;
+        gameState.player.status = 'in-quest';
+        return { quest: quest.title, status: 'started' };
+      } else {
+        throw new Error('Quest not found');
+      }
+      
+    case 'COMPLETE_QUEST_STEP':
+      if (gameState.quests.active) {
+        const stepId = action.payload.stepId;
+        const step = gameState.quests.active.steps.find(s => s.id === stepId);
+        if (step) {
+          step.completed = true;
+          return { step: step.description, completed: true };
+        }
+      }
+      throw new Error('Step not found or no active quest');
+      
+    case 'COMPLETE_QUEST':
+      if (gameState.quests.active) {
+        const activeQuest = gameState.quests.active;
+        activeQuest.status = 'completed';
+        gameState.player.score += activeQuest.reward.score;
+        gameState.quests.completed.push(activeQuest);
+        gameState.quests.active = null;
+        gameState.player.currentQuest = undefined;
+        gameState.player.status = 'idle';
+        
+        // Add reward items
+        if (activeQuest.reward.items) {
+          activeQuest.reward.items.forEach(item => {
+            gameState.inventory.items.push({
+              id: uuidv4(),
+              name: item,
+              description: `Reward from ${activeQuest.title}`,
+              type: 'treasure',
+            });
+          });
+        }
+        
+        return { 
+          quest: activeQuest.title, 
+          reward: activeQuest.reward,
+          status: 'completed' 
+        };
+      }
+      throw new Error('No active quest to complete');
+      
+    default:
+      throw new Error(`Unsupported action type for LLM execution: ${action.type}`);
+  }
+}
+
 // Execute game action
 app.post('/api/actions/:playerId?', async (req, res) => {
   const playerId = req.params.playerId || 'default-player';
@@ -483,23 +546,41 @@ app.post('/api/actions/:playerId?', async (req, res) => {
       };
       gameState.session.conversationHistory.push(message);
       
-      // Generate LLM response (now async)
-      const botResponseData = await generateBotResponse(action.payload.message, gameState);
+      // Use UnifiedChatService for intent recognition and action execution
+      const unifiedResponse = await unifiedChatService.generateUnifiedResponse(
+        action.payload.message, 
+        gameState
+      );
+      
+      // Execute any actions the LLM determined
+      const executedActions = [];
+      for (const detectedAction of unifiedResponse.actions || []) {
+        try {
+          const actionResult = await executeGameAction(detectedAction, gameState);
+          executedActions.push({ action: detectedAction, result: actionResult });
+          console.log(`🤖 LLM executed action: ${detectedAction.type}`);
+        } catch (error) {
+          console.error(`❌ Failed to execute LLM action:`, error);
+        }
+      }
       
       const botResponse: ChatMessage = {
         id: uuidv4(),
         timestamp: new Date(),
         sender: 'bot',
-        message: botResponseData.message,
+        message: unifiedResponse.text,
         type: 'chat',
-        metadata: botResponseData.metadata, // Store LLM metadata
+        metadata: unifiedResponse.metadata,
       };
       gameState.session.conversationHistory.push(botResponse);
       
       result = { 
         playerMessage: message,
         botResponse: botResponse,
-        llmMetadata: botResponseData.metadata,
+        llmMetadata: unifiedResponse.metadata,
+        intents: unifiedResponse.intents,
+        executedActions,
+        gameStateUpdated: unifiedResponse.gameStateUpdated
       };
       break;
       
