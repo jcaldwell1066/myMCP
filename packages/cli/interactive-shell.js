@@ -22,7 +22,8 @@ function showBanner() {
   console.log(chalk.gray('─'.repeat(50)));
   console.log(chalk.blue('Available commands:'));
   console.log(chalk.gray('  status, get-score, set-score <num>, chat <msg>'));
-  console.log(chalk.gray('  start-quest [id], quests, history, config show'));
+  console.log(chalk.gray('  start-quest [id], quests, quest-steps, next, progress'));
+  console.log(chalk.gray('  complete-step <id>, complete-quest, history, config show'));
   console.log(chalk.gray('  help, exit'));
   console.log(chalk.gray('─'.repeat(50)));
   console.log();
@@ -42,15 +43,27 @@ async function executeCommand(input) {
   // Handle help
   if (trimmed.toLowerCase() === 'help') {
     console.log(chalk.blue('🎯 Available Commands:'));
+    console.log();
+    console.log(chalk.cyan('Basic Commands:'));
     console.log(chalk.yellow('  status') + chalk.gray(' - Show current game status'));
     console.log(chalk.yellow('  get-score') + chalk.gray(' - Get current score'));
     console.log(chalk.yellow('  set-score <number>') + chalk.gray(' - Set score (e.g., set-score 100)'));
+    console.log(chalk.yellow('  chat <message>') + chalk.gray(' - Send a chat message'));
+    console.log(chalk.yellow('  history') + chalk.gray(' - Show conversation history'));
+    console.log(chalk.yellow('  config show') + chalk.gray(' - Show configuration'));
+    console.log();
+    console.log(chalk.cyan('Quest Management:'));
     console.log(chalk.yellow('  start-quest [id]') + chalk.gray(' - Start a quest'));
     console.log(chalk.yellow('  quests') + chalk.gray(' - View all quests'));
-    console.log(chalk.yellow('  history') + chalk.gray(' - Show conversation history'));
-    console.log(chalk.yellow('  chat <message>') + chalk.gray(' - Send a chat message'));
-    console.log(chalk.yellow('  config show') + chalk.gray(' - Show configuration'));
+    console.log(chalk.yellow('  quest-steps') + chalk.gray(' - View active quest steps'));
+    console.log(chalk.yellow('  next') + chalk.gray(' - Show current/next step'));
+    console.log(chalk.yellow('  complete-step <id>') + chalk.gray(' - Complete a quest step'));
+    console.log(chalk.yellow('  complete-quest') + chalk.gray(' - Finish the active quest'));
+    console.log(chalk.yellow('  progress') + chalk.gray(' - Show quest progress'));
+    console.log();
+    console.log(chalk.cyan('Shell Commands:'));
     console.log(chalk.yellow('  help') + chalk.gray(' - Show this help'));
+    console.log(chalk.yellow('  clear') + chalk.gray(' - Clear the screen'));
     console.log(chalk.yellow('  exit') + chalk.gray(' - Exit the shell'));
     console.log();
     return;
