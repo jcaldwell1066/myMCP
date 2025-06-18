@@ -19,7 +19,10 @@ import {
   GameAction, 
   APIResponse,
   StateUpdate,
-  ChatMessage 
+  ChatMessage,
+  PlayerLevel,
+  PlayerStatus,
+  LocationStatus
 } from '@mymcp/types';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
@@ -237,6 +240,15 @@ const gameActionSchema = Joi.object({
   playerId: Joi.string().required(),
 });
 
+// Player update validation schema - simple approach without method chaining
+const playerUpdateSchema = Joi.object({
+  name: Joi.string(),
+  score: Joi.number(),
+  level: Joi.string().valid('novice', 'apprentice', 'expert', 'master'),
+  status: Joi.string().valid('idle', 'chatting', 'in-quest', 'completed-quest'),
+  location: Joi.string().valid('town', 'forest', 'cave', 'shop'),
+});
+
 // Middleware
 app.use(helmet());
 app.use(cors({
@@ -309,7 +321,19 @@ app.get('/api/debug', (req, res) => {
       'POST /api/actions/:playerId?',
       'GET /api/quests/:playerId?',
       'GET /api/context/completions/:playerId?',
+      'GET /api/players',
+      'GET /api/quest-catalog',
+      'GET /api/stats',
+      'GET /api/llm/status',
+      'GET /api/chat/:playerId/stream',
     ],
+    mcpIntegration: {
+      phase: 1,
+      status: 'complete',
+      mcpServerPath: '../mcpserver',
+      resources: 7,
+      tools: 9,
+    },
     timestamp: new Date(),
   });
 });
@@ -337,7 +361,24 @@ app.get('/api/state/:playerId?', (req, res) => {
 // Update player state
 app.put('/api/state/:playerId/player', (req, res) => {
   const playerId = req.params.playerId || 'default-player';
-  const playerUpdates = req.body;
+  
+  // Validate player updates
+  const { error, value } = playerUpdateSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      error: `Validation error: ${error.details[0].message}`,
+      timestamp: new Date(),
+    });
+  }
+  
+  const playerUpdates = value as {
+    name?: string;
+    score?: number;
+    level?: PlayerLevel;
+    status?: PlayerStatus;
+    location?: LocationStatus;
+  };
   
   let gameState = gameStatesCache[playerId];
   if (!gameState) {
@@ -510,7 +551,19 @@ app.post('/api/actions/:playerId?', async (req, res) => {
         if (step) {
           step.completed = true;
           result = { step: step.description, completed: true };
+        } else {
+          return res.status(404).json({
+            success: false,
+            error: `Quest step '${stepId}' not found in active quest`,
+            timestamp: new Date(),
+          });
         }
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'No active quest to complete steps for',
+          timestamp: new Date(),
+        });
       }
       break;
       
@@ -541,6 +594,12 @@ app.post('/api/actions/:playerId?', async (req, res) => {
           reward: activeQuest.reward,
           status: 'completed' 
         };
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'No active quest to complete',
+          timestamp: new Date(),
+        });
       }
       break;
       
@@ -753,6 +812,98 @@ app.get('/api/context/completions/:playerId?', (req, res) => {
     data: suggestions.filter(s => 
       s.toLowerCase().includes(prefix.toLowerCase())
     ).slice(0, 10),
+    timestamp: new Date(),
+  });
+});
+
+// MCP-specific endpoints for better integration
+
+// List all active players
+app.get('/api/players', (req, res) => {
+  const players = Object.keys(gameStatesCache).map(playerId => {
+    const state = gameStatesCache[playerId];
+    return {
+      id: playerId,
+      name: state.player.name,
+      level: state.player.level,
+      score: state.player.score,
+      status: state.player.status,
+      location: state.player.location,
+      lastAction: state.session.lastAction,
+      activeQuest: state.quests.active?.title || null,
+    };
+  });
+  
+  res.json({
+    success: true,
+    data: players,
+    total: players.length,
+    timestamp: new Date(),
+  });
+});
+
+// Get quest definitions (without player-specific state)
+app.get('/api/quest-catalog', (req, res) => {
+  // Create a fresh state to get the default quest catalog
+  const defaultState = createDefaultGameState('temp');
+  
+  res.json({
+    success: true,
+    data: {
+      quests: defaultState.quests.available.map(quest => ({
+        id: quest.id,
+        title: quest.title,
+        description: quest.description,
+        realWorldSkill: quest.realWorldSkill,
+        fantasyTheme: quest.fantasyTheme,
+        steps: quest.steps.map(step => ({
+          id: step.id,
+          description: step.description,
+        })),
+        reward: quest.reward,
+      })),
+    },
+    timestamp: new Date(),
+  });
+});
+
+// Get server statistics
+app.get('/api/stats', (req, res) => {
+  const players = Object.values(gameStatesCache);
+  const totalPlayers = players.length;
+  const activePlayers = players.filter(p => p.player.status !== 'idle').length;
+  const totalScore = players.reduce((sum, p) => sum + p.player.score, 0);
+  const averageScore = totalPlayers > 0 ? Math.round(totalScore / totalPlayers) : 0;
+  
+  const questStats = players.reduce((stats, player) => {
+    stats.totalCompleted += player.quests.completed.length;
+    if (player.quests.active) stats.activeQuests++;
+    return stats;
+  }, { totalCompleted: 0, activeQuests: 0 });
+  
+  res.json({
+    success: true,
+    data: {
+      players: {
+        total: totalPlayers,
+        active: activePlayers,
+        idle: totalPlayers - activePlayers,
+      },
+      scores: {
+        total: totalScore,
+        average: averageScore,
+        highest: Math.max(...players.map(p => p.player.score), 0),
+      },
+      quests: {
+        completed: questStats.totalCompleted,
+        active: questStats.activeQuests,
+      },
+      system: {
+        uptime: process.uptime(),
+        wsConnections: wsClients.size,
+        memoryUsage: process.memoryUsage(),
+      },
+    },
     timestamp: new Date(),
   });
 });
