@@ -66,6 +66,16 @@ export interface ChatMessage {
   sender: 'player' | 'bot';
   message: string;
   type: 'chat' | 'system' | 'quest';
+  metadata?: {
+    provider?: string;
+    model?: string;
+    tokensUsed?: number;
+    responseTime?: number;
+    cached?: boolean;
+    confidence?: number;
+    contentFiltered?: boolean;
+    error?: string;
+  };
 }
 
 export interface GameState {

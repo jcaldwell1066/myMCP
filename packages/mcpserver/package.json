@@ -2,12 +2,18 @@
   "name": "@mymcp/mcpserver",
   "version": "0.1.0",
   "description": "myMCP MCP Protocol Server - stdio communication bridge",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
+    "build:enhanced": "tsc --build",
     "dev": "nodemon --exec \"npm run build && node dist/index.js\"",
+    "dev:enhanced": "nodemon --exec \"npm run build && node dist/enhanced-comprehensive.js\"",
     "start": "node dist/index.js",
+    "start:enhanced": "node dist/enhanced-comprehensive.js",
     "test": "jest",
+    "test:enhanced": "npm run build && node dist/test-enhanced.js",
+    "verify:build": "npm run build && node dist/quick-build-test.js",
     "clean": "rm -rf dist"
   },
   "dependencies": {

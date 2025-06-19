@@ -13,35 +13,25 @@
     "sourceMap": true,
     "composite": true,
     "incremental": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
     "resolveJsonModule": true,
     "allowImportingTsExtensions": false,
-    "noEmit": false,
+    "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/*"],
+      "@mymcp/types": ["./shared/types/src"],
+      "@mymcp/types/*": ["./shared/types/src/*"]
     }
   },
-  "include": [
-    "packages/*/src/**/*",
-    "shared/*/src/**/*",
-    "shared/*/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
+  "files": [],
   "references": [
     { "path": "./packages/engine" },
     { "path": "./packages/cli" },
-    { "path": "./packages/webapp" },
     { "path": "./packages/admin" },
     { "path": "./packages/mcpserver" },
+    { "path": "./packages/slack-integration" },
     { "path": "./shared/types" },
     { "path": "./shared/utils" },
     { "path": "./shared/config" }

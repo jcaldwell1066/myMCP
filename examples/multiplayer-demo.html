@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myMCP Multiplayer Demo</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .engine-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .engine-selector select {
+            padding: 8px;
+            font-size: 16px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .players-section, .chat-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .player-card {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        .player-card.online {
+            border-color: #4CAF50;
+            background-color: #f0f8f0;
+        }
+        .player-card h3 {
+            margin: 0 0 10px 0;
+        }
+        .player-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .chat-container {
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+        }
+        .chat-message strong {
+            color: #2196F3;
+        }
+        .chat-input-container {
+            border-top: 1px solid #ddd;
+            padding: 10px;
+        }
+        .chat-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .status-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-indicator.connected {
+            background-color: #4CAF50;
+        }
+        .status-indicator.disconnected {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 myMCP Multiplayer Demo</h1>
+        
+        <div class="engine-selector">
+            <label>Connect to Engine: </label>
+            <select id="engineSelect">
+                <option value="http://localhost:3000">Primary Engine (3000)</option>
+                <option value="http://localhost:3001">Worker 1 (3001)</option>
+                <option value="http://localhost:3002">Worker 2 (3002)</option>
+                <option value="http://localhost:3003">Worker 3 (3003)</option>
+            </select>
+        </div>
+        
+        <div class="grid">
+            <div class="players-section">
+                <h2>🌍 Players Across All Realms</h2>
+                <div id="playersList"></div>
+            </div>
+            
+            <div class="chat-section">
+                <h2>💬 Global Tavern Chat</h2>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-container">
+                        <input 
+                            type="text" 
+                            class="chat-input" 
+                            id="chatInput" 
+                            placeholder="Send a message to all realms..."
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-section">
+            <h3>🔧 Connection Status</h3>
+            <p>
+                <span id="statusIndicator" class="status-indicator disconnected"></span>
+                <span id="statusText">Disconnected</span>
+            </p>
+            <p>Player ID: <code id="playerId"></code></p>
+            <p>Active Players: <span id="playerCount">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Generate unique player ID
+        const myPlayerId = `web-${Date.now()}`;
+        document.getElementById('playerId').textContent = myPlayerId;
+        
+        let socket = null;
+        const players = new Map();
+        
+        // Connect to selected engine
+        function connectToEngine(url) {
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            socket = io(url);
+            
+            // Update status
+            socket.on('connect', () => {
+                console.log('Connected to', url);
+                document.getElementById('statusIndicator').className = 'status-indicator connected';
+                document.getElementById('statusText').textContent = 'Connected to ' + url;
+                
+                // Identify ourselves
+                socket.emit('identify', { playerId: myPlayerId });
+            });
+            
+            socket.on('disconnect', () => {
+                document.getElementById('statusIndicator').className = 'status-indicator disconnected';
+                document.getElementById('statusText').textContent = 'Disconnected';
+            });
+            
+            // Handle player updates
+            socket.on('players:online', (onlinePlayers) => {
+                players.clear();
+                onlinePlayers.forEach(p => players.set(p.id, p));
+                updatePlayersDisplay();
+            });
+            
+            socket.on('player:presence', (event) => {
+                if (event.type === 'PLAYER_ONLINE') {
+                    players.set(event.playerId, { ...event.data, isOnline: true });
+                } else {
+                    const player = players.get(event.playerId);
+                    if (player) {
+                        player.isOnline = false;
+                    }
+                }
+                updatePlayersDisplay();
+            });
+            
+            // Handle chat messages
+            socket.on('chat:global', (event) => {
+                addChatMessage(event.playerId, event.data.message);
+            });
+            
+            socket.on('announcement', (event) => {
+                addChatMessage('🎮 System', event.data.message);
+            });
+        }
+        
+        // Update players display
+        function updatePlayersDisplay() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            players.forEach(player => {
+                const card = document.createElement('div');
+                card.className = `player-card ${player.isOnline ? 'online' : ''}`;
+                card.innerHTML = `
+                    <h3>${player.name || player.id}</h3>
+                    <div class="player-stats">
+                        <span>Level: <strong>${player.level || 'Unknown'}</strong></span>
+                        <span>Score: <strong>${player.score || 0} pts</strong></span>
+                    </div>
+                    <div>📍 ${player.location || 'Unknown'}</div>
+                    ${player.currentQuest ? `<div>🎯 Quest: ${player.currentQuest}</div>` : ''}
+                    <div style="margin-top: 10px; font-size: 12px; color: ${player.isOnline ? 'green' : 'gray'}">
+                        ${player.isOnline ? '🟢 Online' : '⚫ Offline'}
+                    </div>
+                `;
+                playersList.appendChild(card);
+            });
+            
+            document.getElementById('playerCount').textContent = players.size;
+        }
+        
+        // Add chat message
+        function addChatMessage(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.innerHTML = `
+                <strong>${sender}:</strong> ${message}
+                <span style="font-size: 11px; color: #999; margin-left: 10px;">
+                    ${new Date().toLocaleTimeString()}
+                </span>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Send chat message
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && socket && socket.connected) {
+                const input = e.target;
+                const message = input.value.trim();
+                if (message) {
+                    socket.emit('chat:global', {
+                        playerId: myPlayerId,
+                        message: message
+                    });
+                    input.value = '';
+                }
+            }
+        });
+        
+        // Engine selector
+        document.getElementById('engineSelect').addEventListener('change', (e) => {
+            connectToEngine(e.target.value);
+        });
+        
+        // Connect to primary engine on load
+        connectToEngine('http://localhost:3000');
+    </script>
+</body>
+</html> 

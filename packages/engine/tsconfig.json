@@ -14,23 +14,26 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "composite": false,
-    "incremental": true,
-    "noEmit": false,
-    "emitDeclarationOnly": false,
     "resolveJsonModule": true,
+    "types": ["node"],
+    "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@mymcp/types": ["../../shared/types/dist/index.d.ts"]
+      "@mymcp/types": ["../../shared/types/dist/index"],
+      "@mymcp/types/*": ["../../shared/types/dist/*"]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/types/declarations.d.ts"
   ],
   "exclude": [
     "dist",
     "node_modules",
     "**/*.test.ts",
     "**/*.spec.ts"
+  ],
+  "references": [
+    { "path": "../../shared/types" }
   ]
 }

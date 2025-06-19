@@ -19,13 +19,33 @@ import {
   GameAction, 
   APIResponse,
   StateUpdate,
-  ChatMessage 
+  ChatMessage,
+  PlayerLevel,
+  PlayerStatus,
+  LocationStatus
 } from '@mymcp/types';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
+import { config } from 'dotenv';
+import { LLMService, LLMProvider } from './services/LLMService';
+import { UnifiedChatService } from './services/UnifiedChatService';
+import { MultiplayerService } from './services/MultiplayerService';
+import { EventBroadcaster } from './services/EventBroadcaster';
+import { createServer } from 'http';
+
+// Load environment variables from project root
+config({ path: join(__dirname, '..', '..', '..', '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Add multiplayer configuration
+const ENGINE_ID = process.env.ENGINE_ID || `engine-${PORT}`;
+const IS_PRIMARY = process.env.IS_PRIMARY === 'true';
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+
+// Initialize event broadcaster
+const eventBroadcaster = new EventBroadcaster(REDIS_URL);
 
 // Game state storage
 const DATA_DIR = join(process.cwd(), 'data');
@@ -41,6 +61,12 @@ const wsClients = new Set<WebSocket>();
 
 // Game state cache (in-memory for performance)
 let gameStatesCache: Record<string, GameState> = {};
+
+// Initialize LLM service
+const llmService = new LLMService();
+
+// Initialize unified chat service
+const unifiedChatService = new UnifiedChatService();
 
 // Load game states from file
 function loadGameStates(): Record<string, GameState> {
@@ -225,6 +251,15 @@ const gameActionSchema = Joi.object({
   playerId: Joi.string().required(),
 });
 
+// Player update validation schema - simple approach without method chaining
+const playerUpdateSchema = Joi.object({
+  name: Joi.string(),
+  score: Joi.number(),
+  level: Joi.string().valid('novice', 'apprentice', 'expert', 'master'),
+  status: Joi.string().valid('idle', 'chatting', 'in-quest', 'completed-quest'),
+  location: Joi.string().valid('town', 'forest', 'cave', 'shop'),
+});
+
 // Middleware
 app.use(helmet());
 app.use(cors({
@@ -236,23 +271,32 @@ app.use(express.json({ limit: '10mb' }));
 
 // WebSocket broadcast function
 function broadcastStateUpdate(playerId: string, update: StateUpdate) {
-  const message = JSON.stringify({
-    type: 'STATE_UPDATE',
-    playerId,
-    update,
-  });
-  
-  wsClients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
+  // Use multiplayer service for cross-engine updates if available
+  if (multiplayerService) {
+    multiplayerService.broadcastPlayerUpdate(playerId, update.data as Partial<GameState>);
+  } else {
+    // Fallback to local WebSocket broadcast
+    const message = JSON.stringify({
+      type: 'STATE_UPDATE',
+      playerId,
+      update,
+    });
+    
+    wsClients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  }
 }
 
 // API Routes
 
-// Health check
+// Health check with LLM status
 app.get('/health', (req, res) => {
+  const llmStatus = llmService.getProviderStatus();
+  const hasWorkingLLM = Object.values(llmStatus).some(working => working);
+  
   res.json({
     status: 'ok',
     message: 'myMCP Engine is running strong!',
@@ -260,6 +304,11 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
     activeStates: Object.keys(gameStatesCache).length,
     wsConnections: wsClients.size,
+    llm: {
+      enabled: hasWorkingLLM,
+      providers: llmStatus,
+      availableProviders: llmService.getAvailableProviders(),
+    },
   });
 });
 
@@ -289,7 +338,19 @@ app.get('/api/debug', (req, res) => {
       'POST /api/actions/:playerId?',
       'GET /api/quests/:playerId?',
       'GET /api/context/completions/:playerId?',
+      'GET /api/players',
+      'GET /api/quest-catalog',
+      'GET /api/stats',
+      'GET /api/llm/status',
+      'GET /api/chat/:playerId/stream',
     ],
+    mcpIntegration: {
+      phase: 1,
+      status: 'complete',
+      mcpServerPath: '../mcpserver',
+      resources: 7,
+      tools: 9,
+    },
     timestamp: new Date(),
   });
 });
@@ -317,7 +378,24 @@ app.get('/api/state/:playerId?', (req, res) => {
 // Update player state
 app.put('/api/state/:playerId/player', (req, res) => {
   const playerId = req.params.playerId || 'default-player';
-  const playerUpdates = req.body;
+  
+  // Validate player updates
+  const { error, value } = playerUpdateSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      error: `Validation error: ${error.details[0].message}`,
+      timestamp: new Date(),
+    });
+  }
+  
+  const playerUpdates = value as {
+    name?: string;
+    score?: number;
+    level?: PlayerLevel;
+    status?: PlayerStatus;
+    location?: LocationStatus;
+  };
   
   let gameState = gameStatesCache[playerId];
   if (!gameState) {
@@ -359,6 +437,104 @@ app.put('/api/state/:playerId/player', (req, res) => {
   res.json(response);
 });
 
+// Helper function to execute game actions (used by LLM intent system)
+async function executeGameAction(action: GameAction, gameState: GameState): Promise<any> {
+  switch (action.type) {
+    case 'START_QUEST':
+      const questId = action.payload.questId;
+      const quest = gameState.quests.available.find(q => q.id === questId);
+      if (quest) {
+        quest.status = 'active';
+        gameState.quests.active = quest;
+        gameState.quests.available = gameState.quests.available.filter(q => q.id !== questId);
+        gameState.player.currentQuest = quest.id;
+        gameState.player.status = 'in-quest';
+        
+        // Broadcast quest started event
+        await eventBroadcaster.broadcastQuestStarted(
+          gameState.player.id,
+          quest.id,
+          quest.title,
+          quest.description
+        );
+        
+        return { quest: quest.title, status: 'started' };
+      } else {
+        throw new Error('Quest not found');
+      }
+      
+    case 'COMPLETE_QUEST_STEP':
+      if (gameState.quests.active) {
+        const stepId = action.payload.stepId;
+        const step = gameState.quests.active.steps.find(s => s.id === stepId);
+        if (step) {
+          step.completed = true;
+          
+          // Broadcast quest step completed
+          await eventBroadcaster.broadcastQuestStepCompleted(
+            gameState.player.id,
+            gameState.quests.active.id,
+            step.id,
+            step.description
+          );
+          
+          return { step: step.description, completed: true };
+        }
+      }
+      throw new Error('Step not found or no active quest');
+      
+    case 'COMPLETE_QUEST':
+      if (gameState.quests.active) {
+        const activeQuest = gameState.quests.active;
+        const oldScore = gameState.player.score;
+        
+        activeQuest.status = 'completed';
+        gameState.player.score += activeQuest.reward.score;
+        gameState.quests.completed.push(activeQuest);
+        gameState.quests.active = null;
+        gameState.player.currentQuest = undefined;
+        gameState.player.status = 'idle';
+        
+        // Add reward items
+        if (activeQuest.reward.items) {
+          activeQuest.reward.items.forEach(item => {
+            gameState.inventory.items.push({
+              id: uuidv4(),
+              name: item,
+              description: `Reward from ${activeQuest.title}`,
+              type: 'treasure',
+            });
+          });
+        }
+        
+        // Broadcast quest completed
+        await eventBroadcaster.broadcastQuestCompleted(
+          gameState.player.id,
+          activeQuest.id,
+          activeQuest.title,
+          activeQuest.reward
+        );
+        
+        // Broadcast score change
+        await eventBroadcaster.broadcastScoreChange(
+          gameState.player.id,
+          oldScore,
+          gameState.player.score
+        );
+        
+        return { 
+          quest: activeQuest.title, 
+          reward: activeQuest.reward,
+          status: 'completed' 
+        };
+      }
+      throw new Error('No active quest to complete');
+      
+    default:
+      throw new Error(`Unsupported action type for LLM execution: ${action.type}`);
+  }
+}
+
 // Execute game action
 app.post('/api/actions/:playerId?', async (req, res) => {
   const playerId = req.params.playerId || 'default-player';
@@ -373,12 +549,20 @@ app.post('/api/actions/:playerId?', async (req, res) => {
     });
   }
   
-  const action: GameAction = {
-    ...value,
-    timestamp: new Date(),
-    playerId,
+  // Type the validated value
+  const validatedAction = value as {
+    type: GameAction['type'];
+    payload: any;
+    playerId: string;
   };
   
+  const action: GameAction = {
+    type: validatedAction.type,
+    payload: validatedAction.payload,
+    playerId: validatedAction.playerId,
+    timestamp: new Date(),
+  };
+
   let gameState = gameStatesCache[playerId];
   if (!gameState) {
     gameState = createDefaultGameState(playerId);
@@ -419,7 +603,19 @@ app.post('/api/actions/:playerId?', async (req, res) => {
         if (step) {
           step.completed = true;
           result = { step: step.description, completed: true };
+        } else {
+          return res.status(404).json({
+            success: false,
+            error: `Quest step '${stepId}' not found in active quest`,
+            timestamp: new Date(),
+          });
         }
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'No active quest to complete steps for',
+          timestamp: new Date(),
+        });
       }
       break;
       
@@ -450,6 +646,12 @@ app.post('/api/actions/:playerId?', async (req, res) => {
           reward: activeQuest.reward,
           status: 'completed' 
         };
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'No active quest to complete',
+          timestamp: new Date(),
+        });
       }
       break;
       
@@ -463,19 +665,48 @@ app.post('/api/actions/:playerId?', async (req, res) => {
       };
       gameState.session.conversationHistory.push(message);
       
-      // Simple bot response (will be enhanced with LLM in Task 7)
+      // Use UnifiedChatService for intent recognition and action execution
+      const unifiedResponse = await unifiedChatService.generateUnifiedResponse(
+        action.payload.message, 
+        gameState
+      );
+      
+      // Execute any actions the LLM determined
+      const executedActions = [];
+      for (const detectedAction of unifiedResponse.actions || []) {
+        try {
+          const actionResult = await executeGameAction(detectedAction, gameState);
+          executedActions.push({ action: detectedAction, result: actionResult });
+          console.log(`🤖 LLM executed action: ${detectedAction.type}`);
+        } catch (error) {
+          console.error(`❌ Failed to execute LLM action:`, error);
+        }
+      }
+      
       const botResponse: ChatMessage = {
         id: uuidv4(),
         timestamp: new Date(),
         sender: 'bot',
-        message: generateBotResponse(action.payload.message, gameState),
+        message: unifiedResponse.text,
         type: 'chat',
+        metadata: unifiedResponse.metadata,
       };
       gameState.session.conversationHistory.push(botResponse);
       
+      // Broadcast chat event
+      await eventBroadcaster.broadcastChat(
+        playerId,
+        action.payload.message,
+        unifiedResponse.text
+      );
+      
       result = { 
         playerMessage: message,
-        botResponse: botResponse 
+        botResponse: botResponse,
+        llmMetadata: unifiedResponse.metadata,
+        intents: unifiedResponse.intents,
+        executedActions,
+        gameStateUpdated: unifiedResponse.gameStateUpdated
       };
       break;
       
@@ -492,15 +723,29 @@ app.post('/api/actions/:playerId?', async (req, res) => {
   gameState.session.lastAction = new Date();
   gameState.session.turnCount++;
   
-  // Update level based on score
+  // Update level based on score and detect level changes
   const score = gameState.player.score;
+  const oldLevel = gameState.player.level;
+  
   if (score >= 1000) gameState.player.level = 'master';
   else if (score >= 500) gameState.player.level = 'expert';
   else if (score >= 100) gameState.player.level = 'apprentice';
   else gameState.player.level = 'novice';
   
+  // Broadcast level up if changed
+  if (oldLevel !== gameState.player.level) {
+    await eventBroadcaster.broadcastLevelUp(
+      playerId,
+      oldLevel,
+      gameState.player.level
+    );
+  }
+  
   gameStatesCache[playerId] = gameState;
   saveGameStates(gameStatesCache);
+  
+  // Broadcast state update
+  await eventBroadcaster.broadcastStateUpdate(playerId, gameState);
   
   // Broadcast update
   const update: StateUpdate = {
@@ -539,6 +784,66 @@ app.get('/api/quests/:playerId?', (req, res) => {
     },
     timestamp: new Date(),
   });
+});
+
+// LLM status endpoint
+app.get('/api/llm/status', (req, res) => {
+  const providers = llmService.getAvailableProviders();
+  const status = llmService.getProviderStatus();
+  
+  res.json({
+    success: true,
+    data: {
+      availableProviders: providers,
+      providerStatus: status,
+      totalProviders: providers.length,
+      hasWorkingProvider: Object.values(status).some(working => working),
+    },
+    timestamp: new Date(),
+  });
+});
+
+// Streaming chat endpoint
+app.get('/api/chat/:playerId/stream', async (req, res) => {
+  const playerId = req.params.playerId || 'default-player';
+  const message = req.query.message as string;
+  
+  if (!message) {
+    return res.status(400).json({
+      success: false,
+      error: 'Message parameter required',
+      timestamp: new Date(),
+    });
+  }
+  
+  let gameState = gameStatesCache[playerId];
+  if (!gameState) {
+    gameState = createDefaultGameState(playerId);
+  }
+  
+  // Set up Server-Sent Events
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control',
+  });
+  
+  try {
+    let fullResponse = '';
+    
+    for await (const chunk of llmService.generateResponseStream(message, gameState)) {
+      fullResponse += chunk;
+      res.write(`data: ${JSON.stringify({ chunk, fullResponse })}\n\n`);
+    }
+    
+    res.write(`data: ${JSON.stringify({ done: true, fullResponse })}\n\n`);
+  } catch (error) {
+    res.write(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`);
+  } finally {
+    res.end();
+  }
 });
 
 // Get tab completion suggestions
@@ -584,43 +889,238 @@ app.get('/api/context/completions/:playerId?', (req, res) => {
   });
 });
 
-// Simple bot response generation (will be enhanced with LLM)
-function generateBotResponse(userMessage: string, gameState: GameState): string {
-  const message = userMessage.toLowerCase();
+// MCP-specific endpoints for better integration
+
+// List all active players
+app.get('/api/players', (req, res) => {
+  const players = Object.keys(gameStatesCache).map(playerId => {
+    const state = gameStatesCache[playerId];
+    return {
+      id: playerId,
+      name: state.player.name,
+      level: state.player.level,
+      score: state.player.score,
+      status: state.player.status,
+      location: state.player.location,
+      lastAction: state.session.lastAction,
+      activeQuest: state.quests.active?.title || null,
+    };
+  });
   
-  // Context-aware responses
+  res.json({
+    success: true,
+    data: players,
+    total: players.length,
+    timestamp: new Date(),
+  });
+});
+
+// Get quest definitions (without player-specific state)
+app.get('/api/quest-catalog', (req, res) => {
+  // Create a fresh state to get the default quest catalog
+  const defaultState = createDefaultGameState('temp');
+  
+  res.json({
+    success: true,
+    data: {
+      quests: defaultState.quests.available.map(quest => ({
+        id: quest.id,
+        title: quest.title,
+        description: quest.description,
+        realWorldSkill: quest.realWorldSkill,
+        fantasyTheme: quest.fantasyTheme,
+        steps: quest.steps.map(step => ({
+          id: step.id,
+          description: step.description,
+        })),
+        reward: quest.reward,
+      })),
+    },
+    timestamp: new Date(),
+  });
+});
+
+// Get server statistics
+app.get('/api/stats', (req, res) => {
+  const players = Object.values(gameStatesCache);
+  const totalPlayers = players.length;
+  const activePlayers = players.filter(p => p.player.status !== 'idle').length;
+  const totalScore = players.reduce((sum, p) => sum + p.player.score, 0);
+  const averageScore = totalPlayers > 0 ? Math.round(totalScore / totalPlayers) : 0;
+  
+  const questStats = players.reduce((stats, player) => {
+    stats.totalCompleted += player.quests.completed.length;
+    if (player.quests.active) stats.activeQuests++;
+    return stats;
+  }, { totalCompleted: 0, activeQuests: 0 });
+  
+  res.json({
+    success: true,
+    data: {
+      players: {
+        total: totalPlayers,
+        active: activePlayers,
+        idle: totalPlayers - activePlayers,
+      },
+      scores: {
+        total: totalScore,
+        average: averageScore,
+        highest: Math.max(...players.map(p => p.player.score), 0),
+      },
+      quests: {
+        completed: questStats.totalCompleted,
+        active: questStats.activeQuests,
+      },
+      system: {
+        uptime: process.uptime(),
+        wsConnections: wsClients.size,
+        memoryUsage: process.memoryUsage(),
+      },
+    },
+    timestamp: new Date(),
+  });
+});
+
+// Add new endpoint for multi-engine status
+app.get('/api/multiplayer/status', (req, res) => {
+  if (!multiplayerService) {
+    return res.status(503).json({
+      success: false,
+      error: 'Multiplayer service not available',
+      timestamp: new Date()
+    });
+  }
+  
+  res.json({
+    success: true,
+    data: {
+      engineId: ENGINE_ID,
+      isPrimary: IS_PRIMARY,
+      connectedClients: multiplayerService.connectedClients,
+      onlinePlayers: multiplayerService.onlinePlayers,
+      peerEngines: multiplayerService.config.peerEngines
+    },
+    timestamp: new Date()
+  });
+});
+
+// LLM-powered bot response generation
+async function generateBotResponse(userMessage: string, gameState: GameState): Promise<{
+  message: string;
+  metadata: any;
+}> {
+  try {
+    const llmResponse = await llmService.generateResponse(userMessage, gameState);
+    
+    return {
+      message: llmResponse.text,
+      metadata: llmResponse.metadata,
+    };
+  } catch (error) {
+    console.error('LLM response generation failed:', error);
+    
+    // Enhanced fallback that still uses context
+    const contextualFallback = generateContextualFallback(userMessage, gameState);
+    return {
+      message: contextualFallback,
+      metadata: {
+        provider: 'fallback' as LLMProvider,
+        model: 'contextual-template',
+        tokensUsed: 0,
+        responseTime: 0,
+        cached: false,
+        confidence: 0.2,
+        contentFiltered: false,
+        error: (error as Error).message,
+      },
+    };
+  }
+}
+
+// Enhanced fallback function that leverages game context
+function generateContextualFallback(userMessage: string, gameState: GameState): string {
+  const message = userMessage.toLowerCase();
+  const playerName = gameState.player.name;
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? 'this fine morning' : 
+                      currentHour < 18 ? 'this day' : 'this evening';
+  
+  // Quest-specific responses
   if (gameState.quests.active) {
-    if (message.includes('quest') || message.includes('current')) {
-      return `You are currently on the "${gameState.quests.active.title}" quest. ${gameState.quests.active.description}`;
+    const quest = gameState.quests.active;
+    const completedSteps = quest.steps.filter(s => s.completed).length;
+    const totalSteps = quest.steps.length;
+    const nextStep = quest.steps.find(s => !s.completed);
+    
+    if (message.includes('quest') || message.includes('current') || message.includes('progress')) {
+      return `Greetings, ${playerName}! Thou art currently engaged in the noble quest "${quest.title}". Progress stands at ${completedSteps} of ${totalSteps} steps completed. ${nextStep ? `Thy next challenge: ${nextStep.description}` : 'Thou art nearly finished with this grand adventure!'}`;
+    }
+    
+    if (message.includes('help') || message.includes('stuck') || message.includes('what')) {
+      return `Fear not, brave ${playerName}! In thy current quest "${quest.title}", remember: ${quest.description} ${nextStep ? `Focus thy efforts on: ${nextStep.description}` : 'Thou hast made excellent progress!'}`;
     }
   }
   
-  if (message.includes('score') || message.includes('points')) {
-    return `Your current score is ${gameState.player.score} points. You are a ${gameState.player.level} level adventurer!`;
+  // Score and level responses
+  if (message.includes('score') || message.includes('points') || message.includes('level')) {
+    const levelMessages = {
+      novice: 'Every master was once a beginner, young adventurer.',
+      apprentice: 'Thy skills grow stronger with each challenge overcome.',
+      expert: 'Impressive prowess! The realm takes notice of thy deeds.',
+      master: 'Legendary! Thy name shall be remembered in the annals of history.',
+    };
+    
+    return `Thy current score stands at ${gameState.player.score} points, marking thee as a ${gameState.player.level} among adventurers. ${levelMessages[gameState.player.level as keyof typeof levelMessages]} Keep questing onwards!`;
   }
   
-  if (message.includes('quest') || message.includes('adventure')) {
+  // Location-based responses
+  if (message.includes('where') || message.includes('location')) {
+    const locationDescriptions = {
+      town: 'the bustling merchant town, where adventures begin and tales are told',
+      forest: 'the mystical woodland, where ancient secrets whisper through the leaves',
+      cave: 'the shadowy caverns, where treasures and dangers lurk in equal measure',
+      shop: 'the magical emporium, where wonders and necessities can be procured',
+    };
+    
+    return `Thou findest thyself in ${locationDescriptions[gameState.player.location as keyof typeof locationDescriptions] || 'an unknown realm'}. What adventures shall we pursue ${timeGreeting}?`;
+  }
+  
+  // Greeting responses
+  if (message.includes('hello') || message.includes('hi') || message.includes('greet')) {
+    return `Hail and well met, ${playerName}! 'Tis good to see thee ${timeGreeting}. ${gameState.quests.active ? `Thy quest "${gameState.quests.active.title}" awaits thy attention.` : `The realm offers many adventures for one of thy ${gameState.player.level} standing.`} How may this humble guide assist thee?`;
+  }
+  
+  // Quest-related inquiries
+  if (message.includes('adventure') || message.includes('quest') && !gameState.quests.active) {
     const availableCount = gameState.quests.available.length;
-    return `You have ${availableCount} quests available! The realm needs heroes like you.`;
+    return `Excellent timing, ${playerName}! The realm currently offers ${availableCount} quests worthy of thy ${gameState.player.level} skills. Each promises great rewards and the chance to grow thy abilities. Shall we explore these opportunities together?`;
   }
   
-  if (message.includes('hello') || message.includes('hi')) {
-    return `Greetings, ${gameState.player.name}! How may I assist you on your journey?`;
+  // Help responses
+  if (message.includes('help') || message.includes('commands') || message.includes('what can')) {
+    return `Of course, ${playerName}! I can aid thee with managing quests, tracking thy progress, understanding thy current standing, and providing guidance on thy adventures. Ask me about thy score, available quests, current objectives, or simply converse about the mysteries of our realm.`;
   }
   
-  if (message.includes('help')) {
-    return 'I can help you manage quests, track your progress, and guide your adventures. What would you like to know?';
+  // Inventory responses
+  if (message.includes('item') || message.includes('inventory') || message.includes('treasure')) {
+    const itemCount = gameState.inventory.items.length;
+    if (itemCount > 0) {
+      const itemNames = gameState.inventory.items.map(item => item.name).join(', ');
+      return `Thy inventory contains ${itemCount} items of note: ${itemNames}. Each has been earned through thy noble deeds and adventures.`;
+    } else {
+      return `Thy inventory awaits treasures from future adventures, ${playerName}. Complete quests and explore the realm to gather items of power and value.`;
+    }
   }
   
-  // Default responses
-  const defaults = [
-    'The ancient texts speak of such things... tell me more.',
-    'Interesting perspective, brave adventurer.',
-    'Your wisdom grows with each question you ask.',
-    'The realm is full of mysteries. Keep exploring!',
+  // Default thoughtful responses based on game state
+  const generalResponses = [
+    `The ancient wisdom suggests many paths, ${playerName}. Share more of thy thoughts that I might offer fitting counsel.`,
+    `Interesting perspective, brave adventurer. The mysteries of the realm often reveal themselves through such inquiries.`,
+    `Thy ${gameState.player.level} wisdom grows with each question posed. Tell me more about what troubles or intrigues thee.`,
+    `The winds of ${gameState.player.location} carry whispers of such things. What specific guidance dost thou seek ${timeGreeting}?`,
   ];
   
-  return defaults[Math.floor(Math.random() * defaults.length)];
+  return generalResponses[Math.floor(Math.random() * generalResponses.length)];
 }
 
 // Error handling middleware
@@ -643,16 +1143,42 @@ app.use('*', (req, res) => {
 });
 
 // Start HTTP server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 myMCP Engine running on port ${PORT}`);
+const httpServer = createServer(app);
+
+// Initialize multiplayer service if Redis is available
+let multiplayerService: MultiplayerService | null = null;
+try {
+  multiplayerService = new MultiplayerService(httpServer, {
+    engineId: ENGINE_ID,
+    port: Number(PORT),
+    isPrimary: IS_PRIMARY,
+    redisUrl: REDIS_URL,
+    peerEngines: [
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'http://localhost:3002',
+      'http://localhost:3003'
+    ].filter(url => !url.includes(PORT.toString()))
+  });
+  console.log('🌐 Multiplayer service initialized');
+} catch (error) {
+  console.warn('⚠️ Multiplayer service not available (Redis may not be running):', error);
+}
+
+httpServer.listen(PORT, () => {
+  console.log(`🚀 myMCP Engine ${ENGINE_ID} running on port ${PORT}`);
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);
   console.log(`📡 API base: http://localhost:${PORT}/api`);
   console.log(`🎮 Game states: ${Object.keys(gameStatesCache).length} loaded`);
-  console.log(`⚡ Ready for lunch and learn action!`);
+  console.log(`🌐 Multiplayer: ${IS_PRIMARY ? 'PRIMARY' : 'WORKER'} engine`);
+  if (multiplayerService) {
+    console.log(`📡 Redis: ${REDIS_URL}`);
+  }
+  console.log(`⚡ Ready for ${multiplayerService ? 'multiplayer' : 'single-player'} action!`);
 });
 
 // WebSocket server for real-time updates
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server: httpServer });
 
 wss.on('connection', (ws) => {
   console.log('🔌 WebSocket client connected');
@@ -679,9 +1205,10 @@ wss.on('connection', (ws) => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('🛑 Received SIGTERM, shutting down gracefully');
-  server.close(() => {
+  httpServer.close(() => {
     process.exit(0);
   });
 });
 
 export default app;
+
