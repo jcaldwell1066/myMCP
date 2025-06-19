@@ -8,47 +8,17 @@ import { createInterface } from 'readline';
 
 // Known MCP server commands (adjust these to match your setup)
 const SERVER_CONFIGS = [
-	{
-name: "sequential-thinking",
-command: "npx",
-args: ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-description: "The sequential thinking"
-	},
-		
-	{
-name: "stability",
-command: "java",
-args: ["-jar", "/app/sub-modules/stability-mcpserver-1.0.2-SNAPSHOT.jar"],
-description: "The enterprise stability platform"
-	},
-		
-
-	{
-name: "memory",
-command: "npx",
-args: ["-y", "@modelcontextprotocol/server-memory"],
-description: "The hierachical db of observations"
-	},
-		
-
-  {
-    name: "task-master",
-    command: "npx",
-    args: ["-y","--package=task-master-ai","task-master-ai"],
-    description: "Task Master MCP Server"
-  },
-  {
-    name: "filesystem", 
-    command: "npx",
-    args: ["-y", "@modelcontextprotocol/server-filesystem", "./"],
-    description: "File System MCP Server"
-  },
-  {
-    name: "knowledge-graph",
-    command: "knowledge-graph-mcp",
-    args: [],
-    description: "Knowledge Graph MCP Server"
+  { name: "myMCP",
+    command: "node",
+    args: [
+      "/mnt/c/Users/JefferyCaldwell/myMCP/packages/mcpserver/dist/index.js"
+    ],
+    env: {
+      "ENGINE_BASE_URL": "http://localhost:3000",
+      "DEFAULT_PLAYER_ID": "claude-player"
+    }
   }
+
 ];
 
 class SimpleMCPInspector {

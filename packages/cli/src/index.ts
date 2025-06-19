@@ -534,6 +534,71 @@ program
     console.log(chalk.gray('  mycli config reset             - Reset to defaults'));
   });
 
+// List Players command - show all registered players
+program
+  .command('list-players')
+  .description('List all registered players in the game')
+  .option('-v, --verbose', 'show detailed player information')
+  .action(async (options) => {
+    try {
+      const config = getConfig();
+      const apiClient = axios.create({
+        baseURL: config.engineUrl + '/api',
+        timeout: config.apiTimeout,
+      });
+      
+      const response = await apiClient.get('/players');
+      const players = response.data.data;
+      
+      if (players.length === 0) {
+        console.log(chalk.gray('📋 No players registered yet.'));
+        return;
+      }
+      
+      console.log(chalk.bold.blue('👥 Registered Players'));
+      console.log(chalk.gray('─'.repeat(50)));
+      
+      // Use for...of loop instead of forEach to support async/await
+      let index = 0;
+      for (const player of players) {
+        const isCurrentPlayer = player.id === config.playerId;
+        const marker = isCurrentPlayer ? chalk.green(' ← (You)') : '';
+        
+        console.log(chalk.yellow(`${index + 1}. ${player.name} (${player.id})${marker}`));
+        console.log(chalk.cyan(`   Level: ${player.level} | Score: ${player.score} points`));
+        console.log(chalk.gray(`   Status: ${player.status} | Location: ${player.location}`));
+        
+        if (player.activeQuest) {
+          console.log(chalk.magenta(`   Active Quest: ${player.activeQuest}`));
+        }
+        
+        if (options.verbose) {
+          console.log(chalk.gray(`   Last Action: ${new Date(player.lastAction).toLocaleString()}`));
+          
+          // Get full state for this player
+          try {
+            const stateResponse = await apiClient.get(`/state/${player.id}`);
+            const state = stateResponse.data.data;
+            
+            console.log(chalk.blue(`   Inventory: ${state.inventory.items.length} items`));
+            console.log(chalk.blue(`   Completed Quests: ${state.quests.completed.length}`));
+            console.log(chalk.blue(`   Turn Count: ${state.session.turnCount}`));
+          } catch (error) {
+            console.log(chalk.red(`   Could not fetch detailed state`));
+          }
+        }
+        
+        console.log();
+        index++;
+      }
+      
+      console.log(chalk.gray(`Total players: ${players.length}`));
+      
+    } catch (error) {
+      handleApiError(error, 'Failed to get player list');
+    }
+  });
+
 // Main program setup
 program
   .name('mycli')
@@ -815,4 +880,7 @@ if (!process.argv.slice(2).length) {
   console.log(chalk.gray('  mycli complete-step  - Complete a step'));
   console.log(chalk.gray('  mycli progress       - View quest progress'));
   console.log();
+  console.log(chalk.yellow('👥 Player Management:'));
+  console.log(chalk.gray('  mycli list-players   - List all registered players'));
+  console.log(chalk.gray('  mycli list-players -v - Show detailed player info'));
 }

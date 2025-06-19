@@ -1,0 +1,9 @@
+{
+  "watch": ["src"],
+  "ext": "ts,js,json",
+  "ignore": ["dist/**/*", "node_modules/**/*", "*.test.ts", "*.spec.ts"],
+  "exec": "npm run build && node dist/index.js",
+  "env": {
+    "NODE_ENV": "development"
+  }
+} 

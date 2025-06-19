@@ -19,7 +19,9 @@
     "dev:cli": "npm run dev --workspace=packages/cli",
     "dev:webapp": "npm run dev --workspace=packages/webapp",
     "dev:admin": "npm run dev --workspace=packages/admin",
-    "dev:mcpserver": "npm run dev --workspace=packages/mcpserver"
+    "dev:mcpserver": "npm run dev --workspace=packages/mcpserver",
+    "cli:get-score": "npm run build --workspace=packages/cli && node packages/cli/dist/index.js get-score",
+    "cli:set-score": "npm run build --workspace=packages/cli && node packages/cli/dist/index.js set-score"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
