@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  engine-primary:
+    build:
+      context: .
+      dockerfile: packages/engine/Dockerfile
+    environment:
+      - PORT=3000
+      - ENGINE_ID=engine-primary
+      - IS_PRIMARY=true
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data/primary:/app/data
+      - ./packages:/app/packages
+      - ./shared:/app/shared
+
+  engine-worker-1:
+    build:
+      context: .
+      dockerfile: packages/engine/Dockerfile
+    environment:
+      - PORT=3001
+      - ENGINE_ID=engine-worker-1
+      - IS_PRIMARY=false
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    ports:
+      - "3001:3001"
+    depends_on:
+      - redis
+      - engine-primary
+    volumes:
+      - ./data/worker1:/app/data
+      - ./packages:/app/packages
+      - ./shared:/app/shared
+
+  engine-worker-2:
+    build:
+      context: .
+      dockerfile: packages/engine/Dockerfile
+    environment:
+      - PORT=3002
+      - ENGINE_ID=engine-worker-2
+      - IS_PRIMARY=false
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    ports:
+      - "3002:3002"
+    depends_on:
+      - redis
+      - engine-primary
+    volumes:
+      - ./data/worker2:/app/data
+      - ./packages:/app/packages
+      - ./shared:/app/shared
+
+  engine-worker-3:
+    build:
+      context: .
+      dockerfile: packages/engine/Dockerfile
+    environment:
+      - PORT=3003
+      - ENGINE_ID=engine-worker-3
+      - IS_PRIMARY=false
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    ports:
+      - "3003:3003"
+    depends_on:
+      - redis
+      - engine-primary
+    volumes:
+      - ./data/worker3:/app/data
+      - ./packages:/app/packages
+      - ./shared:/app/shared
+
+volumes:
+  redis-data: 

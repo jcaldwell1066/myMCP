@@ -29,12 +29,19 @@ import { join, dirname } from 'path';
 import { config } from 'dotenv';
 import { LLMService, LLMProvider } from './services/LLMService';
 import { UnifiedChatService } from './services/UnifiedChatService';
+import { MultiplayerService } from './services/MultiplayerService';
+import { createServer } from 'http';
 
 // Load environment variables from project root
 config({ path: join(__dirname, '..', '..', '..', '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Add multiplayer configuration
+const ENGINE_ID = process.env.ENGINE_ID || `engine-${PORT}`;
+const IS_PRIMARY = process.env.IS_PRIMARY === 'true';
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 // Game state storage
 const DATA_DIR = join(process.cwd(), 'data');
@@ -260,17 +267,23 @@ app.use(express.json({ limit: '10mb' }));
 
 // WebSocket broadcast function
 function broadcastStateUpdate(playerId: string, update: StateUpdate) {
-  const message = JSON.stringify({
-    type: 'STATE_UPDATE',
-    playerId,
-    update,
-  });
-  
-  wsClients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
+  // Use multiplayer service for cross-engine updates if available
+  if (multiplayerService) {
+    multiplayerService.broadcastPlayerUpdate(playerId, update.data as Partial<GameState>);
+  } else {
+    // Fallback to local WebSocket broadcast
+    const message = JSON.stringify({
+      type: 'STATE_UPDATE',
+      playerId,
+      update,
+    });
+    
+    wsClients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  }
 }
 
 // API Routes
@@ -908,6 +921,29 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
+// Add new endpoint for multi-engine status
+app.get('/api/multiplayer/status', (req, res) => {
+  if (!multiplayerService) {
+    return res.status(503).json({
+      success: false,
+      error: 'Multiplayer service not available',
+      timestamp: new Date()
+    });
+  }
+  
+  res.json({
+    success: true,
+    data: {
+      engineId: ENGINE_ID,
+      isPrimary: IS_PRIMARY,
+      connectedClients: multiplayerService.connectedClients,
+      onlinePlayers: multiplayerService.onlinePlayers,
+      peerEngines: multiplayerService.config.peerEngines
+    },
+    timestamp: new Date()
+  });
+});
+
 // LLM-powered bot response generation
 async function generateBotResponse(userMessage: string, gameState: GameState): Promise<{
   message: string;
@@ -1047,16 +1083,42 @@ app.use('*', (req, res) => {
 });
 
 // Start HTTP server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 myMCP Engine running on port ${PORT}`);
+const httpServer = createServer(app);
+
+// Initialize multiplayer service if Redis is available
+let multiplayerService: MultiplayerService | null = null;
+try {
+  multiplayerService = new MultiplayerService(httpServer, {
+    engineId: ENGINE_ID,
+    port: Number(PORT),
+    isPrimary: IS_PRIMARY,
+    redisUrl: REDIS_URL,
+    peerEngines: [
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'http://localhost:3002',
+      'http://localhost:3003'
+    ].filter(url => !url.includes(PORT.toString()))
+  });
+  console.log('🌐 Multiplayer service initialized');
+} catch (error) {
+  console.warn('⚠️ Multiplayer service not available (Redis may not be running):', error);
+}
+
+httpServer.listen(PORT, () => {
+  console.log(`🚀 myMCP Engine ${ENGINE_ID} running on port ${PORT}`);
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);
   console.log(`📡 API base: http://localhost:${PORT}/api`);
   console.log(`🎮 Game states: ${Object.keys(gameStatesCache).length} loaded`);
-  console.log(`⚡ Ready for lunch and learn action!`);
+  console.log(`🌐 Multiplayer: ${IS_PRIMARY ? 'PRIMARY' : 'WORKER'} engine`);
+  if (multiplayerService) {
+    console.log(`📡 Redis: ${REDIS_URL}`);
+  }
+  console.log(`⚡ Ready for ${multiplayerService ? 'multiplayer' : 'single-player'} action!`);
 });
 
 // WebSocket server for real-time updates
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server: httpServer });
 
 wss.on('connection', (ws) => {
   console.log('🔌 WebSocket client connected');
@@ -1083,7 +1145,7 @@ wss.on('connection', (ws) => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('🛑 Received SIGTERM, shutting down gracefully');
-  server.close(() => {
+  httpServer.close(() => {
     process.exit(0);
   });
 });
