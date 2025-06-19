@@ -20,6 +20,7 @@
     "dev:webapp": "npm run dev --workspace=packages/webapp",
     "dev:admin": "npm run dev --workspace=packages/admin",
     "dev:mcpserver": "npm run dev --workspace=packages/mcpserver",
+    "dev:slack": "npm run dev --workspace=packages/slack-integration",
     "cli:get-score": "npm run build --workspace=packages/cli && node packages/cli/dist/index.js get-score",
     "cli:set-score": "npm run build --workspace=packages/cli && node packages/cli/dist/index.js set-score",
     "dev:multiplayer": "docker-compose -f docker-compose.multiplayer.yml up",
@@ -30,7 +31,8 @@
     "dev:engine:worker2": "ENGINE_ID=worker2 PORT=3002 npm run dev:engine",
     "dev:engine:worker3": "ENGINE_ID=worker3 PORT=3003 npm run dev:engine",
     "redis:start": "docker run -d -p 6379:6379 --name mymcp-redis redis:7-alpine",
-    "redis:stop": "docker stop mymcp-redis && docker rm mymcp-redis"
+    "redis:stop": "docker stop mymcp-redis && docker rm mymcp-redis",
+    "slack:setup": "cd packages/slack-integration && cp .env.example .env && echo 'Please edit packages/slack-integration/.env with your Slack credentials'"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -61,7 +63,9 @@
     "typescript",
     "node",
     "lunch-learn",
-    "demo"
+    "demo",
+    "slack",
+    "integration"
   ],
   "author": "Accesso Payments Breakaway Group",
   "license": "MIT",

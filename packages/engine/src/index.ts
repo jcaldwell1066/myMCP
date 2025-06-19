@@ -30,6 +30,7 @@ import { config } from 'dotenv';
 import { LLMService, LLMProvider } from './services/LLMService';
 import { UnifiedChatService } from './services/UnifiedChatService';
 import { MultiplayerService } from './services/MultiplayerService';
+import { EventBroadcaster } from './services/EventBroadcaster';
 import { createServer } from 'http';
 
 // Load environment variables from project root
@@ -42,6 +43,9 @@ const PORT = process.env.PORT || 3000;
 const ENGINE_ID = process.env.ENGINE_ID || `engine-${PORT}`;
 const IS_PRIMARY = process.env.IS_PRIMARY === 'true';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+
+// Initialize event broadcaster
+const eventBroadcaster = new EventBroadcaster(REDIS_URL);
 
 // Game state storage
 const DATA_DIR = join(process.cwd(), 'data');
@@ -445,6 +449,15 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
         gameState.quests.available = gameState.quests.available.filter(q => q.id !== questId);
         gameState.player.currentQuest = quest.id;
         gameState.player.status = 'in-quest';
+        
+        // Broadcast quest started event
+        await eventBroadcaster.broadcastQuestStarted(
+          gameState.player.id,
+          quest.id,
+          quest.title,
+          quest.description
+        );
+        
         return { quest: quest.title, status: 'started' };
       } else {
         throw new Error('Quest not found');
@@ -456,6 +469,15 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
         const step = gameState.quests.active.steps.find(s => s.id === stepId);
         if (step) {
           step.completed = true;
+          
+          // Broadcast quest step completed
+          await eventBroadcaster.broadcastQuestStepCompleted(
+            gameState.player.id,
+            gameState.quests.active.id,
+            step.id,
+            step.description
+          );
+          
           return { step: step.description, completed: true };
         }
       }
@@ -464,6 +486,8 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
     case 'COMPLETE_QUEST':
       if (gameState.quests.active) {
         const activeQuest = gameState.quests.active;
+        const oldScore = gameState.player.score;
+        
         activeQuest.status = 'completed';
         gameState.player.score += activeQuest.reward.score;
         gameState.quests.completed.push(activeQuest);
@@ -482,6 +506,21 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
             });
           });
         }
+        
+        // Broadcast quest completed
+        await eventBroadcaster.broadcastQuestCompleted(
+          gameState.player.id,
+          activeQuest.id,
+          activeQuest.title,
+          activeQuest.reward
+        );
+        
+        // Broadcast score change
+        await eventBroadcaster.broadcastScoreChange(
+          gameState.player.id,
+          oldScore,
+          gameState.player.score
+        );
         
         return { 
           quest: activeQuest.title, 
@@ -654,6 +693,13 @@ app.post('/api/actions/:playerId?', async (req, res) => {
       };
       gameState.session.conversationHistory.push(botResponse);
       
+      // Broadcast chat event
+      await eventBroadcaster.broadcastChat(
+        playerId,
+        action.payload.message,
+        unifiedResponse.text
+      );
+      
       result = { 
         playerMessage: message,
         botResponse: botResponse,
@@ -677,15 +723,29 @@ app.post('/api/actions/:playerId?', async (req, res) => {
   gameState.session.lastAction = new Date();
   gameState.session.turnCount++;
   
-  // Update level based on score
+  // Update level based on score and detect level changes
   const score = gameState.player.score;
+  const oldLevel = gameState.player.level;
+  
   if (score >= 1000) gameState.player.level = 'master';
   else if (score >= 500) gameState.player.level = 'expert';
   else if (score >= 100) gameState.player.level = 'apprentice';
   else gameState.player.level = 'novice';
   
+  // Broadcast level up if changed
+  if (oldLevel !== gameState.player.level) {
+    await eventBroadcaster.broadcastLevelUp(
+      playerId,
+      oldLevel,
+      gameState.player.level
+    );
+  }
+  
   gameStatesCache[playerId] = gameState;
   saveGameStates(gameStatesCache);
+  
+  // Broadcast state update
+  await eventBroadcaster.broadcastStateUpdate(playerId, gameState);
   
   // Broadcast update
   const update: StateUpdate = {
