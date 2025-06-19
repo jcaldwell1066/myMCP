@@ -82,5 +82,8 @@ packages/.mymcp-cli/
 # Claude Desktop config (user-specific)
 claude_desktop_config.json
 
+# Private notes (contains credentials)
+my-training-notes-PRIVATE.txt
+
 # Temporary build/test scripts
 *.sh
