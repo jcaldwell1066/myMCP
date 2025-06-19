@@ -23,7 +23,9 @@ This guide will help you set up the Slack integration for myMCP to enable smart 
 1. Go to [https://api.slack.com/apps](https://api.slack.com/apps)
 2. Click "Create New App" → "From scratch"
 3. Name your app "myMCP Game" and select your workspace
-4. Click "Create App"
+4. Click "Create App" 
+
+https://api.slack.com/apps/A091SUKA2H5?created=1
 
 ## Step 2: Configure Bot Token Scopes
 

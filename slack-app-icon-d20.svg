@@ -1,0 +1,97 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background - Deep Purple -->
+  <rect width="512" height="512" fill="#5B21B6" rx="64"/>
+  
+  <!-- Definitions -->
+  <defs>
+    <!-- Purple glow effect -->
+    <radialGradient id="purpleGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:0" />
+    </radialGradient>
+    
+    <!-- D20 face gradient -->
+    <linearGradient id="diceFace" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F9FAFB" />
+      <stop offset="100%" style="stop-color:#E5E7EB" />
+    </linearGradient>
+    
+    <!-- Edge gradient -->
+    <linearGradient id="diceEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9CA3AF" />
+      <stop offset="100%" style="stop-color:#6B7280" />
+    </linearGradient>
+    
+    <!-- Magic glow -->
+    <radialGradient id="magicGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#10B981;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#10B981;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background glow -->
+  <circle cx="256" cy="220" r="160" fill="url(#purpleGlow)"/>
+  
+  <!-- D20 Die (icosahedron) -->
+  <g transform="translate(256, 220)">
+    <!-- Back faces (darker) -->
+    <path d="M0,-100 L-58,-32 L-36,52 L36,52 L58,-32 Z" fill="#D1D5DB" stroke="#9CA3AF" stroke-width="2"/>
+    
+    <!-- Side faces -->
+    <path d="M0,-100 L-58,-32 L-95,30 L-36,52 Z" fill="#E5E7EB" stroke="#9CA3AF" stroke-width="2"/>
+    <path d="M0,-100 L58,-32 L95,30 L36,52 Z" fill="#E5E7EB" stroke="#9CA3AF" stroke-width="2"/>
+    
+    <!-- Bottom visible faces -->
+    <path d="M-36,52 L-95,30 L-60,90 L0,120 Z" fill="url(#diceFace)" stroke="#9CA3AF" stroke-width="2"/>
+    <path d="M36,52 L95,30 L60,90 L0,120 Z" fill="url(#diceFace)" stroke="#9CA3AF" stroke-width="2"/>
+    <path d="M-36,52 L36,52 L0,120 Z" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+    
+    <!-- Top face with "20" -->
+    <g>
+      <path d="M0,-100 L-58,-32 L-36,52 L36,52 L58,-32 Z" fill="url(#diceFace)" stroke="url(#diceEdge)" stroke-width="3"/>
+      
+      <!-- Number "20" -->
+      <text x="0" y="5" font-family="Arial Black, sans-serif" font-size="72" font-weight="900" 
+            text-anchor="middle" fill="#374151">20</text>
+      
+      <!-- Subtle inner highlight -->
+      <text x="0" y="5" font-family="Arial Black, sans-serif" font-size="72" font-weight="900" 
+            text-anchor="middle" fill="#1F2937" opacity="0.3" transform="translate(2,2)">20</text>
+    </g>
+    
+    <!-- Edge highlights -->
+    <line x1="0" y1="-100" x2="-58" y2="-32" stroke="#F9FAFB" stroke-width="1" opacity="0.6"/>
+    <line x1="0" y1="-100" x2="58" y2="-32" stroke="#F9FAFB" stroke-width="1" opacity="0.6"/>
+  </g>
+  
+  <!-- Magical sparkles around the die -->
+  <g opacity="0.8">
+    <circle cx="150" cy="150" r="3" fill="#10B981">
+      <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="362" cy="180" r="3" fill="#10B981">
+      <animate attributeName="opacity" values="0;1;0" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="120" cy="280" r="4" fill="#34D399">
+      <animate attributeName="opacity" values="0;1;0" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="392" cy="290" r="3" fill="#10B981">
+      <animate attributeName="opacity" values="0;1;0" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Small d20 symbols -->
+  <g opacity="0.3">
+    <path d="M80,380 L70,390 L75,402 L85,402 L90,390 Z" fill="#A78BFA" stroke="#A78BFA" stroke-width="1"/>
+    <path d="M422,380 L412,390 L417,402 L427,402 L432,390 Z" fill="#A78BFA" stroke="#A78BFA" stroke-width="1"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="256" y="450" font-family="Arial Black, sans-serif" font-size="56" font-weight="900" 
+        text-anchor="middle" fill="#F3F4F6" letter-spacing="2">MCP</text>
+  
+  <!-- Subtle text shadow -->
+  <text x="256" y="450" font-family="Arial Black, sans-serif" font-size="56" font-weight="900" 
+        text-anchor="middle" fill="#4C1D95" opacity="0.3" transform="translate(3,3)">MCP</text>
+</svg> 

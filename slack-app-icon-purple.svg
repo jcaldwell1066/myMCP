@@ -1,0 +1,66 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background - Deep Purple -->
+  <rect width="512" height="512" fill="#5B21B6" rx="64"/>
+  
+  <!-- Definitions -->
+  <defs>
+    <!-- Lighter purple glow -->
+    <radialGradient id="purpleGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:0" />
+    </radialGradient>
+    
+    <!-- Sword gradient -->
+    <linearGradient id="sword" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F3F4F6" />
+      <stop offset="100%" style="stop-color:#D1D5DB" />
+    </linearGradient>
+    
+    <!-- Gem gradient -->
+    <linearGradient id="gem" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981" />
+      <stop offset="100%" style="stop-color:#059669" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background glow -->
+  <circle cx="256" cy="256" r="180" fill="url(#purpleGlow)"/>
+  
+  <!-- Main sword (vertical) -->
+  <g>
+    <!-- Blade -->
+    <rect x="236" y="120" width="40" height="240" fill="url(#sword)" rx="4"/>
+    <!-- Guard -->
+    <rect x="196" y="180" width="120" height="24" fill="#9CA3AF" rx="12"/>
+    <!-- Grip -->
+    <rect x="244" y="340" width="24" height="60" fill="#6B7280" rx="4"/>
+    <!-- Pommel -->
+    <circle cx="256" cy="410" r="20" fill="#9CA3AF"/>
+  </g>
+  
+  <!-- Crystal/Gem at center -->
+  <g transform="translate(256, 192)">
+    <!-- Outer shape -->
+    <path d="M0 -40 L30 0 L0 40 L-30 0 Z" fill="url(#gem)"/>
+    <!-- Inner facet -->
+    <path d="M0 -40 L30 0 L0 -10 Z" fill="#34D399" opacity="0.6"/>
+    <path d="M0 -40 L-30 0 L0 -10 Z" fill="#10B981" opacity="0.6"/>
+    <!-- Highlight -->
+    <circle cx="0" cy="-20" r="8" fill="#6EE7B7" opacity="0.7"/>
+  </g>
+  
+  <!-- Shield outline behind sword -->
+  <path d="M256 80 L340 120 L340 260 Q340 340 256 380 Q172 340 172 260 L172 120 Z" 
+        fill="none" 
+        stroke="#A78BFA" 
+        stroke-width="8"
+        opacity="0.5"/>
+  
+  <!-- Small decorative gems -->
+  <circle cx="150" cy="150" r="12" fill="#10B981" opacity="0.6"/>
+  <circle cx="362" cy="150" r="12" fill="#10B981" opacity="0.6"/>
+  
+  <!-- Text -->
+  <text x="256" y="470" font-family="Arial Black, sans-serif" font-size="56" font-weight="900" 
+        text-anchor="middle" fill="#F3F4F6" letter-spacing="2">MCP</text>
+</svg> 
