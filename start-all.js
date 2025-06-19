@@ -11,7 +11,7 @@ console.log('🎮 Starting myMCP Complete System...');
 // Start Engine
 console.log('🚀 Starting Engine...');
 const engineProcess = spawn('node', ['dist/index.js'], {
-  cwd: 'C:\Users\JefferyCaldwell\myMCP\packages\engine',
+  cwd: path.join(__dirname, 'packages', 'engine'),
   stdio: ['inherit', 'inherit', 'inherit']
 });
 
@@ -19,7 +19,7 @@ const engineProcess = spawn('node', ['dist/index.js'], {
 setTimeout(() => {
   console.log('📡 Starting MCP Server...');
   const mcpProcess = spawn('node', ['dist/index.js'], {
-    cwd: 'C:\Users\JefferyCaldwell\myMCP\packages\mcpserver',
+    cwd: path.join(__dirname, 'packages', 'mcpserver'),
     stdio: ['inherit', 'inherit', 'inherit'],
     env: {
       ...process.env,

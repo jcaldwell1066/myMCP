@@ -3,7 +3,7 @@
     "myMCP": {
       "command": "node",
       "args": [
-        "C:\\Users\\JefferyCaldwell\\myMCP\\packages\\mcpserver\\dist\\index.js"
+        "/path/to/myMCP/packages/mcpserver/dist/index.js"
       ],
       "env": {
         "ENGINE_BASE_URL": "http://localhost:3000",
@@ -11,4 +11,4 @@
       }
     }
   }
-}
+} 

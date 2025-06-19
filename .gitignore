@@ -79,5 +79,8 @@ temp/
 .mymcp-cli/
 packages/.mymcp-cli/
 
+# Claude Desktop config (user-specific)
+claude_desktop_config.json
+
 # Temporary build/test scripts
 *.sh

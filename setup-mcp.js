@@ -34,7 +34,8 @@ function runCommand(command, args, cwd, description) {
 }
 
 async function setupMCP() {
-  const baseDir = 'C:\\Users\\JefferyCaldwell\\myMCP';
+  // Use the directory where this script is located as the base
+  const baseDir = path.resolve(__dirname);
   const mcpServerDir = path.join(baseDir, 'packages', 'mcpserver');
   
   try {
@@ -61,7 +62,7 @@ const path = require('path');
 console.log('🚀 Starting myMCP Engine...');
 
 const engineProcess = spawn('node', ['dist/index.js'], {
-  cwd: '${path.join(baseDir, 'packages', 'engine')}',
+  cwd: path.join(__dirname, 'packages', 'engine'),
   stdio: 'inherit'
 });
 
@@ -86,7 +87,7 @@ const path = require('path');
 console.log('📡 Starting myMCP MCP Server...');
 
 const mcpProcess = spawn('node', ['dist/index.js'], {
-  cwd: '${mcpServerDir}',
+  cwd: path.join(__dirname, 'packages', 'mcpserver'),
   stdio: 'inherit',
   env: {
     ...process.env,
@@ -118,7 +119,7 @@ console.log('🎮 Starting myMCP Complete System...');
 // Start Engine
 console.log('🚀 Starting Engine...');
 const engineProcess = spawn('node', ['dist/index.js'], {
-  cwd: '${path.join(baseDir, 'packages', 'engine')}',
+  cwd: path.join(__dirname, 'packages', 'engine'),
   stdio: ['inherit', 'inherit', 'inherit']
 });
 
@@ -126,7 +127,7 @@ const engineProcess = spawn('node', ['dist/index.js'], {
 setTimeout(() => {
   console.log('📡 Starting MCP Server...');
   const mcpProcess = spawn('node', ['dist/index.js'], {
-    cwd: '${mcpServerDir}',
+    cwd: path.join(__dirname, 'packages', 'mcpserver'),
     stdio: ['inherit', 'inherit', 'inherit'],
     env: {
       ...process.env,

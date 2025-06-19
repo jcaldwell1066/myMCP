@@ -9,7 +9,7 @@ const path = require('path');
 console.log('📡 Starting myMCP MCP Server...');
 
 const mcpProcess = spawn('node', ['dist/index.js'], {
-  cwd: 'C:\Users\JefferyCaldwell\myMCP\packages\mcpserver',
+  cwd: path.join(__dirname, 'packages', 'mcpserver'),
   stdio: 'inherit',
   env: {
     ...process.env,

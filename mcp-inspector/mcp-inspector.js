@@ -5,13 +5,18 @@
 
 import { spawn } from 'child_process';
 import { createInterface } from 'readline';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Known MCP server commands (adjust these to match your setup)
 const SERVER_CONFIGS = [
   { name: "myMCP",
     command: "node",
     args: [
-      "/mnt/c/Users/JefferyCaldwell/myMCP/packages/mcpserver/dist/index.js"
+      path.join(__dirname, "..", "packages", "mcpserver", "dist", "index.js")
     ],
     env: {
       "ENGINE_BASE_URL": "http://localhost:3000",

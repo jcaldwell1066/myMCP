@@ -31,12 +31,12 @@ async function buildAll() {
   try {
     // Build engine
     console.log('📦 Building myMCP Engine...');
-    await runCommand('npm', ['run', 'build'], 'C:\\Users\\JefferyCaldwell\\myMCP\\packages\\engine');
+    await runCommand('npm', ['run', 'build'], path.join(__dirname, 'packages', 'engine'));
     console.log('✅ Engine built successfully!');
     
     // Build MCP server
     console.log('📦 Building MCP Server...');
-    await runCommand('npm', ['run', 'build'], 'C:\\Users\\JefferyCaldwell\\myMCP\\packages\\mcpserver');
+    await runCommand('npm', ['run', 'build'], path.join(__dirname, 'packages', 'mcpserver'));
     console.log('✅ MCP Server built successfully!');
     
     console.log('\n🎉 Phase 1 MCP Integration Build Complete!');
