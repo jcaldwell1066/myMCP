@@ -15,7 +15,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node"],
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mymcp/types": ["../../shared/types/dist/index"],
+      "@mymcp/types/*": ["../../shared/types/dist/*"]
+    }
   },
   "include": [
     "src/**/*",
@@ -26,5 +32,8 @@
     "node_modules",
     "**/*.test.ts",
     "**/*.spec.ts"
+  ],
+  "references": [
+    { "path": "../../shared/types" }
   ]
 }

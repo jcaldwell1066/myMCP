@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { GameState } from '../types/GameState';
+import { GameState } from '@mymcp/types';
 
 export interface GameEvent {
   type: string;
