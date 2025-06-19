@@ -142,6 +142,11 @@ async function processInput(input) {
     await executeCommand('chat ' + trimmed);
   }
 }
+
+async function executeCommand(fullCommand) {
+  const parts = fullCommand.split(' ');
+  const command = parts[0].toLowerCase();
+  const args = parts.slice(1);
   
   // Handle help
   if (command === 'help') {

@@ -82,4 +82,31 @@ With these foundational pieces in place, the project is ready for:
 
 ---
 
-Co-authored-by: AI Assistant <assistant@anthropic.com> 
+Co-authored-by: AI Assistant <assistant@anthropic.com>
+
+fix: resolve TypeScript build issues in dev mode for engine and CLI
+
+- Update build scripts to use 'tsc --build --force' to ensure proper rebuilds
+- Modify clean scripts to remove tsconfig.tsbuildinfo alongside dist folder
+- Fixes nodemon dev mode crash when dist folder is cleaned but TypeScript 
+  doesn't rebuild due to cached build info
+- Resolves 'MODULE_NOT_FOUND' errors for both engine and CLI packages
+- Ensures npm run dev:engine and npm run dev:cli commands work reliably
+
+This fix addresses the issue where running dev commands would fail with:
+  Error: Cannot find module '.../dist/index.js'
+  
+The root cause was that TypeScript's incremental build feature was caching
+build information in tsconfig.tsbuildinfo. When the clean script removed
+the dist folder, TypeScript would think everything was still up to date
+and skip the rebuild, leading to the missing module error.
+
+Affected commands now working:
+- npm run dev:engine
+- npm run dev:engine:primary  
+- npm run dev:cli -- status
+- npm run dev:cli -- [any command]
+
+Modified files:
+- packages/engine/package.json
+- packages/cli/package.json 
