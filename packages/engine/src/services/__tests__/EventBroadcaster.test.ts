@@ -1,36 +1,27 @@
 import { EventBroadcaster } from '../EventBroadcaster';
 import Redis from 'ioredis';
-import { EventEmitter } from 'events';
 
 // Mock Redis
 jest.mock('ioredis');
 
 describe('EventBroadcaster Tests', () => {
   let broadcaster: EventBroadcaster;
-  let mockPubClient: jest.Mocked<Redis>;
-  let mockSubClient: jest.Mocked<Redis>;
-  let eventEmitter: EventEmitter;
+  let mockRedis: jest.Mocked<Redis>;
 
   beforeEach(() => {
-    // Create mock Redis clients
-    mockPubClient = {
+    // Create mock Redis client
+    mockRedis = {
       publish: jest.fn().mockResolvedValue(1),
+      sadd: jest.fn().mockResolvedValue(1),
+      setex: jest.fn().mockResolvedValue('OK'),
       disconnect: jest.fn(),
       on: jest.fn()
     } as any;
 
-    mockSubClient = {
-      subscribe: jest.fn().mockResolvedValue('OK'),
-      unsubscribe: jest.fn().mockResolvedValue('OK'),
-      on: jest.fn(),
-      disconnect: jest.fn()
-    } as any;
-
     // Mock Redis constructor
-    (Redis as any).mockImplementation(() => mockPubClient);
+    (Redis as any).mockImplementation(() => mockRedis);
 
-    eventEmitter = new EventEmitter();
-    broadcaster = new EventBroadcaster();
+    broadcaster = new EventBroadcaster('redis://localhost:6379');
   });
 
   afterEach(() => {
@@ -38,309 +29,260 @@ describe('EventBroadcaster Tests', () => {
   });
 
   describe('Initialization', () => {
-    test('should create publisher and subscriber clients', () => {
-      expect(Redis).toHaveBeenCalledTimes(2);
+    test('should create Redis client when URL provided', () => {
+      expect(Redis).toHaveBeenCalledWith('redis://localhost:6379');
     });
 
-    test('should handle connection errors gracefully', () => {
-      const errorHandler = mockPubClient.on.mock.calls.find(
-        call => call[0] === 'error'
-      )?.[1];
-
-      expect(() => {
-        errorHandler?.(new Error('Connection failed'));
-      }).not.toThrow();
+    test('should not create Redis client without URL', () => {
+      jest.clearAllMocks();
+      const broadcasterWithoutRedis = new EventBroadcaster();
+      expect(Redis).not.toHaveBeenCalled();
     });
   });
 
-  describe('Publishing Events', () => {
-    test('should publish player events', async () => {
-      const event = {
-        type: 'player:joined',
-        playerId: 'player-123',
-        data: { name: 'TestPlayer' }
-      };
+  describe('Chat Broadcasting', () => {
+    test('should broadcast chat messages', async () => {
+      const playerId = 'player-123';
+      const message = 'Hello world';
+      const response = 'Welcome!';
 
-      await broadcaster.publishPlayerEvent(event);
+      await broadcaster.broadcastChat(playerId, message, response);
 
-      expect(mockPubClient.publish).toHaveBeenCalledWith(
-        'game:player:player-123',
-        JSON.stringify(event)
-      );
-    });
-
-    test('should publish quest events', async () => {
-      const event = {
-        type: 'quest:started',
-        questId: 'quest-456',
-        playerId: 'player-123',
-        data: { title: 'Test Quest' }
-      };
-
-      await broadcaster.publishQuestEvent(event);
-
-      expect(mockPubClient.publish).toHaveBeenCalledWith(
-        'game:quest:quest-456',
-        JSON.stringify(event)
-      );
-    });
-
-    test('should publish chat messages', async () => {
-      const message = {
-        id: 'msg-789',
-        playerId: 'player-123',
-        message: 'Hello world',
-        timestamp: new Date()
-      };
-
-      await broadcaster.publishChatMessage(message);
-
-      expect(mockPubClient.publish).toHaveBeenCalledWith(
+      expect(mockRedis.publish).toHaveBeenCalledWith(
         'game:chat',
-        JSON.stringify(message)
+        expect.stringContaining('"playerId":"player-123"')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:chat',
+        expect.stringContaining('"message":"Hello world"')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:chat',
+        expect.stringContaining('"response":"Welcome!"')
+      );
+    });
+  });
+
+  describe('Quest Events', () => {
+    test('should broadcast quest started', async () => {
+      await broadcaster.broadcastQuestStarted(
+        'player-123',
+        'quest-456',
+        'Dragon Slayer',
+        'Defeat the ancient dragon'
+      );
+
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:quest:started',
+        expect.stringContaining('"questId":"quest-456"')
       );
     });
 
-    test('should publish state updates', async () => {
-      const update = {
-        playerId: 'player-123',
-        changes: { score: 100, level: 'apprentice' },
-        timestamp: new Date()
+    test('should broadcast quest completed', async () => {
+      const rewards = { score: 100, items: ['sword'] };
+      
+      await broadcaster.broadcastQuestCompleted(
+        'player-123',
+        'quest-456',
+        'Dragon Slayer',
+        rewards
+      );
+
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:quest:completed',
+        expect.stringContaining('"questId":"quest-456"')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:quest:completed',
+        expect.stringContaining('"rewards"')
+      );
+    });
+
+    test('should broadcast quest step completed', async () => {
+      await broadcaster.broadcastQuestStepCompleted(
+        'player-123',
+        'quest-456',
+        'step-1',
+        'Find the dragon\'s lair'
+      );
+
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:quest:step',
+        expect.stringContaining('"stepId":"step-1"')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:quest:step',
+        expect.stringContaining('"status":"completed"')
+      );
+    });
+  });
+
+  describe('Player Events', () => {
+    test('should broadcast level up', async () => {
+      await broadcaster.broadcastLevelUp('player-123', 'novice', 'apprentice');
+
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:levelup',
+        expect.stringContaining('"oldLevel":"novice"')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:levelup',
+        expect.stringContaining('"newLevel":"apprentice"')
+      );
+    });
+
+    test('should broadcast achievement', async () => {
+      await broadcaster.broadcastAchievement(
+        'player-123',
+        'First Quest',
+        'Completed your first quest!'
+      );
+
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:achievement',
+        expect.stringContaining('"achievement":"First Quest"')
+      );
+    });
+
+    test('should broadcast location change', async () => {
+      await broadcaster.broadcastLocationChange('player-123', 'town', 'forest');
+
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:location',
+        expect.stringContaining('"from":"town"')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:location',
+        expect.stringContaining('"location":"forest"')
+      );
+    });
+
+    test('should broadcast score change', async () => {
+      await broadcaster.broadcastScoreChange('player-123', 100, 150);
+
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:score',
+        expect.stringContaining('"oldScore":100')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:score',
+        expect.stringContaining('"newScore":150')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:player:score',
+        expect.stringContaining('"change":50')
+      );
+    });
+  });
+
+  describe('State Updates', () => {
+    test('should broadcast state update', async () => {
+      const stateUpdate = {
+        player: {
+          id: 'player-123',
+          name: 'Test Hero',
+          score: 200,
+          level: 'apprentice' as const,
+          status: 'idle' as const,
+          location: 'forest' as const
+        }
       };
 
-      await broadcaster.publishStateUpdate(update);
+      await broadcaster.broadcastStateUpdate('player-123', stateUpdate);
 
-      expect(mockPubClient.publish).toHaveBeenCalledWith(
-        'game:state:updates',
-        JSON.stringify(update)
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:state:update',
+        expect.stringContaining('"playerId":"player-123"')
+      );
+      expect(mockRedis.publish).toHaveBeenCalledWith(
+        'game:state:update',
+        expect.stringContaining('"location":"forest"')
+      );
+    });
+  });
+
+  describe('Player Activity Tracking', () => {
+    test('should track player activity', async () => {
+      await broadcaster.trackPlayerActivity('player-123');
+
+      expect(mockRedis.sadd).toHaveBeenCalledWith('game:players', 'player-123');
+      expect(mockRedis.setex).toHaveBeenCalledWith(
+        'game:player:player-123:lastActive',
+        3600,
+        expect.any(String)
       );
     });
 
-    test('should handle publish errors', async () => {
-      mockPubClient.publish.mockRejectedValueOnce(new Error('Publish failed'));
+    test('should track activity when publishing events', async () => {
+      await broadcaster.broadcastChat('player-123', 'Hello', 'Hi');
 
+      expect(mockRedis.sadd).toHaveBeenCalledWith('game:players', 'player-123');
+      expect(mockRedis.setex).toHaveBeenCalledWith(
+        'game:player:player-123:lastActive',
+        3600,
+        expect.any(String)
+      );
+    });
+  });
+
+  describe('Error Handling', () => {
+    test('should handle publish errors gracefully', async () => {
+      mockRedis.publish.mockRejectedValueOnce(new Error('Publish failed'));
+
+      // Should not throw
       await expect(
-        broadcaster.publishPlayerEvent({ type: 'test', playerId: '123' })
-      ).rejects.toThrow('Publish failed');
+        broadcaster.broadcastChat('player-123', 'Hello', 'Hi')
+      ).resolves.not.toThrow();
     });
-  });
 
-  describe('Subscribing to Events', () => {
-    test('should subscribe to player events', async () => {
-      const callback = jest.fn();
+    test('should handle Redis not available', async () => {
+      const broadcasterWithoutRedis = new EventBroadcaster();
       
-      await broadcaster.subscribeToPlayerEvents('player-123', callback);
-
-      expect(mockSubClient.subscribe).toHaveBeenCalledWith('game:player:player-123');
-    });
-
-    test('should subscribe to quest events', async () => {
-      const callback = jest.fn();
-      
-      await broadcaster.subscribeToQuestEvents('quest-456', callback);
-
-      expect(mockSubClient.subscribe).toHaveBeenCalledWith('game:quest:quest-456');
-    });
-
-    test('should subscribe to chat messages', async () => {
-      const callback = jest.fn();
-      
-      await broadcaster.subscribeToChatMessages(callback);
-
-      expect(mockSubClient.subscribe).toHaveBeenCalledWith('game:chat');
-    });
-
-    test('should subscribe to state updates', async () => {
-      const callback = jest.fn();
-      
-      await broadcaster.subscribeToStateUpdates(callback);
-
-      expect(mockSubClient.subscribe).toHaveBeenCalledWith('game:state:updates');
-    });
-
-    test('should handle incoming messages', async () => {
-      const callback = jest.fn();
-      await broadcaster.subscribeToPlayerEvents('player-123', callback);
-
-      // Simulate incoming message
-      const messageHandler = mockSubClient.on.mock.calls.find(
-        call => call[0] === 'message'
-      )?.[1];
-
-      const testEvent = { type: 'test', data: 'test data' };
-      messageHandler?.('game:player:player-123', JSON.stringify(testEvent));
-
-      expect(callback).toHaveBeenCalledWith(testEvent);
-    });
-
-    test('should handle invalid JSON in messages', async () => {
-      const callback = jest.fn();
-      await broadcaster.subscribeToChatMessages(callback);
-
-      const messageHandler = mockSubClient.on.mock.calls.find(
-        call => call[0] === 'message'
-      )?.[1];
-
-      // Send invalid JSON
-      messageHandler?.('game:chat', 'invalid json {');
-
-      expect(callback).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Unsubscribing from Events', () => {
-    test('should unsubscribe from specific channels', async () => {
-      await broadcaster.unsubscribeFromPlayerEvents('player-123');
-
-      expect(mockSubClient.unsubscribe).toHaveBeenCalledWith('game:player:player-123');
-    });
-
-    test('should unsubscribe from all channels', async () => {
-      await broadcaster.unsubscribeAll();
-
-      expect(mockSubClient.unsubscribe).toHaveBeenCalledWith();
-    });
-
-    test('should remove event listeners when unsubscribing', async () => {
-      const callback = jest.fn();
-      
-      await broadcaster.subscribeToPlayerEvents('player-123', callback);
-      await broadcaster.unsubscribeFromPlayerEvents('player-123');
-
-      // Verify callback is removed (implementation specific)
-      expect(broadcaster.getActiveSubscriptions()).not.toContain('game:player:player-123');
-    });
-  });
-
-  describe('Broadcast Patterns', () => {
-    test('should broadcast to multiple players', async () => {
-      const playerIds = ['player-1', 'player-2', 'player-3'];
-      const event = { type: 'global:announcement', message: 'Server restart' };
-
-      await broadcaster.broadcastToPlayers(playerIds, event);
-
-      expect(mockPubClient.publish).toHaveBeenCalledTimes(3);
-      playerIds.forEach(playerId => {
-        expect(mockPubClient.publish).toHaveBeenCalledWith(
-          `game:player:${playerId}`,
-          JSON.stringify(event)
-        );
-      });
-    });
-
-    test('should broadcast to all connected clients', async () => {
-      const event = { type: 'system:broadcast', message: 'Global update' };
-
-      await broadcaster.broadcastToAll(event);
-
-      expect(mockPubClient.publish).toHaveBeenCalledWith(
-        'game:broadcast',
-        JSON.stringify(event)
-      );
-    });
-  });
-
-  describe('Event Filtering', () => {
-    test('should filter events by type', async () => {
-      const callback = jest.fn();
-      const filter = (event: any) => event.type === 'player:joined';
-
-      await broadcaster.subscribeToPlayerEvents('player-123', callback, filter);
-
-      const messageHandler = mockSubClient.on.mock.calls.find(
-        call => call[0] === 'message'
-      )?.[1];
-
-      // Send matching event
-      messageHandler?.(
-        'game:player:player-123', 
-        JSON.stringify({ type: 'player:joined', data: 'test' })
-      );
-
-      // Send non-matching event
-      messageHandler?.(
-        'game:player:player-123', 
-        JSON.stringify({ type: 'player:left', data: 'test' })
-      );
-
-      expect(callback).toHaveBeenCalledTimes(1);
-      expect(callback).toHaveBeenCalledWith({ type: 'player:joined', data: 'test' });
+      // Should not throw when Redis is not available
+      await expect(
+        broadcasterWithoutRedis.broadcastChat('player-123', 'Hello', 'Hi')
+      ).resolves.not.toThrow();
     });
   });
 
   describe('Connection Management', () => {
-    test('should reconnect on connection loss', async () => {
-      const reconnectHandler = mockPubClient.on.mock.calls.find(
-        call => call[0] === 'connect'
-      )?.[1];
-
-      reconnectHandler?.();
-
-      // Verify reconnection logic
-      expect(broadcaster.isConnected()).toBe(true);
-    });
-
-    test('should clean up resources on disconnect', async () => {
+    test('should disconnect Redis client', async () => {
       await broadcaster.disconnect();
 
-      expect(mockPubClient.disconnect).toHaveBeenCalled();
-      expect(mockSubClient.disconnect).toHaveBeenCalled();
+      expect(mockRedis.disconnect).toHaveBeenCalled();
     });
 
-    test('should handle disconnect errors gracefully', async () => {
-      mockPubClient.disconnect.mockRejectedValueOnce(new Error('Disconnect failed'));
-
-      await expect(broadcaster.disconnect()).resolves.not.toThrow();
+    test('should handle disconnect when no Redis client', async () => {
+      const broadcasterWithoutRedis = new EventBroadcaster();
+      
+      // Should not throw
+      await expect(broadcasterWithoutRedis.disconnect()).resolves.not.toThrow();
     });
   });
 
-  describe('Performance', () => {
-    test('should batch multiple publishes', async () => {
-      const events = Array(10).fill(null).map((_, i) => ({
-        type: 'test',
-        playerId: `player-${i}`,
-        data: { index: i }
-      }));
+  describe('Event Structure', () => {
+    test('should include proper event structure', async () => {
+      const beforePublish = Date.now();
+      await broadcaster.broadcastChat('player-123', 'Hello', 'Hi');
+      const afterPublish = Date.now();
 
-      await broadcaster.publishBatch(events);
+      const publishCall = mockRedis.publish.mock.calls[0];
+      const eventData = JSON.parse(publishCall[1] as string);
 
-      // Should use pipeline for better performance
-      expect(mockPubClient.pipeline).toHaveBeenCalled();
-    });
+      expect(eventData).toMatchObject({
+        type: 'game:chat',
+        playerId: 'player-123',
+        timestamp: expect.any(Number),
+        data: expect.objectContaining({
+          playerId: 'player-123',
+          message: 'Hello',
+          response: 'Hi',
+          type: 'player_message'
+        })
+      });
 
-    test('should handle rate limiting', async () => {
-      const startTime = Date.now();
-      
-      // Publish many events rapidly
-      const promises = Array(100).fill(null).map(() =>
-        broadcaster.publishPlayerEvent({ type: 'test', playerId: '123' })
-      );
-
-      await Promise.all(promises);
-
-      const duration = Date.now() - startTime;
-      
-      // Should implement rate limiting
-      expect(duration).toBeGreaterThan(100); // At least 1ms per event
+      expect(eventData.timestamp).toBeGreaterThanOrEqual(beforePublish);
+      expect(eventData.timestamp).toBeLessThanOrEqual(afterPublish);
     });
   });
-});
-
-// Add type extensions for testing
-declare module '../EventBroadcaster' {
-  interface EventBroadcaster {
-    getActiveSubscriptions(): string[];
-    isConnected(): boolean;
-    broadcastToPlayers(playerIds: string[], event: any): Promise<void>;
-    broadcastToAll(event: any): Promise<void>;
-    subscribeToPlayerEvents(
-      playerId: string, 
-      callback: Function, 
-      filter?: Function
-    ): Promise<void>;
-    unsubscribeFromPlayerEvents(playerId: string): Promise<void>;
-    unsubscribeAll(): Promise<void>;
-    disconnect(): Promise<void>;
-    publishBatch(events: any[]): Promise<void>;
-  }
-} 
+}); 

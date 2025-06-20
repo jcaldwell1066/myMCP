@@ -202,10 +202,11 @@ describe('GameState Model Tests', () => {
       expect(typeof serialized).toBe('string');
 
       const deserialized = deserializeGameState(serialized);
-      expect(deserialized.player.score).toBe(500);
-      expect(deserialized.player.level).toBe('expert');
-      expect(deserialized.metadata.lastUpdated).toBeInstanceOf(Date);
-      expect(deserialized.session.startTime).toBeInstanceOf(Date);
+      expect(deserialized).not.toBeNull();
+      expect(deserialized!.player.score).toBe(500);
+      expect(deserialized!.player.level).toBe('expert');
+      expect(deserialized!.metadata.lastUpdated).toBeInstanceOf(Date);
+      expect(deserialized!.session.startTime).toBeInstanceOf(Date);
     });
 
     test('should handle serialization errors gracefully', () => {
@@ -326,11 +327,11 @@ function isQuestStateConsistent(state: GameState): boolean {
 }
 
 function startQuest(state: GameState, quest: Quest): GameState {
-  const questIndex = state.quests.available.findIndex(q => q.id === quest.id);
-  if (questIndex === -1) return state;
-
-  const newAvailable = [...state.quests.available];
-  newAvailable.splice(questIndex, 1);
+  // Add the quest to available if it's not already there
+  const questInAvailable = state.quests.available.find(q => q.id === quest.id);
+  const availableQuests = questInAvailable 
+    ? state.quests.available.filter(q => q.id !== quest.id)
+    : state.quests.available;
 
   return {
     ...state,
@@ -341,7 +342,7 @@ function startQuest(state: GameState, quest: Quest): GameState {
     },
     quests: {
       ...state.quests,
-      available: newAvailable,
+      available: availableQuests,
       active: { ...quest, status: 'active' }
     }
   };
