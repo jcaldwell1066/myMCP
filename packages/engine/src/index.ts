@@ -463,11 +463,11 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
   switch (action.type) {
     case 'START_QUEST':
       const questId = action.payload.questId;
-      const quest = gameState.quests.available.find(q => q.id === questId);
+      const quest = gameState.quests.available.find((q: Quest) => q.id === questId);
       if (quest) {
         quest.status = 'active';
         gameState.quests.active = quest;
-        gameState.quests.available = gameState.quests.available.filter(q => q.id !== questId);
+        gameState.quests.available = gameState.quests.available.filter((q: Quest) => q.id !== questId);
         gameState.player.currentQuest = quest.id;
         gameState.player.status = 'in-quest';
         
@@ -487,7 +487,7 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
     case 'COMPLETE_QUEST_STEP':
       if (gameState.quests.active) {
         const stepId = action.payload.stepId;
-        const step = gameState.quests.active.steps.find(s => s.id === stepId);
+        const step = gameState.quests.active.steps.find((s: any) => s.id === stepId);
         if (step) {
           step.completed = true;
           
@@ -518,7 +518,7 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
         
         // Add reward items
         if (activeQuest.reward.items) {
-          activeQuest.reward.items.forEach(item => {
+          activeQuest.reward.items.forEach((item: string) => {
             gameState.inventory.items.push({
               id: uuidv4(),
               name: item,
@@ -600,11 +600,11 @@ app.post('/api/actions/:playerId?', async (req, res) => {
       
     case 'START_QUEST':
       const questId = action.payload.questId;
-      const quest = gameState.quests.available.find(q => q.id === questId);
+      const quest = gameState.quests.available.find((q: Quest) => q.id === questId);
       if (quest) {
         quest.status = 'active';
         gameState.quests.active = quest;
-        gameState.quests.available = gameState.quests.available.filter(q => q.id !== questId);
+        gameState.quests.available = gameState.quests.available.filter((q: Quest) => q.id !== questId);
         gameState.player.currentQuest = quest.id;
         gameState.player.status = 'in-quest';
         result = { quest: quest.title, status: 'started' };
@@ -620,7 +620,7 @@ app.post('/api/actions/:playerId?', async (req, res) => {
     case 'COMPLETE_QUEST_STEP':
       if (gameState.quests.active) {
         const stepId = action.payload.stepId;
-        const step = gameState.quests.active.steps.find(s => s.id === stepId);
+        const step = gameState.quests.active.steps.find((s: any) => s.id === stepId);
         if (step) {
           step.completed = true;
           result = { step: step.description, completed: true };
@@ -652,7 +652,7 @@ app.post('/api/actions/:playerId?', async (req, res) => {
         
         // Add reward items
         if (activeQuest.reward.items) {
-          activeQuest.reward.items.forEach(item => {
+          activeQuest.reward.items.forEach((item: string) => {
             gameState.inventory.items.push({
               id: uuidv4(),
               name: item,
@@ -881,7 +881,7 @@ app.get('/api/context/completions/:playerId?', (req, res) => {
   
   // Context-aware suggestions based on game state
   if (prefix.toLowerCase().includes('quest')) {
-    gameState.quests.available.forEach(quest => {
+    gameState.quests.available.forEach((quest: Quest) => {
       suggestions.push(quest.title);
     });
   }
@@ -891,7 +891,7 @@ app.get('/api/context/completions/:playerId?', (req, res) => {
   }
   
   if (prefix.toLowerCase().includes('use') || prefix.toLowerCase().includes('item')) {
-    gameState.inventory.items.forEach(item => {
+    gameState.inventory.items.forEach((item: any) => {
       suggestions.push(item.name);
     });
   }
@@ -944,13 +944,13 @@ app.get('/api/quest-catalog', (req, res) => {
   res.json({
     success: true,
     data: {
-      quests: defaultState.quests.available.map(quest => ({
+      quests: defaultState.quests.available.map((quest: Quest) => ({
         id: quest.id,
         title: quest.title,
         description: quest.description,
         realWorldSkill: quest.realWorldSkill,
         fantasyTheme: quest.fantasyTheme,
-        steps: quest.steps.map(step => ({
+        steps: quest.steps.map((step: any) => ({
           id: step.id,
           description: step.description,
         })),
@@ -986,7 +986,7 @@ app.get('/api/stats', (req, res) => {
       scores: {
         total: totalScore,
         average: averageScore,
-        highest: Math.max(...players.map(p => p.player.score), 0),
+        highest: Math.max(...players.map((p: GameState) => p.player.score), 0),
       },
       quests: {
         completed: questStats.totalCompleted,
@@ -1069,9 +1069,9 @@ function generateContextualFallback(userMessage: string, gameState: GameState): 
   // Quest-specific responses
   if (gameState.quests.active) {
     const quest = gameState.quests.active;
-    const completedSteps = quest.steps.filter(s => s.completed).length;
+    const completedSteps = quest.steps.filter((s: any) => s.completed).length;
     const totalSteps = quest.steps.length;
-    const nextStep = quest.steps.find(s => !s.completed);
+    const nextStep = quest.steps.find((s: any) => !s.completed);
     
     if (message.includes('quest') || message.includes('current') || message.includes('progress')) {
       return `Greetings, ${playerName}! Thou art currently engaged in the noble quest "${quest.title}". Progress stands at ${completedSteps} of ${totalSteps} steps completed. ${nextStep ? `Thy next challenge: ${nextStep.description}` : 'Thou art nearly finished with this grand adventure!'}`;
@@ -1126,7 +1126,7 @@ function generateContextualFallback(userMessage: string, gameState: GameState): 
   if (message.includes('item') || message.includes('inventory') || message.includes('treasure')) {
     const itemCount = gameState.inventory.items.length;
     if (itemCount > 0) {
-      const itemNames = gameState.inventory.items.map(item => item.name).join(', ');
+      const itemNames = gameState.inventory.items.map((item: any) => item.name).join(', ');
       return `Thy inventory contains ${itemCount} items of note: ${itemNames}. Each has been earned through thy noble deeds and adventures.`;
     } else {
       return `Thy inventory awaits treasures from future adventures, ${playerName}. Complete quests and explore the realm to gather items of power and value.`;

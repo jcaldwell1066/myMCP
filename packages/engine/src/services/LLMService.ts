@@ -170,7 +170,7 @@ export class LLMService {
     // Determine mood based on quest progress and score
     let mood = 'neutral';
     if (gameState.quests.active) {
-      const progress = gameState.quests.active.steps.filter(s => s.completed).length;
+      const progress = gameState.quests.active.steps.filter((s: any) => s.completed).length;
       const total = gameState.quests.active.steps.length;
       mood = progress / total > 0.5 ? 'encouraging' : 'motivating';
     } else if (gameState.player.score > 500) {
@@ -185,12 +185,12 @@ export class LLMService {
         location: gameState.player.location,
         status: gameState.player.status,
       },
-      conversation: gameState.session.conversationHistory.slice(-10).map(msg => ({
+      conversation: gameState.session.conversationHistory.slice(-10).map((msg: ChatMessage) => ({
         role: msg.sender === 'player' ? 'user' : 'assistant',
         content: msg.message,
         timestamp: msg.timestamp,
       })),
-      inventory: gameState.inventory.items.map(item => item.name),
+      inventory: gameState.inventory.items.map((item: any) => item.name),
       timeOfDay,
       mood,
     };
@@ -198,8 +198,8 @@ export class LLMService {
     // Add quest context if active
     if (gameState.quests.active) {
       const quest = gameState.quests.active;
-      const completedSteps = quest.steps.filter(s => s.completed).length;
-      const nextStep = quest.steps.find(s => !s.completed);
+      const completedSteps = quest.steps.filter((s: any) => s.completed).length;
+      const nextStep = quest.steps.find((s: any) => !s.completed);
       
       context.quest = {
         title: quest.title,
