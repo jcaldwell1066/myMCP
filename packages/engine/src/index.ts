@@ -355,6 +355,27 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
+// Get all players
+app.get('/api/players', (req, res) => {
+  const players = Object.entries(gameStatesCache).map(([id, state]) => ({
+    id,
+    name: state.player.name,
+    score: state.player.score,
+    level: state.player.level,
+    status: state.player.status,
+    location: state.player.location,
+    currentQuest: state.player.currentQuest,
+  }));
+  
+  const response: APIResponse<any[]> = {
+    success: true,
+    data: players,
+    timestamp: new Date(),
+  };
+  
+  res.json(response);
+});
+
 // Get current game state
 app.get('/api/state/:playerId?', (req, res) => {
   const playerId = req.params.playerId || 'default-player';

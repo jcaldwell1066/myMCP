@@ -9,7 +9,7 @@ const path = require('path');
 // Configuration
 const config = {
   engineUrl: 'http://localhost:3000',
-  playerId: `shell-player-${Date.now()}`,
+  playerId: process.env.PLAYER_ID || process.argv[2] || `shell-player-${Date.now()}`,
   apiTimeout: 30000, // Increased from 5000 to 30000 for LLM responses
 };
 
@@ -131,7 +131,7 @@ async function processInput(input) {
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
   
-  const quickCommands = ['status', 'quests', 'history', 'help', 'health', 'config', 'get-score', 'set-score'];
+  const quickCommands = ['status', 'quests', 'history', 'help', 'health', 'config', 'get-score', 'set-score', 'switch-player', 'list-players'];
   
   if (quickCommands.includes(command)) {
     await executeCommand(command + ' ' + args.join(' '));
@@ -164,6 +164,8 @@ async function executeCommand(fullCommand) {
     console.log(chalk.cyan('📊 Player Management:'));
     console.log(chalk.yellow('  get-score') + chalk.gray(' - Get current score'));
     console.log(chalk.yellow('  set-score <number>') + chalk.gray(' - Set score (e.g., set-score 100)'));
+    console.log(chalk.yellow('  switch-player <id>') + chalk.gray(' - Switch to different player (e.g., switch-player claude-player)'));
+    console.log(chalk.yellow('  list-players') + chalk.gray(' - List all players and scores'));
     console.log();
     console.log(chalk.cyan('⚔️  Quest Management:'));
     console.log(chalk.yellow('  quests') + chalk.gray(' - View all quests'));
@@ -391,6 +393,60 @@ async function executeCommand(fullCommand) {
     console.log(chalk.yellow(`Engine URL: ${config.engineUrl}`));
     console.log(chalk.yellow(`Player ID: ${config.playerId}`));
     console.log(chalk.yellow(`API Timeout: ${config.apiTimeout}ms`));
+    return;
+  }
+  
+  // Handle switch-player
+  if (command === 'switch-player') {
+    const newPlayerId = args[0];
+    if (!newPlayerId) {
+      console.log(chalk.yellow('Please provide a player ID: switch-player claude-player'));
+      return;
+    }
+    
+    const oldPlayerId = config.playerId;
+    config.playerId = newPlayerId;
+    console.log(chalk.green(`✅ Switched from ${oldPlayerId} to ${newPlayerId}`));
+    
+    // Try to get new player status
+    const state = await getPlayerState();
+    if (state) {
+      console.log(chalk.cyan(`👤 Now playing as: ${state.player.name} (Score: ${state.player.score})`));
+    }
+    return;
+  }
+  
+  // Handle list-players
+  if (command === 'list-players') {
+    try {
+      const apiClient = createApiClient();
+      const response = await apiClient.get('/players');
+      const players = response.data.data;
+      
+      console.log(chalk.bold.blue('🎮 All Players'));
+      console.log(chalk.gray('─'.repeat(60)));
+      
+      if (players.length === 0) {
+        console.log(chalk.gray('No players found'));
+        return;
+      }
+      
+      // Sort by score descending
+      players.sort((a, b) => b.score - a.score);
+      
+      players.forEach((player, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
+        const scoreColor = player.score >= 1000 ? chalk.yellow : player.score >= 500 ? chalk.green : chalk.white;
+        const current = player.id === config.playerId ? ' ← (current)' : '';
+        
+        console.log(`${medal} ${chalk.cyan(player.id.padEnd(25))} ${scoreColor(player.score.toString().padStart(6) + ' pts')} ${chalk.magenta(player.level.padEnd(10))} ${chalk.gray(player.status)}${chalk.blue(current)}`);
+      });
+      
+      console.log(chalk.gray('\n─'.repeat(60)));
+      console.log(chalk.gray(`Total players: ${players.length}`));
+    } catch (error) {
+      handleApiError(error, 'Failed to list players');
+    }
     return;
   }
   
