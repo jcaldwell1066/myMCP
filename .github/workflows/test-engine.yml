@@ -1,0 +1,93 @@
+name: Test Engine
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'packages/engine/**'
+      - 'shared/types/**'
+      - '.github/workflows/test-engine.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'packages/engine/**'
+      - 'shared/types/**'
+      - '.github/workflows/test-engine.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build shared types
+      run: npm run build --workspace=shared/types
+      
+    - name: Build engine
+      run: npm run build --workspace=packages/engine
+      
+    - name: Run unit tests
+      run: npm run test --workspace=packages/engine
+      env:
+        REDIS_URL: redis://localhost:6379
+        NODE_ENV: test
+        
+    - name: Run integration tests
+      run: npm run test:integration --workspace=packages/engine
+      env:
+        REDIS_URL: redis://localhost:6379
+        NODE_ENV: test
+        
+    - name: Generate coverage report
+      run: npm run test:coverage --workspace=packages/engine
+      env:
+        REDIS_URL: redis://localhost:6379
+        NODE_ENV: test
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./packages/engine/coverage
+        flags: engine
+        name: engine-coverage
+        
+  type-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Type check
+      run: |
+        npx tsc --noEmit --project packages/engine/tsconfig.json
+        npx tsc --noEmit --project shared/types/tsconfig.json 
