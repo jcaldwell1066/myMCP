@@ -67,7 +67,7 @@ async function testSlackIntegration() {
     
   } catch (error) {
     console.log(chalk.red('\n❌ Error starting Slack integration:'));
-    console.log(chalk.red(error.message));
+    console.log(chalk.red(error.stack || error.message));
     
     if (error.message.includes('invalid_auth')) {
       console.log(chalk.yellow('\n💡 Check your SLACK_BOT_TOKEN - it should start with xoxb-'));

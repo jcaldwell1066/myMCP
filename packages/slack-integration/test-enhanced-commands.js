@@ -42,7 +42,7 @@ async function testScoreCommands() {
     });
     console.log('✅ Score set command successful');
   } catch (error) {
-    console.error('❌ Score set failed:', error.message);
+    console.error('❌ Score set failed:', error.stack || error.message);
   }
 }
 
@@ -55,7 +55,7 @@ async function testLocationCommands() {
     const locations = response.data.data?.world?.locations || [];
     console.log(`✅ Found ${locations.length} locations`);
   } catch (error) {
-    console.error('❌ Location list failed:', error.message);
+    console.error('❌ Location list failed:', error.stack || error.message);
   }
 }
 
@@ -79,7 +79,7 @@ async function testQuestCommands() {
       console.log(`✅ Started quest: ${questId}`);
     }
   } catch (error) {
-    console.error('❌ Quest commands failed:', error.message);
+    console.error('❌ Quest commands failed:', error.stack || error.message);
   }
 }
 
