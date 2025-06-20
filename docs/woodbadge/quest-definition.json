@@ -1,0 +1,424 @@
+{
+  "id": "woodbadge-staff-training-2025",
+  "title": "Wood Badge Staff Training Quest 2025",
+  "description": "Master the art of Wood Badge staff training through multi-modal learning and leadership development. This quest prepares you to deliver exceptional training experiences across traditional and digital platforms.",
+  "realWorldSkill": "Advanced leadership training delivery and multi-modal program management",
+  "fantasyTheme": "Journey of the Master Trainer - From apprentice to master of the training arts",
+  "status": "available",
+  "reward": {
+    "score": 500,
+    "items": ["Wood Badge Staff Neckerchief", "Training Master's Compass", "Digital Leadership Toolkit"]
+  },
+  "metadata": {
+    "estimatedDuration": "3-4 weeks",
+    "difficulty": "advanced",
+    "prerequisites": ["Wood Badge completion", "Position-specific training"],
+    "tags": ["leadership", "training", "wood-badge", "multi-modal", "staff-development"]
+  },
+  "steps": [
+    {
+      "id": "wb-foundation-knowledge",
+      "description": "Master the foundational knowledge of Wood Badge history, principles, and staff requirements",
+      "completed": false,
+      "title": "Wood Badge Foundation Mastery",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "research",
+        "tags": ["history", "principles", "requirements"],
+        "points": 75,
+        "estimatedDuration": "4-6 hours"
+      },
+      "resources": {
+        "docs": [
+          "docs/woodbadge/How-To-Be-On-Wood-Badge-Staff.md",
+          "https://www.scouting.org/training/wood-badge/",
+          "https://sites.google.com/view/cfcwoodbadge83/home"
+        ],
+        "videos": [
+          "Wood Badge History and Traditions",
+          "The Five Themes of Wood Badge"
+        ],
+        "examples": [
+          "Central Florida Council Wood Badge 2025 syllabus",
+          "Staff training materials from previous courses"
+        ]
+      },
+      "execution": {
+        "type": "hybrid",
+        "validation": {
+          "type": "test",
+          "criteria": [
+            "Score 85% or higher on Wood Badge knowledge assessment",
+            "Demonstrate understanding of the five themes",
+            "Explain staff competency requirements",
+            "Identify multi-modal training approaches"
+          ]
+        },
+        "hints": [
+          "Focus on Baden-Powell's original vision and modern adaptations",
+          "Connect the five themes to practical leadership scenarios",
+          "Review Central Florida Council specific requirements"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "wb-cli-mastery",
+      "description": "Demonstrate proficiency in using the myMCP CLI for training management and participant engagement",
+      "completed": false,
+      "title": "CLI Training Command Center",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "development",
+        "tags": ["cli", "command-line", "training-management"],
+        "points": 100,
+        "estimatedDuration": "3-4 hours"
+      },
+      "resources": {
+        "docs": [
+          "packages/cli/README.md",
+          "packages/cli/enhanced-shell.js",
+          "tests/api/quest-step-commands.js"
+        ],
+        "tools": [
+          "myMCP CLI interface",
+          "Terminal/Command prompt",
+          "Quest step launcher"
+        ],
+        "examples": [
+          "CLI training scenario scripts",
+          "Command reference cards"
+        ]
+      },
+      "execution": {
+        "type": "automated",
+        "validation": {
+          "type": "test",
+          "criteria": [
+            "Successfully execute 10 different CLI commands",
+            "Demonstrate quest step progression tracking",
+            "Show participant status monitoring",
+            "Create custom training scenarios"
+          ]
+        },
+        "hints": [
+          "Use 'steps' command to view enhanced quest step details",
+          "Practice with 'next' and 'complete-step' commands",
+          "Try the natural language interface for complex scenarios"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "wb-web-dashboard",
+      "description": "Create and customize a Wood Badge themed web dashboard with ASCII art and real-time participant tracking",
+      "completed": false,
+      "title": "Smart Training Dashboard",
+      "metadata": {
+        "difficulty": "hard",
+        "category": "development",
+        "tags": ["web", "dashboard", "ascii-art", "real-time"],
+        "points": 150,
+        "estimatedDuration": "6-8 hours"
+      },
+      "resources": {
+        "docs": [
+          "packages/admin/README.md",
+          "docs/team-training-diagram.md"
+        ],
+        "tools": [
+          "Web browser",
+          "Dashboard components",
+          "ASCII art generator"
+        ],
+        "templates": [
+          "Wood Badge themed dashboard template",
+          "ASCII art components library"
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "criteria",
+          "criteria": [
+            "Deploy functional web dashboard",
+            "Include Wood Badge ASCII art elements",
+            "Show real-time participant progress",
+            "Display training metrics and analytics",
+            "Responsive design for mobile devices"
+          ]
+        },
+        "hints": [
+          "Use the existing admin dashboard as a starting point",
+          "Incorporate Scout-themed ASCII art for visual appeal",
+          "Test responsiveness across different screen sizes"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "wb-mcp-integration",
+      "description": "Configure and demonstrate the MCP server integration for seamless training resource access",
+      "completed": false,
+      "title": "MCP Training Resource Hub",
+      "metadata": {
+        "difficulty": "hard",
+        "category": "development",
+        "tags": ["mcp", "integration", "resources"],
+        "points": 125,
+        "estimatedDuration": "4-5 hours"
+      },
+      "resources": {
+        "docs": [
+          "packages/mcpserver/README-enhanced.md",
+          "packages/mcpserver/IMPLEMENTATION-COMPLETE.md"
+        ],
+        "tools": [
+          "MCP server",
+          "Claude integration",
+          "Resource management tools"
+        ],
+        "examples": [
+          "MCP training resource examples",
+          "Integration test scenarios"
+        ]
+      },
+      "execution": {
+        "type": "automated",
+        "validation": {
+          "type": "test",
+          "criteria": [
+            "Successfully start enhanced MCP server",
+            "Demonstrate resource access through MCP",
+            "Show tool execution capabilities",
+            "Validate prompt generation features"
+          ]
+        },
+        "hints": [
+          "Use the enhanced server for full functionality",
+          "Test all 8 resource endpoints",
+          "Verify all 12 tool functions work correctly"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "wb-slack-integration",
+      "description": "Set up and demonstrate Slack integration for real-time training communication and progress updates",
+      "completed": false,
+      "title": "Slack Training Command Center",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "collaboration",
+        "tags": ["slack", "communication", "real-time"],
+        "points": 100,
+        "estimatedDuration": "3-4 hours"
+      },
+      "resources": {
+        "docs": [
+          "packages/slack-integration/SETUP.md",
+          "packages/slack-integration/ENHANCED_COMMANDS.md"
+        ],
+        "tools": [
+          "Slack workspace",
+          "Bot configuration",
+          "Webhook integration"
+        ],
+        "examples": [
+          "Training channel setup examples",
+          "Bot command demonstrations"
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "criteria",
+          "criteria": [
+            "Create Wood Badge training Slack workspace",
+            "Configure bot for training notifications",
+            "Demonstrate real-time progress updates",
+            "Show participant engagement features"
+          ]
+        },
+        "hints": [
+          "Use the enhanced commands for full functionality",
+          "Set up dedicated channels for different training phases",
+          "Test notification systems before live use"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "wb-discord-community",
+      "description": "Establish a Discord server for Wood Badge staff community building and ongoing support",
+      "completed": false,
+      "title": "Discord Staff Community Hub",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "collaboration",
+        "tags": ["discord", "community", "support"],
+        "points": 75,
+        "estimatedDuration": "2-3 hours"
+      },
+      "resources": {
+        "tools": [
+          "Discord server",
+          "Bot integration",
+          "Role management"
+        ],
+        "templates": [
+          "Wood Badge Discord server template",
+          "Staff role hierarchy"
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "criteria",
+          "criteria": [
+            "Create structured Discord server",
+            "Set up role-based access control",
+            "Configure training resource channels",
+            "Demonstrate community engagement features"
+          ]
+        },
+        "hints": [
+          "Use voice channels for staff meetings",
+          "Create separate channels for different training topics",
+          "Set up automated welcome messages for new staff"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "wb-mobile-integration",
+      "description": "Configure mobile-responsive interfaces and quick-access tools for on-the-go training management",
+      "completed": false,
+      "title": "Mobile Training Toolkit",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "development",
+        "tags": ["mobile", "responsive", "accessibility"],
+        "points": 100,
+        "estimatedDuration": "4-5 hours"
+      },
+      "resources": {
+        "tools": [
+          "Mobile browser testing",
+          "Responsive design tools",
+          "PWA configuration"
+        ],
+        "examples": [
+          "Mobile dashboard examples",
+          "Quick access menu designs"
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "criteria",
+          "criteria": [
+            "Verify mobile responsiveness across devices",
+            "Demonstrate offline capabilities",
+            "Show quick-access training tools",
+            "Test touch-friendly interface elements"
+          ]
+        },
+        "hints": [
+          "Focus on essential functions for mobile use",
+          "Ensure easy navigation with touch gestures",
+          "Test on both iOS and Android devices"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "wb-demonstration-session",
+      "description": "Conduct a live demonstration session showcasing all multi-modal training capabilities",
+      "completed": false,
+      "title": "Master Trainer Demonstration",
+      "metadata": {
+        "difficulty": "hard",
+        "category": "coordination",
+        "tags": ["presentation", "demonstration", "integration"],
+        "points": 200,
+        "estimatedDuration": "2-3 hours"
+      },
+      "resources": {
+        "docs": [
+          "Wood Badge sample session plans",
+          "Demonstration checklist"
+        ],
+        "tools": [
+          "All integrated platforms",
+          "Presentation materials",
+          "Assessment tools"
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "criteria",
+          "criteria": [
+            "Successfully demonstrate CLI training management",
+            "Show web dashboard in real-time operation",
+            "Demonstrate MCP resource access",
+            "Show Slack and Discord integration working",
+            "Receive positive feedback from observers"
+          ]
+        },
+        "hints": [
+          "Practice the demonstration multiple times",
+          "Have backup plans for technical issues",
+          "Focus on the training value, not just the technology"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    }
+  ],
+  "woodbadge_theme": {
+    "ascii_art": {
+      "fleur_de_lis": "     ⚜️\n    ╱│╲\n   ╱ │ ╲\n  ╱  │  ╲\n ╱   │   ╲\n╱    │    ╲",
+      "neckerchief": "    ╭─────╮\n   ╱       ╲\n  ╱         ╲\n ╱           ╲\n╱_____________╲",
+      "staff_badge": "┌─────────────┐\n│  ⚜️ STAFF ⚜️  │\n│   TRAINER   │\n│  WOOD BADGE │\n└─────────────┘"
+    },
+    "colors": {
+      "primary": "#1f4e79",
+      "secondary": "#b8860b",
+      "accent": "#228b22",
+      "background": "#f5f5dc"
+    }
+  }
+}
