@@ -1114,12 +1114,12 @@ export class SlackIntegration {
       const response = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
       const playerData: PlayerStats = {
         playerId,
-        name: response.data.player?.name || 'Unknown',
-        level: response.data.player?.level || 'apprentice',
-        score: response.data.player?.score || 0,
-        currentQuest: response.data.player?.currentQuest,
-        location: response.data.player?.location || 'town',
-        achievements: response.data.player?.achievements || [],
+        name: response.data.data?.player?.name || 'Unknown',
+        level: response.data.data?.player?.level || 'apprentice',
+        score: response.data.data?.player?.score || 0,
+        currentQuest: response.data.data?.player?.currentQuest,
+        location: response.data.data?.player?.location || 'town',
+        achievements: response.data.data?.player?.achievements || [],
         lastActive: Date.now()
       };
       

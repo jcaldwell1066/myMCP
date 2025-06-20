@@ -64,7 +64,7 @@ async function testQuestCommands() {
   
   // Test list quests
   try {
-    const response = await axios.get(`${ENGINE_URL}/api/quests/default-player`);
+    const response = await axios.get(`${ENGINE_URL}/api/quests/${TEST_PLAYER_ID}`);
     const quests = response.data.data?.available || [];
     console.log(`✅ Found ${quests.length} available quests`);
     
