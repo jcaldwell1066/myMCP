@@ -5,6 +5,7 @@
  */
 
 const axios = require('axios');
+const { identifyTestPlayers } = require('./src/utils/playerHelpers');
 
 const ENGINE_URL = process.env.ENGINE_URL || 'http://localhost:3000';
 
@@ -27,15 +28,7 @@ async function cleanupPlayers() {
     console.log(`Found ${players.length} total players\n`);
     
     // Identify test players
-    const testPlayers = players.filter(player => {
-      const id = player.id || player.playerId;
-      return !PRESERVE_PLAYERS.includes(id) && (
-        id.startsWith('shell-player-') ||
-        id.startsWith('cli-player-') ||
-        id.startsWith('test-') ||
-        id.includes('-test')
-      );
-    });
+    const testPlayers = identifyTestPlayers(players, PRESERVE_PLAYERS);
     
     console.log(`Test players to remove: ${testPlayers.length}`);
     testPlayers.forEach(player => {

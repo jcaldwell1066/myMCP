@@ -6,6 +6,7 @@
 
 const Redis = require('ioredis');
 const axios = require('axios');
+const { identifyTestPlayers } = require('./src/utils/playerHelpers');
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 const ENGINE_URL = process.env.ENGINE_URL || 'http://localhost:3000';
@@ -27,14 +28,7 @@ async function cleanupTestPlayers() {
     console.log(`Found ${allPlayers.length} total players\n`);
     
     // Identify test players
-    const testPlayers = allPlayers.filter(playerId => 
-      !PRESERVE_PLAYERS.includes(playerId) && (
-        playerId.startsWith('shell-player-') ||
-        playerId.startsWith('cli-player-') ||
-        playerId.startsWith('test-') ||
-        playerId.includes('-test')
-      )
-    );
+    const testPlayers = identifyTestPlayers(allPlayers, PRESERVE_PLAYERS);
     
     if (testPlayers.length === 0) {
       console.log('No test players to clean up.');

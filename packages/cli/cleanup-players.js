@@ -7,6 +7,7 @@
 
 const axios = require('axios');
 const readline = require('readline');
+const { identifyTestPlayers } = require('./src/utils/playerHelpers');
 
 const ENGINE_URL = process.env.ENGINE_URL || 'http://localhost:3000';
 
@@ -57,15 +58,7 @@ async function cleanupPlayers() {
   }
   
   // Identify players to clean up
-  const testPlayers = players.filter(player => {
-    const id = player.id || player.playerId;
-    return !PRESERVE_PLAYERS.includes(id) && (
-      id.startsWith('shell-player-') ||
-      id.startsWith('cli-player-') ||
-      id.startsWith('test-') ||
-      id.includes('-test')
-    );
-  });
+  const testPlayers = identifyTestPlayers(players, PRESERVE_PLAYERS);
   
   if (testPlayers.length === 0) {
     console.log('No test players found to clean up.');
@@ -126,15 +119,7 @@ async function cleanupViaRedis() {
   console.log('If the API delete doesn\'t work, you can use these Redis commands:\n');
   
   const players = await getPlayers();
-  const testPlayers = players.filter(player => {
-    const id = player.id || player.playerId;
-    return !PRESERVE_PLAYERS.includes(id) && (
-      id.startsWith('shell-player-') ||
-      id.startsWith('cli-player-') ||
-      id.startsWith('test-') ||
-      id.includes('-test')
-    );
-  });
+  const testPlayers = identifyTestPlayers(players, PRESERVE_PLAYERS);
   
   console.log('# Connect to Redis');
   console.log('redis-cli\n');
