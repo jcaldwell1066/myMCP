@@ -87,3 +87,7 @@ my-training-notes-PRIVATE.txt
 
 # Temporary build/test scripts
 *.sh
+
+# Build artifacts
+tsconfig.tsbuildinfo
+*.iml
