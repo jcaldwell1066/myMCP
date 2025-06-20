@@ -1,0 +1,398 @@
+{
+  "questSystem": {
+    "meta": {
+      "questName": "Friday Lunch & Learn: myMCP Interactive Demo",
+      "version": "1.0.0",
+      "protagonist": "The Multi-Dimensional Demo Participants",
+      "setting": "The Collaborative Learning Realm",
+      "objective": "Experience all 9 tiers of myMCP participation in a live, interactive demonstration",
+      "currentChapter": "Chapter 1: Multi-Tier Engagement",
+      "duration": "45 minutes",
+      "maxParticipants": 16,
+      "rotatingDM": {
+        "enabled": true,
+        "rotationInterval": "15 minutes",
+        "dmPairs": [
+          {"primary": "Green DM", "secondary": "Blue DM"},
+          {"primary": "Blue DM", "secondary": "Green DM"}
+        ]
+      },
+      "difficultyScale": {
+        "1-3": "Observer Level (Teams, Slack)",
+        "4-6": "Participant Level (Screen Share, Q&A)", 
+        "7-8": "Explorer Level (Redis, GitHub)",
+        "9": "Developer Level (Local Setup, Contribution)"
+      }
+    },
+    "participantTiers": {
+      "tier1": {
+        "name": "Teams Attendance",
+        "description": "Present and visible in Microsoft Teams",
+        "validation": "checklist",
+        "points": 10,
+        "difficulty": "easy",
+        "category": "coordination"
+      },
+      "tier2": {
+        "name": "Teams Screen Sharing",
+        "description": "Actively sharing screen or viewing shared screens",
+        "validation": "confirmation",
+        "points": 15,
+        "difficulty": "easy", 
+        "category": "collaboration"
+      },
+      "tier3": {
+        "name": "Teams Speaking/Presenting",
+        "description": "Verbally participating in discussions or presenting",
+        "validation": "confirmation",
+        "points": 25,
+        "difficulty": "medium",
+        "category": "collaboration"
+      },
+      "tier4": {
+        "name": "Teams Q&A Participation", 
+        "description": "Asking questions or providing answers during demo",
+        "validation": "confirmation",
+        "points": 30,
+        "difficulty": "medium",
+        "category": "collaboration"
+      },
+      "tier5": {
+        "name": "Slack Channel Engagement",
+        "description": "Posting messages, reactions, or using /mymcp commands",
+        "validation": "automated",
+        "points": 35,
+        "difficulty": "medium",
+        "category": "collaboration"
+      },
+      "tier6": {
+        "name": "Redis State Inspection",
+        "description": "Viewing live game state through Redis commands",
+        "validation": "confirmation",
+        "points": 50,
+        "difficulty": "hard",
+        "category": "monitoring"
+      },
+      "tier7": {
+        "name": "GitHub Repository Interaction",
+        "description": "Browsing code, issues, or contributing to the repo",
+        "validation": "confirmation", 
+        "points": 60,
+        "difficulty": "hard",
+        "category": "development"
+      },
+      "tier8": {
+        "name": "Local Environment Setup",
+        "description": "Running engine/cli/web/mcp components locally",
+        "validation": "test",
+        "points": 100,
+        "difficulty": "hard",
+        "category": "devops"
+      },
+      "tier9": {
+        "name": "Active Development/Contribution",
+        "description": "Making real-time code changes or submitting PRs",
+        "validation": "test",
+        "points": 150,
+        "difficulty": "hard",
+        "category": "development"
+      }
+    },
+    "gameState": {
+      "currentLocation": "Lunch & Learn Conference Room",
+      "sessionPhase": "introduction",
+      "activeParticipants": [],
+      "currentDM": "Green DM",
+      "nextRotation": 0,
+      "completedTiers": {},
+      "reputation": {
+        "collaboration": 0,
+        "technical_exploration": 0,
+        "active_development": 0
+      }
+    },
+    "chapters": {
+      "phase1_introduction": {
+        "title": "Welcome & System Overview",
+        "description": "Introduce myMCP architecture and demonstrate basic functionality",
+        "duration": "10 minutes",
+        "status": "pending",
+        "dmRole": "Green DM",
+        "artifacts": [
+          {
+            "taskId": "DEMO_INTRO",
+            "artifactName": "System Architecture Walkthrough",
+            "description": "Show the interconnected nature of engine, CLI, MCP server, and Slack integration",
+            "status": "awaiting_forge",
+            "dependencies": [],
+            "powerLevel": "Foundation",
+            "complexity": "3",
+            "forgeTime": "5 minutes",
+            "craftingMaterials": ["Live Demo", "Slides", "Architecture Diagram"],
+            "unlocks": ["Basic Understanding", "Tier 1-2 Access"],
+            "validationCriteria": [
+              "All participants visible in Teams",
+              "System components identified",
+              "Basic Q&A addressed"
+            ]
+          }
+        ]
+      },
+      "phase2_interaction": {
+        "title": "Interactive Participation Demo",
+        "description": "Live demonstration of multi-tier participation system",
+        "duration": "20 minutes", 
+        "status": "pending",
+        "dmRole": "Blue DM",
+        "artifacts": [
+          {
+            "taskId": "DEMO_TIERS",
+            "artifactName": "Multi-Tier Engagement Showcase",
+            "description": "Participants experience different engagement levels simultaneously",
+            "status": "awaiting_forge",
+            "dependencies": ["DEMO_INTRO"],
+            "powerLevel": "Core",
+            "complexity": "6",
+            "forgeTime": "15 minutes",
+            "craftingMaterials": ["Slack Bot", "Redis Commands", "GitHub Repo", "Local Instances"],
+            "unlocks": ["Tier 3-7 Access", "Real-time State Visibility"],
+            "validationCriteria": [
+              "At least 5 participants in Tier 5+ (Slack)",
+              "At least 2 participants in Tier 6+ (Redis)",
+              "At least 1 participant in Tier 8+ (Local Setup)",
+              "Real-time leaderboard updating",
+              "DM rotation demonstration"
+            ]
+          }
+        ]
+      },
+      "phase3_advanced": {
+        "title": "Advanced Features & Development",
+        "description": "Show advanced capabilities and live development",
+        "duration": "10 minutes",
+        "status": "pending", 
+        "dmRole": "Green DM",
+        "artifacts": [
+          {
+            "taskId": "DEMO_ADVANCED",
+            "artifactName": "Live Development Showcase",
+            "description": "Demonstrate real-time code changes and collaborative development",
+            "status": "awaiting_forge",
+            "dependencies": ["DEMO_TIERS"],
+            "powerLevel": "Mastery",
+            "complexity": "9",
+            "forgeTime": "8 minutes",
+            "craftingMaterials": ["Live Coding", "Git Workflow", "CI/CD Pipeline"],
+            "unlocks": ["Tier 9 Access", "Full System Understanding"],
+            "validationCriteria": [
+              "Live code change demonstrated",
+              "Git workflow shown",
+              "At least 1 participant reaches Tier 9",
+              "System resilience demonstrated"
+            ]
+          }
+        ]
+      },
+      "phase4_wrap": {
+        "title": "Q&A and Next Steps",
+        "description": "Address questions and outline future learning opportunities",
+        "duration": "5 minutes",
+        "status": "pending",
+        "dmRole": "Both DMs",
+        "artifacts": [
+          {
+            "taskId": "DEMO_CONCLUSION",
+            "artifactName": "Knowledge Transfer & Resources",
+            "description": "Provide documentation, resources, and next steps for continued learning",
+            "status": "awaiting_forge", 
+            "dependencies": ["DEMO_ADVANCED"],
+            "powerLevel": "Integration",
+            "complexity": "4",
+            "forgeTime": "5 minutes",
+            "craftingMaterials": ["Documentation Links", "Setup Guides", "Contact Information"],
+            "unlocks": ["Independent Exploration", "Team Integration"],
+            "validationCriteria": [
+              "Resources shared with all participants",
+              "Questions addressed",
+              "Next steps clarified",
+              "Final leaderboard displayed"
+            ]
+          }
+        ]
+      }
+    },
+    "personas": {
+      "devops_engineer": {
+        "name": "DevOps Engineer",
+        "preferredTiers": [6, 8, 9],
+        "skills": ["Docker", "CI/CD", "Monitoring", "Infrastructure"],
+        "interests": ["System Architecture", "Deployment", "Scaling"]
+      },
+      "qa_specialist": {
+        "name": "QA Specialist", 
+        "preferredTiers": [4, 5, 6],
+        "skills": ["Testing", "Automation", "Bug Tracking", "Quality Assurance"],
+        "interests": ["Test Coverage", "Edge Cases", "User Experience"]
+      },
+      "ui_ux_developer": {
+        "name": "UI/UX Developer",
+        "preferredTiers": [2, 3, 5],
+        "skills": ["Frontend", "Design", "User Research", "Prototyping"],
+        "interests": ["User Interface", "Design Systems", "Accessibility"]
+      },
+      "ai_ml_engineer": {
+        "name": "AI/ML Engineer",
+        "preferredTiers": [7, 8, 9],
+        "skills": ["Machine Learning", "Data Science", "Python", "Algorithms"],
+        "interests": ["Model Integration", "Data Pipeline", "AI Workflows"]
+      },
+      "backend_developer": {
+        "name": "Backend Developer",
+        "preferredTiers": [6, 7, 8, 9],
+        "skills": ["APIs", "Databases", "Architecture", "Performance"],
+        "interests": ["System Design", "Data Flow", "Optimization"]
+      },
+      "product_manager": {
+        "name": "Product Manager",
+        "preferredTiers": [1, 2, 3, 4, 5],
+        "skills": ["Strategy", "Roadmapping", "Stakeholder Management", "Analytics"],
+        "interests": ["User Stories", "Business Value", "Roadmap Planning"]
+      },
+      "security_engineer": {
+        "name": "Security Engineer",
+        "preferredTiers": [6, 7, 8],
+        "skills": ["Security", "Compliance", "Risk Assessment", "Penetration Testing"],
+        "interests": ["Threat Modeling", "Secure Architecture", "Compliance"]
+      },
+      "data_analyst": {
+        "name": "Data Analyst",
+        "preferredTiers": [5, 6, 7],
+        "skills": ["Data Analysis", "SQL", "Visualization", "Reporting"],
+        "interests": ["Metrics", "Insights", "Data Quality"]
+      },
+      "mobile_developer": {
+        "name": "Mobile Developer",
+        "preferredTiers": [3, 5, 7, 8],
+        "skills": ["iOS", "Android", "Mobile UI", "Cross-platform"],
+        "interests": ["Mobile Integration", "App Development", "User Experience"]
+      },
+      "platform_engineer": {
+        "name": "Platform Engineer",
+        "preferredTiers": [6, 8, 9],
+        "skills": ["Kubernetes", "Cloud Platforms", "Automation", "Tooling"],
+        "interests": ["Developer Experience", "Platform Services", "Toolchain"]
+      },
+      "technical_writer": {
+        "name": "Technical Writer",
+        "preferredTiers": [1, 2, 3, 4, 5],
+        "skills": ["Documentation", "Communication", "Process", "Training"],
+        "interests": ["User Guides", "API Documentation", "Knowledge Sharing"]
+      },
+      "solutions_architect": {
+        "name": "Solutions Architect",
+        "preferredTiers": [4, 5, 6, 7, 8],
+        "skills": ["Architecture", "Integration", "Strategy", "Design Patterns"],
+        "interests": ["System Integration", "Scalability", "Technology Strategy"]
+      },
+      "site_reliability_engineer": {
+        "name": "Site Reliability Engineer",
+        "preferredTiers": [6, 8, 9],
+        "skills": ["Monitoring", "Incident Response", "Scalability", "Automation"],
+        "interests": ["System Reliability", "Performance", "Observability"]
+      },
+      "business_analyst": {
+        "name": "Business Analyst",
+        "preferredTiers": [1, 2, 3, 4],
+        "skills": ["Requirements", "Process Analysis", "Documentation", "Stakeholder Communication"],
+        "interests": ["Business Requirements", "Process Improvement", "ROI Analysis"]
+      },
+      "engineering_manager": {
+        "name": "Engineering Manager",
+        "preferredTiers": [2, 3, 4, 5],
+        "skills": ["Team Leadership", "Project Management", "Strategic Planning", "Mentoring"],
+        "interests": ["Team Productivity", "Technical Direction", "People Development"]
+      },
+      "curious_observer": {
+        "name": "Curious Observer",
+        "preferredTiers": [1, 2, 3],
+        "skills": ["Learning", "Observation", "Questions", "Documentation"],
+        "interests": ["Understanding Systems", "Learning New Technologies", "Asking Questions"]
+      }
+    },
+    "questMechanics": {
+      "progressTracking": {
+        "tierProgression": "sequential_or_parallel",
+        "experience_per_tier": {
+          "tier1": 10, "tier2": 15, "tier3": 25, "tier4": 30,
+          "tier5": 35, "tier6": 50, "tier7": 60, "tier8": 100, "tier9": 150
+        },
+        "level_thresholds": [0, 25, 50, 100, 150, 225, 325, 450, 600, 800],
+        "current_experience": 0,
+        "achievements_unlocked": []
+      },
+      "dmRotation": {
+        "schedule": [
+          {"phase": "phase1_introduction", "dm": "Green DM", "duration": 10},
+          {"phase": "phase2_interaction", "dm": "Blue DM", "duration": 20},
+          {"phase": "phase3_advanced", "dm": "Green DM", "duration": 10},
+          {"phase": "phase4_wrap", "dm": "Both DMs", "duration": 5}
+        ],
+        "handoffProtocol": [
+          "Current DM announces transition",
+          "Brief status update to incoming DM",
+          "Participant notification in Slack",
+          "Leaderboard checkpoint"
+        ]
+      },
+      "realtimeValidation": {
+        "slack_activity": {"webhook": "/api/demo/tier5-validation"},
+        "redis_access": {"webhook": "/api/demo/tier6-validation"},  
+        "github_activity": {"webhook": "/api/demo/tier7-validation"},
+        "local_setup": {"webhook": "/api/demo/tier8-validation"},
+        "code_contribution": {"webhook": "/api/demo/tier9-validation"}
+      }
+    },
+    "liveFeatures": {
+      "dashboard": {
+        "enabled": true,
+        "updateInterval": "10 seconds",
+        "components": ["leaderboard", "tier_progress", "dm_status", "time_remaining"]
+      },
+      "notifications": {
+        "tier_completion": true,
+        "dm_rotation": true,
+        "phase_transition": true,
+        "achievements": true
+      },
+      "interactivity": {
+        "slack_commands": ["/demo-status", "/demo-join", "/demo-tier", "/demo-help"],
+        "real_time_chat": true,
+        "collaborative_features": true
+      }
+    },
+    "expectedOutcomes": {
+      "participation_distribution": {
+        "tier1_4": "80-100%",
+        "tier5": "60-80%", 
+        "tier6": "30-50%",
+        "tier7": "20-40%",
+        "tier8": "10-30%",
+        "tier9": "5-15%"
+      },
+      "learning_objectives": [
+        "Understanding of myMCP architecture",
+        "Experience with multi-modal interaction",
+        "Appreciation for system integration complexity",
+        "Hands-on exposure to development workflow",
+        "Knowledge of available resources and next steps"
+      ],
+      "technical_demonstrations": [
+        "Real-time state management with Redis",
+        "Slack bot integration and commands",
+        "GitHub workflow and collaboration",
+        "Local development environment setup",
+        "Live coding and system modification"
+      ]
+    }
+  }
+}
