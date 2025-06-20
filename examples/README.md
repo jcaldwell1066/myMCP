@@ -98,3 +98,204 @@ When contributing new examples:
 2. Include clear documentation
 3. Test examples before committing
 4. Update this README with descriptions
+
+# Enhanced Quest Step Object Model - Lodge E-Commerce Example
+
+This directory contains a comprehensive demonstration of the enhanced quest step object model through a realistic business scenario: setting up an e-commerce platform for a mountain resort lodge.
+
+## Files Overview
+
+### 📋 [`lodge-ecommerce-quest.json`](./lodge-ecommerce-quest.json)
+The main quest definition showcasing all enhanced quest step features:
+- **7 comprehensive steps** covering the full e-commerce implementation lifecycle
+- **Rich metadata** with difficulty progression, categories, and skill mapping
+- **Diverse execution types** (manual, automated, hybrid)
+- **Comprehensive resources** (documentation, tools, examples)
+- **Advanced validation** methods (criteria, checklists, tests)
+- **Progress tracking** with attempts, notes, and artifacts
+
+### 📖 [`lodge-quest-implementation-guide.md`](./lodge-quest-implementation-guide.md)
+Detailed explanation of how the quest exercises each feature of the enhanced quest step object model:
+- Feature mapping and usage examples
+- Implementation patterns and best practices
+- Integration strategies with existing quest systems
+- Business value demonstration
+
+### 🎮 [`lodge-quest-demo.js`](./lodge-quest-demo.js)
+Interactive demonstration script showing:
+- Quest overview with enhanced metadata display
+- Detailed step information rendering
+- Execution simulation for different step types
+- Progress tracking and analytics
+- Skills development visualization
+
+## Quest Highlights
+
+### 🏔️ **Alpine Retreat E-Commerce Setup**
+Transform a traditional mountain lodge into a modern e-commerce platform offering:
+- Room booking and availability management
+- Activity and equipment rental integration
+- Retail merchandise sales
+- Guest experience personalization
+- Comprehensive payment processing
+
+### 📊 **Quest Metrics**
+- **Total Points:** 620 points
+- **Estimated Duration:** 2-3 weeks
+- **Difficulty Levels:** Easy → Medium → Hard progression
+- **Categories:** Research, Development, Security, DevOps, Coordination
+- **Real-World Skills:** 5+ professional competencies
+
+## Enhanced Features Demonstrated
+
+### 1. **Rich Metadata System**
+```json
+{
+  "metadata": {
+    "difficulty": "hard",
+    "category": "development",
+    "tags": ["architecture", "microservices", "scalability"],
+    "points": 100,
+    "estimatedDuration": "3-4 days",
+    "prerequisites": ["lodge-requirements-analysis"],
+    "realWorldSkill": "System Architecture Design"
+  }
+}
+```
+
+### 2. **Comprehensive Resource Management**
+```json
+{
+  "resources": {
+    "docs": [/* Industry guides, compliance docs, templates */],
+    "tools": [/* Design tools, databases, APIs */],
+    "examples": [/* Case studies, implementations */]
+  }
+}
+```
+
+### 3. **Flexible Execution Types**
+- **Manual:** Creative/strategic work requiring human judgment
+- **Automated:** Testing and validation with measurable outcomes
+- **Hybrid:** Guided workflows combining both approaches
+
+### 4. **Advanced Validation Methods**
+- **Criteria-based:** Specific deliverables and quality standards
+- **Checklist:** Step-by-step verification processes
+- **Test-driven:** Automated quality assurance and benchmarks
+
+### 5. **Progress Tracking**
+- Attempt counting for difficulty analysis
+- Note-taking for learning capture
+- Artifact collection for portfolio building
+
+## Business Value
+
+### 🎯 **Professional Skill Development**
+Each step maps to real-world professional competencies:
+- **Technical:** System design, API integration, testing
+- **Business:** Requirements analysis, stakeholder management
+- **Operational:** Monitoring, incident response, documentation
+
+### 🏆 **Portfolio Building**
+Quest completion generates tangible career assets:
+- Architecture diagrams and technical documentation
+- Tested code implementations and integrations
+- Compliance assessments and security reviews
+- Launch preparation and operational runbooks
+
+### 🌐 **Industry Relevance**
+The hospitality e-commerce scenario provides:
+- Real-world complexity and constraints
+- Industry-specific challenges and solutions
+- Scalable patterns applicable to similar businesses
+- Integration with existing systems and workflows
+
+## Running the Demo
+
+### Prerequisites
+```bash
+npm install chalk  # For colored console output
+```
+
+### Interactive Demo
+```bash
+node lodge-quest-demo.js
+```
+
+### Quest Analysis
+```javascript
+const LodgeQuestDemo = require('./lodge-quest-demo');
+const demo = new LodgeQuestDemo();
+
+// Show quest overview
+demo.showQuestOverview();
+
+// Analyze specific step
+demo.showStepDetails(0);
+
+// Show progress
+demo.showProgressSummary();
+```
+
+## Integration with Existing System
+
+### Loading the Quest
+```javascript
+// Load quest into the existing system
+const questData = require('./lodge-ecommerce-quest.json');
+await apiClient.createQuest(questData);
+```
+
+### Step Execution
+```javascript
+// Execute enhanced steps using existing launcher
+const stepLauncher = new StepLauncher(apiClient);
+await stepLauncher.launchStep(step, playerId);
+```
+
+### Progress Tracking
+```javascript
+// Enhanced progress analytics
+const analyzer = new QuestProgressAnalyzer();
+const metrics = analyzer.calculateLearningMetrics(quest);
+```
+
+## Key Innovations
+
+### 🔄 **Backward Compatibility**
+Enhanced steps work alongside legacy steps without breaking existing functionality.
+
+### 📈 **Progressive Enhancement**
+Teams can gradually adopt enhanced features without major system changes.
+
+### 🎨 **Flexible Customization**
+Resource types, execution methods, and validation criteria can be customized per organization.
+
+### 📊 **Analytics Integration**
+Rich metadata enables sophisticated learning analytics and skill tracking.
+
+## Future Extensions
+
+### 🤖 **AI Integration**
+- Automated hint generation based on progress patterns
+- Personalized resource recommendations
+- Dynamic difficulty adjustment
+
+### 🌍 **Multi-Language Support**
+- Localized quest content and resources
+- Cultural adaptation of business scenarios
+- Region-specific compliance requirements
+
+### 🔗 **External Integrations**
+- Learning management system connectors
+- Professional certification tracking
+- Project management tool synchronization
+
+---
+
+## Conclusion
+
+The Lodge E-Commerce quest demonstrates how the enhanced quest step object model transforms simple task lists into rich, educational experiences that bridge the gap between gamified learning and professional development. By combining realistic business scenarios with comprehensive learning support, the system creates engaging experiences that deliver genuine value to both individuals and organizations.
+
+The enhanced model's flexibility allows organizations to create quests that match their specific needs while maintaining consistency in structure and user experience. This approach scales from simple training exercises to complex professional development programs, making it suitable for diverse applications across industries and skill levels.
