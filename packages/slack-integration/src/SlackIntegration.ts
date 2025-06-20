@@ -270,10 +270,22 @@ export class SlackIntegration {
           await this.handleLeaderboardCommand(respond);
           break;
         case 'quest':
-          await this.handleQuestCommand(respond, args.slice(1));
+          await this.handleQuestCommand(respond, args.slice(1), command.user_id);
           break;
         case 'chat':
           await this.handleChatCommand(command.user_id, args.slice(1).join(' '), respond);
+          break;
+        case 'score':
+          await this.handleScoreCommand(command.user_id, args.slice(1), respond);
+          break;
+        case 'location':
+          await this.handleLocationCommand(command.user_id, args.slice(1), respond);
+          break;
+        case 'player':
+          await this.handlePlayerCommand(command.user_id, args.slice(1), respond);
+          break;
+        case 'item':
+          await this.handleItemCommand(command.user_id, args.slice(1), respond);
           break;
         case 'help':
         default:
@@ -373,40 +385,166 @@ export class SlackIntegration {
     await respond({ blocks: leaderboardBlocks });
   }
 
-  private async handleQuestCommand(respond: any, args: string[]) {
-    if (args.length === 0 || args[0] === 'list') {
-      // List available quests
-      const quests = await this.getAvailableQuests();
-      const questBlocks: KnownBlock[] = [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: '📜 Available Quests'
+  private async handleQuestCommand(respond: any, args: string[], userId: string) {
+    const subcommand = args[0] || 'list';
+    const playerId = `slack-${userId}`;
+    
+    try {
+      switch (subcommand) {
+        case 'list':
+          // List available quests
+          const quests = await this.getAvailableQuests();
+          const questBlocks: KnownBlock[] = [
+            {
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: '📜 Available Quests'
+              }
+            }
+          ];
+          
+          quests.forEach(quest => {
+            questBlocks.push({
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*${quest.name}*\n${quest.description}`
+              },
+              accessory: {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Start Quest'
+                },
+                value: quest.id,
+                action_id: 'start_quest'
+              }
+            });
+          });
+          
+          await respond({ blocks: questBlocks });
+          break;
+          
+        case 'start':
+          const questId = args[1];
+          if (!questId) {
+            await respond('Please specify a quest ID to start. Example: `/mymcp quest start global-meeting`');
+            return;
           }
-        }
-      ];
-      
-      quests.forEach(quest => {
-        questBlocks.push({
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*${quest.name}*\n${quest.description}`
-          },
-          accessory: {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              text: 'Start Quest'
-            },
-            value: quest.id,
-            action_id: 'start_quest'
+          
+          const startResponse = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+            type: 'START_QUEST',
+            payload: { questId },
+            playerId
+          });
+          
+          await respond({
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `🎯 Quest *${questId}* started successfully!`
+                }
+              }
+            ]
+          });
+          break;
+          
+        case 'complete':
+          const completeType = args[1];
+          const id = args[2];
+          
+          if (!completeType || !id) {
+            await respond('Usage: `/mymcp quest complete <step|quest> <id>`');
+            return;
           }
-        });
-      });
-      
-      await respond({ blocks: questBlocks });
+          
+          if (completeType === 'step') {
+            const stepResponse = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+              type: 'COMPLETE_QUEST_STEP',
+              payload: { stepId: id },
+              playerId
+            });
+            
+            await respond({
+              blocks: [
+                {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: `✅ Quest step *${id}* completed!`
+                  }
+                }
+              ]
+            });
+          } else if (completeType === 'quest') {
+            const questResponse = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+              type: 'COMPLETE_QUEST',
+              payload: { questId: id },
+              playerId
+            });
+            
+            await respond({
+              blocks: [
+                {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: `🏆 Quest *${id}* completed!`
+                  }
+                }
+              ]
+            });
+          } else {
+            await respond('Invalid completion type. Use: step or quest');
+          }
+          break;
+          
+        case 'active':
+          const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
+          const activeQuests = state.data.data?.quests?.active || [];
+          
+          const activeBlocks: KnownBlock[] = [
+            {
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: '📋 Active Quests'
+              }
+            }
+          ];
+          
+          if (activeQuests.length === 0) {
+            activeBlocks.push({
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: '_No active quests_'
+              }
+            });
+          } else {
+            activeQuests.forEach((quest: any) => {
+              activeBlocks.push({
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `*${quest.name || quest.id}*\n${quest.description || 'No description'}\nProgress: ${quest.progress || '0'}%`
+                }
+              });
+            });
+          }
+          
+          await respond({ blocks: activeBlocks });
+          break;
+          
+        default:
+          await respond('Invalid subcommand. Use: list, start, complete, or active');
+      }
+    } catch (error) {
+      console.error('Quest command error:', error);
+      await respond('Failed to process quest command. Please try again.');
     }
   }
 
@@ -430,6 +568,306 @@ export class SlackIntegration {
     });
   }
 
+  private async handleScoreCommand(userId: string, args: string[], respond: any) {
+    const playerId = `slack-${userId}`;
+    const subcommand = args[0];
+    
+    if (!subcommand) {
+      await respond('Usage: `/mymcp score <set|add|subtract> <value>`');
+      return;
+    }
+
+    try {
+      let response;
+      const value = parseInt(args[1]);
+      
+      if (isNaN(value)) {
+        await respond('Please provide a valid number for the score value.');
+        return;
+      }
+
+      switch (subcommand) {
+        case 'set':
+          response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+            type: 'SET_SCORE',
+            payload: { score: value },
+            playerId
+          });
+          break;
+        case 'add':
+          const currentState = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
+          const currentScore = currentState.data.data?.player?.score || 0;
+          response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+            type: 'SET_SCORE',
+            payload: { score: currentScore + value },
+            playerId
+          });
+          break;
+        case 'subtract':
+          const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
+          const score = state.data.data?.player?.score || 0;
+          response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+            type: 'SET_SCORE',
+            payload: { score: Math.max(0, score - value) },
+            playerId
+          });
+          break;
+        default:
+          await respond('Invalid subcommand. Use: set, add, or subtract');
+          return;
+      }
+
+      const newScore = response.data.data?.player?.score || 0;
+      await respond({
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `✅ Score updated successfully!\n*New score:* ${newScore}`
+            }
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('Score command error:', error);
+      await respond('Failed to update score. Please try again.');
+    }
+  }
+
+  private async handleLocationCommand(userId: string, args: string[], respond: any) {
+    const playerId = `slack-${userId}`;
+    const subcommand = args[0];
+    
+    if (!subcommand) {
+      await respond('Usage: `/mymcp location <move|list> [location]`');
+      return;
+    }
+
+    try {
+      switch (subcommand) {
+        case 'move':
+          const location = args.slice(1).join(' ');
+          if (!location) {
+            await respond('Please specify a location to move to.');
+            return;
+          }
+          
+          const response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+            type: 'CHANGE_LOCATION',
+            payload: { location },
+            playerId
+          });
+          
+          await respond({
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `📍 Moved to *${location}*!`
+                }
+              }
+            ]
+          });
+          break;
+          
+        case 'list':
+          const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
+          const locations = state.data.data?.world?.locations || [];
+          const currentLocation = state.data.data?.player?.currentLocation || 'unknown';
+          
+          const locationBlocks: KnownBlock[] = [
+            {
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: '🗺️ Available Locations'
+              }
+            },
+            {
+              type: 'context',
+              elements: [
+                {
+                  type: 'mrkdwn',
+                  text: `Current location: *${currentLocation}*`
+                }
+              ]
+            }
+          ];
+          
+          locations.forEach((loc: any) => {
+            locationBlocks.push({
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `• *${loc.name || loc}*${loc.description ? `\n  _${loc.description}_` : ''}`
+              }
+            });
+          });
+          
+          await respond({ blocks: locationBlocks });
+          break;
+          
+        default:
+          await respond('Invalid subcommand. Use: move or list');
+      }
+    } catch (error) {
+      console.error('Location command error:', error);
+      await respond('Failed to process location command. Please try again.');
+    }
+  }
+
+  private async handlePlayerCommand(userId: string, args: string[], respond: any) {
+    const playerId = `slack-${userId}`;
+    const subcommand = args[0];
+    
+    if (!subcommand) {
+      await respond('Usage: `/mymcp player <update|reset> [field] [value]`');
+      return;
+    }
+
+    try {
+      switch (subcommand) {
+        case 'update':
+          const field = args[1];
+          const value = args.slice(2).join(' ');
+          
+          if (!field || !value) {
+            await respond('Please specify both field and value. Example: `/mymcp player update name "New Name"`');
+            return;
+          }
+          
+          const updates: any = {};
+          updates[field] = value;
+          
+          const response = await axios.put(`${this.config.engineUrl}/api/state/${playerId}/player`, updates);
+          
+          await respond({
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `✅ Player ${field} updated to: *${value}*`
+                }
+              }
+            ]
+          });
+          break;
+          
+        case 'reset':
+          // Reset player to initial state
+          const resetResponse = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+            type: 'RESET_PLAYER',
+            playerId
+          });
+          
+          await respond({
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: '🔄 Player has been reset to initial state!'
+                }
+              }
+            ]
+          });
+          break;
+          
+        default:
+          await respond('Invalid subcommand. Use: update or reset');
+      }
+    } catch (error) {
+      console.error('Player command error:', error);
+      await respond('Failed to update player. Please try again.');
+    }
+  }
+
+  private async handleItemCommand(userId: string, args: string[], respond: any) {
+    const playerId = `slack-${userId}`;
+    const subcommand = args[0];
+    
+    if (!subcommand) {
+      await respond('Usage: `/mymcp item <use|list> [itemId]`');
+      return;
+    }
+
+    try {
+      switch (subcommand) {
+        case 'use':
+          const itemId = args[1];
+          if (!itemId) {
+            await respond('Please specify an item ID to use.');
+            return;
+          }
+          
+          const response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+            type: 'USE_ITEM',
+            payload: { itemId },
+            playerId
+          });
+          
+          await respond({
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `✨ Used item: *${itemId}*`
+                }
+              }
+            ]
+          });
+          break;
+          
+        case 'list':
+          const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
+          const inventory = state.data.data?.inventory?.items || [];
+          
+          const inventoryBlocks: KnownBlock[] = [
+            {
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: '🎒 Your Inventory'
+              }
+            }
+          ];
+          
+          if (inventory.length === 0) {
+            inventoryBlocks.push({
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: '_Your inventory is empty_'
+              }
+            });
+          } else {
+            inventory.forEach((item: any) => {
+              inventoryBlocks.push({
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `• *${item.name || item.id}* (${item.quantity || 1}x)\n  _${item.description || 'No description'}_`
+                }
+              });
+            });
+          }
+          
+          await respond({ blocks: inventoryBlocks });
+          break;
+          
+        default:
+          await respond('Invalid subcommand. Use: use or list');
+      }
+    } catch (error) {
+      console.error('Item command error:', error);
+      await respond('Failed to process item command. Please try again.');
+    }
+  }
+
   private async handleHelpCommand(respond: any) {
     await respond({
       blocks: [
@@ -444,14 +882,56 @@ export class SlackIntegration {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: '*Available Commands:*'
+            text: '*Core Commands:*'
           }
         },
         {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: '• `/mymcp status [player]` - View player status\n• `/mymcp leaderboard` - View top players\n• `/mymcp quest [list]` - View available quests\n• `/mymcp chat <message>` - Send message to game\n• `/mymcp help` - Show this help message'
+            text: '• `/mymcp status [player]` - View player status\n• `/mymcp leaderboard` - View top players\n• `/mymcp chat <message>` - Send message to game AI\n• `/mymcp help` - Show this help message'
+          }
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*Quest Commands:*'
+          }
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '• `/mymcp quest list` - View available quests\n• `/mymcp quest start <questId>` - Start a specific quest\n• `/mymcp quest complete step <stepId>` - Complete a quest step\n• `/mymcp quest complete quest <questId>` - Complete entire quest\n• `/mymcp quest active` - View your active quests'
+          }
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*Player Management:*'
+          }
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '• `/mymcp score set <value>` - Set score to specific value\n• `/mymcp score add <value>` - Add to current score\n• `/mymcp score subtract <value>` - Subtract from score\n• `/mymcp player update <field> <value>` - Update player field\n• `/mymcp player reset` - Reset player to initial state'
+          }
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*World & Items:*'
+          }
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '• `/mymcp location list` - View available locations\n• `/mymcp location move <location>` - Move to a location\n• `/mymcp item list` - View your inventory\n• `/mymcp item use <itemId>` - Use an item'
           }
         },
         {
@@ -459,7 +939,7 @@ export class SlackIntegration {
           elements: [
             {
               type: 'mrkdwn',
-              text: 'You can also chat directly in this channel to interact with the game!'
+              text: '💡 You can also chat directly in this channel to interact with the game AI!'
             }
           ]
         }
@@ -685,8 +1165,8 @@ export class SlackIntegration {
 
   private async getAvailableQuests(): Promise<any[]> {
     try {
-      const response = await axios.get(`${this.config.engineUrl}/api/quests`);
-      return response.data.available || [];
+      const response = await axios.get(`${this.config.engineUrl}/api/quests/default-player`);
+      return response.data.data?.available || [];
     } catch (error) {
       return [];
     }
@@ -694,45 +1174,55 @@ export class SlackIntegration {
 
   private async forwardToGameEngine(userId: string, message: string, say: any) {
     try {
-      const response = await axios.post(`${this.config.engineUrl}/api/chat`, {
-        playerId: `slack-${userId}`,
-        message
+      const playerId = `slack-${userId}`;
+      const response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+        type: 'CHAT',
+        payload: { message },
+        playerId: playerId
       });
       
+      const responseMessage = response.data.data?.botResponse?.message || response.data.data?.message || 'No response from game engine.';
+      
       await say({
-        text: response.data.response,
+        text: responseMessage,
         blocks: [
           {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: response.data.response
+              text: responseMessage
             }
           }
         ]
       });
     } catch (error) {
+      console.error('Forward to game engine error:', error);
       await say('Sorry, I couldn\'t process that message. Try again later.');
     }
   }
 
   private async sendGameMessage(userId: string, message: string): Promise<string> {
     try {
-      const response = await axios.post(`${this.config.engineUrl}/api/chat`, {
-        playerId: `slack-${userId}`,
-        message
+      const playerId = `slack-${userId}`;
+      const response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
+        type: 'CHAT',
+        payload: { message },
+        playerId: playerId
       });
-      return response.data.response;
+      return response.data.data?.botResponse?.message || response.data.data?.message || 'No response from game engine.';
     } catch (error) {
+      console.error('Chat error:', error);
       return 'Sorry, I couldn\'t send that message to the game.';
     }
   }
 
   private async startQuestForUser(userId: string, questId: string, respond: any) {
     try {
-      const response = await axios.post(`${this.config.engineUrl}/api/actions/slack-${userId}`, {
+      const playerId = `slack-${userId}`;
+      const response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
         type: 'START_QUEST',
-        payload: { questId }
+        payload: { questId },
+        playerId: playerId
       });
       
       await respond({
@@ -742,12 +1232,13 @@ export class SlackIntegration {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `✅ Quest started successfully!\n${response.data.message || ''}`
+              text: `✅ Quest started successfully!\n${response.data.data?.quest || ''} - ${response.data.data?.status || ''}`
             }
           }
         ]
       });
     } catch (error) {
+      console.error('Start quest error:', error);
       await respond('Failed to start quest. Please try again.');
     }
   }
