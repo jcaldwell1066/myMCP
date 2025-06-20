@@ -5,25 +5,26 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Express.js](https://img.shields.io/badge/Express.js-4.18+-orange.svg)](https://expressjs.com/)
-[![Progress](https://img.shields.io/badge/Progress-43.75%25%20(7/16%20tasks)-brightgreen.svg)](docs/tasks/)
+[![LLM Ready](https://img.shields.io/badge/LLM-Anthropic%20%7C%20OpenAI-purple.svg)](packages/engine/)
 
-A multi-interface fantasy-themed chatbot system that gamifies real-world skill development through epic quests. Built with modern Node.js architecture featuring CLI, API, web components, **MCP protocol support**, and **distributed multiplayer capabilities**.
+A multi-interface fantasy-themed chatbot system that gamifies real-world skill development through epic quests. Features **LLM-powered conversations**, **MCP protocol support**, **Slack integration**, and **distributed multiplayer capabilities**.
 
 ## ✨ What Makes myMCP Special?
 
+- 🤖 **AI-Powered Conversations** - Natural language interactions with Anthropic/OpenAI
 - 🎮 **Gamified Learning** - Master real skills through fantasy quests
-- 🏗️ **Modern Architecture** - TypeScript, Express.js, React, WebSocket
-- 🌟 **Multi-Interface** - CLI, Web, API, and **full MCP protocol support**
-- ⚡ **Real-Time Updates** - Live game state synchronization
-- 🔧 **Cross-Platform** - Works on Windows, macOS, Linux, and WSL
-- 🌐 **Multiplayer Ready** - Distributed engine architecture with Redis pub/sub
-- 🤖 **AI-Powered** - Deep integration with Claude via MCP protocol
+- 💬 **Slack Integration** - Play directly from Slack with team dashboards
+- 🌟 **Multi-Interface** - CLI, Web, API, MCP protocol, and Slack
+- ⚡ **Real-Time Multiplayer** - Redis-powered distributed architecture
+- 🔧 **Production Ready** - Docker support, clean architecture, TypeScript
 
 ## 🚀 Quick Start (2 minutes)
 
 ### Prerequisites
 - [Node.js 18+](https://nodejs.org/) and npm 9+
 - Git for version control
+- (Optional) Redis for multiplayer features
+- (Optional) Anthropic/OpenAI API key for AI conversations
 
 ### Get Running
 ```bash
@@ -32,229 +33,212 @@ git clone <repository-url>
 cd myMCP
 npm install
 
-# 2. Start the engine (Terminal 1)
-npm run dev:engine
-# Wait for: 🚀 myMCP Engine running on port 3000
+# 2. (Optional) Set up AI - create .env in project root
+echo "ANTHROPIC_API_KEY=your-key-here" > .env
 
-# 3. Start the CLI (Terminal 2)  
-npm run dev:cli -- status
-# You should see your fantasy player status!
+# 3. Start the engine
+node tools/startup/start-engine.js
+
+# 4. In another terminal, start the interactive CLI
+cd packages/cli && npm run shell
 ```
 
-### Your First Quest
+### Your First Adventure
+```
+Adventure> help                    # See available commands
+Adventure> status                  # Check your character
+Adventure> I want to start a quest # Natural language works!
+Adventure> What should I do next?  # Ask your AI guide
+```
+
+## 🏗️ Project Structure (Reorganized!)
+
+```
+myMCP/
+├── packages/              # Monorepo packages
+│   ├── engine/           # 🎮 Game engine API (Express + WebSocket)
+│   ├── cli/              # 🗡️ Interactive command-line interface
+│   ├── mcpserver/        # 🤖 MCP protocol server
+│   ├── slack-integration/# 💬 Slack bot and dashboards
+│   └── webapp/           # 🌐 React web interface (planned)
+├── tools/                # Development tools
+│   ├── setup/           # Setup and installation scripts
+│   ├── startup/         # Service startup scripts
+│   ├── testing/         # Test utilities
+│   └── assets/          # Icons and images
+├── shared/              # Shared code
+│   ├── types/           # TypeScript type definitions
+│   ├── utils/           # Common utilities
+│   └── config/          # Shared configuration
+├── docs/                # Documentation
+│   ├── setup/           # Setup guides
+│   ├── integrations/    # Integration documentation
+│   └── archive/         # Historical documents
+└── tests/               # Test suites
+```
+
+## 🎭 LLM-Powered Fantasy System
+
+### Natural Language Understanding
 ```bash
-# See available adventures
-npm run dev:cli -- start-quest
+# Instead of memorizing commands...
+Adventure> start-quest council-of-three-realms  # Old way
 
-# Start interactive chat
-npm run dev:cli -- chat -i
-
-# Check your progress
-npm run dev:cli -- get-score
+# Just speak naturally!
+Adventure> I'd like to help unite the three kingdoms
+Adventure> What quests are available for a novice like me?
+Adventure> Tell me more about the Council quest
 ```
 
-## 🎭 Fantasy Quest System
+### Dynamic AI Responses
+Your AI guide adapts based on:
+- Current quest progress
+- Player level and achievements
+- Recent actions and context
+- Natural conversation flow
 
-Transform technical learning through epic adventures:
+### Supported LLM Providers
+- **Anthropic Claude** (Recommended) - Best narrative quality
+- **OpenAI GPT** - Alternative option
+- **Fallback System** - Works without API keys
 
-| Quest | Real-World Skill | Fantasy Theme | Reward |
-|-------|------------------|---------------|---------|
-| **Council of Three Realms** | Timezone coordination & meeting scheduling | Unite allies across distant kingdoms | 100 pts + Council Seal |
-| **Dungeon Keeper's Vigil** | Server monitoring & system health checks | Guardian of mystical computing crystals | 75 pts + Crystal Monitor |
-| **Cryptomancer's Seal** | HMAC cryptographic implementation | Master arcane message authentication | 125 pts + HMAC Grimoire |
+## 💬 Slack Integration
 
-## 🏗️ System Architecture
+Transform your Slack workspace into a fantasy realm!
+
+### Features
+- 🎯 **Slash Commands** - `/mymcp status`, `/mymcp quest`, `/mymcp leaderboard`
+- 📊 **Live Dashboard** - Auto-updating statistics in `#mymcp-dashboard`
+- 🗨️ **Team Chat** - Coordinate quests in `#mymcp-game`
+- 🏆 **Achievements** - Real-time notifications for level-ups and completions
+- 📈 **Activity Charts** - Visual progress tracking
+
+### Quick Setup
+```bash
+# 1. Build and configure
+cd packages/slack-integration
+npm install && npm run build
+cp .env.example .env
+
+# 2. Add your Slack tokens to .env
+# 3. Start the integration
+npm start
+```
+
+## 🌐 Multiplayer Architecture
 
 ```
-    CLI Interface          Web Interface         MCP Protocol          External Apps
-         │                      │                     │                     │
-         ├─────────── HTTP/REST API & WebSocket ──────────────────────────┤
-         │                      │                     │                     │
-    ┌────▼────┐           ┌─────▼─────┐         ┌─────▼─────┐      ┌──────▼─────┐
-    │ myMCP   │           │  myMCP    │         │  Enhanced │      │  Worker    │
-    │   CLI   │◄─────────►│  Engine   │◄───────►│    MCP    │      │  Engines   │
-    │         │           │ (Primary) │         │  Server   │      │  (1,2,3)   │
-    └─────────┘           └─────┬─────┘         └───────────┘      └──────┬─────┘
-                                │                                           │
-                                ├────────────Redis Pub/Sub─────────────────┤
-                                │                                           │
-                           ┌────▼─────┐                               ┌─────▼─────┐
-                           │   Game   │                               │Multiplayer│
-                           │  State   │                               │   Sync    │
-                           │ Storage  │                               │  Service  │
-                           └──────────┘                               └───────────┘
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Player A  │     │   Player B  │     │   Player C  │
+│  (Engine 1) │     │  (Engine 2) │     │  (Engine 3) │
+└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
+       │                   │                   │
+       └───────────────────┴───────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │    Redis    │
+                    │   Pub/Sub   │
+                    └──────┬──────┘
+                           │
+       ┌───────────────────┴───────────────────┐
+       │                                       │
+┌──────▼──────┐                         ┌──────▼──────┐
+│    Slack    │                         │     MCP     │
+│ Integration │                         │   Server    │
+└─────────────┘                         └─────────────┘
 ```
 
 ## 📦 Core Components
 
-| Component | Description | Status | Documentation |
-|-----------|-------------|---------|---------------|
-| **CLI** | Fantasy-themed command interface | ✅ Complete | [packages/cli/](packages/cli/) |
-| **Engine** | Game state management API with multiplayer | ✅ Complete | [packages/engine/](packages/engine/) |
-| **WebApp** | React frontend with chat | 🚧 Planned | [packages/webapp/](packages/webapp/) |
-| **MCP Server** | Enhanced MCP protocol implementation | ✅ Complete | [packages/mcpserver/](packages/mcpserver/) |
-| **Admin** | System monitoring dashboard | 🚧 Planned | [packages/admin/](packages/admin/) |
+| Component | Description | Status | Key Features |
+|-----------|-------------|--------|--------------|
+| **Engine** | Game state API | ✅ Complete | LLM integration, Redis pub/sub, WebSocket |
+| **CLI** | Interactive shell | ✅ Complete | Natural language, real-time chat |
+| **MCP Server** | AI model integration | ✅ Complete | 7 resources, 9 tools, 5 prompts |
+| **Slack Bot** | Team integration | ✅ Complete | Dashboards, commands, notifications |
+| **Web App** | Browser interface | 🚧 Planned | React, real-time updates |
 
-## 🎯 Current Progress: 43.75% Complete
-
-### ✅ Phase 1: Foundation (Tasks 1-5) - COMPLETE
-- [x] Organizational analysis and project planning
-- [x] Multi-workspace Node.js project structure  
-- [x] CLI with Commander.js and fantasy theming
-- [x] Express.js engine with REST API and WebSocket
-- [x] Cross-platform CLI-Engine integration
-
-### 🚧 Phase 2: Core Features (Tasks 6-11) - IN PROGRESS
-- [ ] Tab completion system for context-aware suggestions
-- [ ] LLM API integration for dynamic narrative generation
-- [ ] Fantasy theme pack with skinnable assets
-- [ ] Implementation of all three quest frameworks
-
-### ✅ Phase 3: Advanced Integration - BONUS COMPLETE
-- [x] **Enhanced MCP Server** - Full protocol implementation with resources, tools, and prompts
-- [x] **Multiplayer Architecture** - Distributed engines with Redis synchronization
-
-## 🤖 MCP (Model Context Protocol) Integration
-
-myMCP now features a comprehensive MCP server that enables Claude and other AI models to interact directly with the game engine.
-
-### MCP Resources (8 endpoints)
-- **Player Profile** - Stats, achievements, and progress
-- **Quest Catalog** - Available, active, and completed quests
-- **Game State** - Complete game world snapshot
-- **Inventory** - Items and equipment management
-- **Chat History** - Conversation tracking
-- **World Map** - Locations and NPCs
-- **System Health** - Engine monitoring
-- **LLM Status** - AI provider information
-
-### MCP Tools (12 functions)
-- Quest management (start, complete steps, finish)
-- Player actions (update profile, change location, set score)
-- Chat interactions (send messages, get completions)
-- Inventory management (use items)
-- Full game state retrieval
-
-### MCP Prompts (5 templates)
-- Character creation with backstory generation
-- Dynamic quest briefings
-- Context-aware help
-- Progress summaries
-- Next action suggestions
-
-## 🌐 Multiplayer Capabilities
-
-myMCP now supports distributed multiplayer with the following features:
-
-### Architecture
-- **4 Engine Instances**: 1 primary + 3 workers (ports 3000-3003)
-- **Redis Pub/Sub**: Cross-engine communication
-- **Socket.IO**: Real-time client connections
-- **Automatic Synchronization**: Player actions broadcast across engines
-
-### Features
-- 🌍 **Cross-Engine Play** - Players on different engines can interact
-- 💬 **Global Chat** - Messages synchronized across all instances
-- 👥 **Player Presence** - Real-time online/offline tracking
-- 📊 **Shared State** - Quest progress visible to all players
-- 🔄 **Automatic Failover** - Seamless experience if an engine goes down
-- **Slack Integration**: Smart dashboards and shared team chat in Slack
-- **Session Persistence**: Save and resume game states
-- **Intelligent Intent Recognition**: Natural language understanding for game commands
-
-### Quick Start - Multiplayer
-```bash
-# Using Docker Compose (recommended)
-npm run dev:multiplayer:build
-npm run dev:multiplayer
-
-# Or manually start all services
-npm run redis:start
-npm run dev:engine:primary    # Terminal 1
-npm run dev:engine:worker1    # Terminal 2
-npm run dev:engine:worker2    # Terminal 3
-npm run dev:engine:worker3    # Terminal 4
-```
-
-## 🔧 Development Commands
+## 🔧 Quick Reference
 
 ```bash
-# Development servers
-npm run dev:cli          # CLI with hot reload
-npm run dev:engine       # Single engine API server  
-npm run dev:mcpserver    # Enhanced MCP server
-npm run dev:multiplayer  # Full multiplayer setup
+# Start services (from project root)
+node tools/startup/start-engine.js      # Game engine
+node tools/startup/start-mcp.js         # MCP server
+node tools/startup/start-all.js         # Everything
 
-# Building
-npm run build            # Build all components
-npm run clean            # Clean build artifacts
+# Development
+cd packages/cli && npm run shell        # Interactive CLI
+cd packages/slack-integration && npm start  # Slack bot
 
-# Testing  
-npm run test             # Run test suites
-npm run lint             # Code linting
-npm run lint:fix         # Auto-fix linting issues
+# Testing
+node tools/testing/test-interface.js    # Test APIs
+node tools/testing/test-engine-connection.js  # Check connectivity
 
-# MCP Testing
-cd packages/mcpserver
-npm run test:enhanced    # Test MCP integration
+# Setup & Configuration  
+node tools/setup/setup-mcp.js          # Initial MCP setup
+node tools/setup/team-setup.sh         # Team training setup
 ```
+
+## 🚀 Getting Started Paths
+
+### For Individual Developers
+1. Clone repo and install dependencies
+2. Add LLM API key to `.env`
+3. Start engine and CLI
+4. Begin your adventure!
+
+### For Teams with Slack
+1. Follow individual setup
+2. Configure Slack integration
+3. Create team channels
+4. Share Redis connection
+5. Coordinate quests together!
+
+### For Claude Desktop Users
+1. Run `node tools/setup/setup-mcp.js`
+2. Configure Claude Desktop with generated config
+3. Access game directly through Claude!
 
 ## 📚 Documentation
 
-- **[📖 Getting Started](docs/GETTING_STARTED.md)** - Complete setup guide
-- **[📋 Documentation Index](docs/README.md)** - All documentation
-- **[🎯 Task Details](docs/tasks/)** - Individual task specifications
-- **[📊 Planning Documents](docs/planning/)** - Project analysis and strategy
-- **[🤖 MCP Integration](packages/mcpserver/README-enhanced.md)** - Enhanced MCP server guide
-- **[🌐 Multiplayer Setup](docs/multiplayer-setup.md)** - Distributed architecture guide
-- **[🔧 API Reference](docs/API.md)** - Engine API documentation *(coming soon)*
+- **[🚀 Quick Start Guide](docs/QUICK_START.md)** - Get running in minutes
+- **[💬 Slack Setup](docs/integrations/slack/README.md)** - Team integration
+- **[🤖 MCP Integration](docs/integrations/mcp/README.md)** - AI model setup
+- **[🌐 Multiplayer Guide](docs/multiplayer-setup.md)** - Distributed setup
+- **[📖 Full Documentation](docs/README.md)** - Everything else
 
 ## 🧪 Testing Your Setup
 
-### Test Engine API
 ```bash
+# Check engine health
 curl http://localhost:3000/health
-# Expected: {"status":"ok","message":"myMCP Engine is running strong!"}
-```
 
-### Test CLI Integration  
-```bash
-npm run dev:cli -- status
-# Should show player status and engine connectivity
-```
+# Test LLM integration
+curl -X POST http://localhost:3000/api/actions/test-player \
+  -H "Content-Type: application/json" \
+  -d '{"type":"CHAT","payload":{"message":"Hello!"}}'
 
-### Run Integration Tests
-```bash
-cd tests/api
-node test-api.js        # API endpoint tests
-node test-websocket.js  # WebSocket connection tests
-
-cd packages/mcpserver
-npm run test:enhanced   # MCP protocol tests
+# Verify Redis connection (if using multiplayer)
+redis-cli ping
 ```
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how to get started:
+We welcome contributions! The codebase is now cleaner and more organized:
 
-1. **Read the [Contributing Guide](docs/CONTRIBUTING.md)** *(coming soon)*
-2. **Fork the repository** and create your feature branch
-3. **Follow the development setup** in [Getting Started](docs/GETTING_STARTED.md)
-4. **Make your changes** and add tests
-5. **Submit a pull request** with a clear description
+1. **No more cluttered root** - Tools organized in `tools/` directory
+2. **Portable paths** - No hardcoded usernames or paths
+3. **TypeScript throughout** - Type safety everywhere
+4. **Clean architecture** - Clear separation of concerns
 
-### Development Guidelines
-- Use TypeScript for all new code
-- Follow the existing fantasy theme and terminology
-- Add tests for new functionality
-- Update documentation for user-facing changes
+See [Contributing Guide](docs/CONTRIBUTING.md) for details.
 
-## 🚨 Getting Help
+## 🔒 Security Notes
 
-- **📚 Check the [documentation](docs/)** first
-- **🐛 Open an issue** for bugs or feature requests  
-- **💬 Start a discussion** for questions or ideas
-- **📧 Contact maintainers** for urgent issues
+- Never commit `.env` files or credentials
+- Use `claude_desktop_config.example.json` as a template
+- Redis URLs should use environment variables
+- API keys should be kept private
 
 ## 📄 License
 
@@ -266,36 +250,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **Ready to begin your adventure?** 🗡️
 
-[Get Started](docs/GETTING_STARTED.md) • [View Quests](docs/tasks/) • [API Docs](docs/API.md) • [Contributing](docs/CONTRIBUTING.md)
+[Get Started](docs/QUICK_START.md) • [Join Slack](docs/integrations/slack/) • [View Quests](docs/tasks/)
 
-*Transform your technical journey into an epic adventure!* ⚡✨
+*Transform your technical journey into an epic adventure with AI!* ⚡✨
 
-</div>
-
-## Progress Update
-
-### Phase 1 ✅ Complete
-- Basic game engine with quest system
-- Multiple interface implementations (CLI, Web, Admin)
-- AI integration with fallback support
-- MCP server implementation with full tool/resource mapping
-- Real-time WebSocket updates
-- Session management and persistence
-
-### Phase 2 ✅ Complete
-- Multiplayer architecture with Redis pub/sub
-- Cross-engine synchronization
-- Load balancing across multiple engine instances
-- Real-time player presence tracking
-- Global chat system
-- Shared game state management
-
-### Phase 3 🚀 New - External Integrations
-- **Slack Integration** ✅
-  - Real-time game notifications in Slack channels
-  - Interactive slash commands (`/mymcp`)
-  - Smart dashboards with activity charts
-  - Bidirectional chat between Slack and game
-  - Team leaderboards and daily summaries
-- **Discord Integration** (Planned)
-- **Microsoft Teams Support** (Planned)
+</div> 
