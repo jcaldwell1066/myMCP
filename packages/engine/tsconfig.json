@@ -19,8 +19,8 @@
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@mymcp/types": ["../../shared/types/dist/index"],
-      "@mymcp/types/*": ["../../shared/types/dist/*"]
+      "@mymcp/types": ["../../shared/types/src/index"],
+      "@mymcp/types/*": ["../../shared/types/src/*"]
     }
   },
   "include": [

@@ -145,10 +145,8 @@ export class QuestStepMigrator {
 
     // Apply enhancement definition
     const enhancedStep: EnhancedQuestStep = {
-      // Preserve existing basic properties
-      id: legacyStep.id,
-      description: legacyStep.description,
-      completed: legacyStep.completed,
+      // Preserve existing basic properties from legacyStep
+      ...legacyStep,
       
       // Add enhanced properties from definition
       title: enhancement.title,

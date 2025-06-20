@@ -136,7 +136,7 @@ export class RedisStateManager extends EventEmitter {
       if (updates.player.location) {
         // Get current location
         const currentData = await this.redis.hget(`game:state:${playerId}`, 'location');
-        const from = currentData ?? 'town';
+        const from = currentData !== null ? currentData : 'town';
         const to = updates.player.location;
         
         if (from !== to) {
