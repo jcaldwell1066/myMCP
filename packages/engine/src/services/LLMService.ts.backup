@@ -5,7 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import axios from 'axios';
 import NodeCache from 'node-cache';
 import crypto from 'crypto';
-import { GameState, ChatMessage, QuestStep, Item } from '@mymcp/types';
+import { GameState, ChatMessage } from '@mymcp/types';
 
 export type LLMProvider = 'openai' | 'anthropic' | 'ollama' | 'fallback';
 
@@ -170,7 +170,7 @@ export class LLMService {
     // Determine mood based on quest progress and score
     let mood = 'neutral';
     if (gameState.quests.active) {
-      const progress = gameState.quests.active.steps.filter((s: QuestStep) => s.completed).length;
+      const progress = gameState.quests.active.steps.filter((s: any) => s.completed).length;
       const total = gameState.quests.active.steps.length;
       mood = progress / total > 0.5 ? 'encouraging' : 'motivating';
     } else if (gameState.player.score > 500) {
@@ -190,7 +190,7 @@ export class LLMService {
         content: msg.message,
         timestamp: msg.timestamp,
       })),
-      inventory: gameState.inventory.items.map((item: Item) => item.name),
+      inventory: gameState.inventory.items.map((item: any) => item.name),
       timeOfDay,
       mood,
     };
@@ -198,8 +198,8 @@ export class LLMService {
     // Add quest context if active
     if (gameState.quests.active) {
       const quest = gameState.quests.active;
-      const completedSteps = quest.steps.filter((s: QuestStep) => s.completed).length;
-      const nextStep = quest.steps.find((s: QuestStep) => !s.completed);
+      const completedSteps = quest.steps.filter((s: any) => s.completed).length;
+      const nextStep = quest.steps.find((s: any) => !s.completed);
       
       context.quest = {
         title: quest.title,

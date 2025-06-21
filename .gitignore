@@ -73,7 +73,7 @@ jspm_packages/
 
 # Project specific
 *.local.json
-data/
+/data/
 temp/
 # CLI runtime config (user-specific)
 .mymcp-cli/
