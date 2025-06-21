@@ -1,0 +1,262 @@
+import { Application, Request, Response } from 'express';
+import { AdminDashboardService } from '../services/AdminDashboardService';
+import { HealthMonitor } from '../services/HealthMonitor';
+import { RedisQueryService } from '../services/RedisQueryService';
+import { LeaderboardService } from '../services/LeaderboardService';
+import { SystemMetricsService } from '../services/SystemMetricsService';
+
+export interface Services {
+  dashboard: AdminDashboardService;
+  health: HealthMonitor;
+  redis: RedisQueryService;
+  leaderboard: LeaderboardService;
+  metrics: SystemMetricsService;
+}
+
+export function setupRoutes(app: Application, services: Services) {
+  // Health check
+  app.get('/health', (req: Request, res: Response) => {
+    res.json({ status: 'ok', timestamp: new Date() });
+  });
+
+  // Dashboard overview
+  app.get('/api/dashboard', async (req: Request, res: Response) => {
+    try {
+      const data = await services.dashboard.getDashboardData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch dashboard data' });
+    }
+  });
+
+  // System health
+  app.get('/api/health', async (req: Request, res: Response) => {
+    try {
+      const health = await services.health.getSystemHealth();
+      res.json(health);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch health data' });
+    }
+  });
+
+  // Engine health
+  app.get('/api/health/engines', async (req: Request, res: Response) => {
+    try {
+      const health = await services.health.getSystemHealth();
+      res.json(health.engines);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch engine health' });
+    }
+  });
+
+  // System metrics
+  app.get('/api/metrics', async (req: Request, res: Response) => {
+    try {
+      const current = await services.metrics.getCurrentMetrics();
+      res.json(current);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch metrics' });
+    }
+  });
+
+  app.get('/api/metrics/history', (req: Request, res: Response) => {
+    try {
+      const duration = req.query.duration ? parseInt(req.query.duration as string) : undefined;
+      const history = services.metrics.getMetricsHistory(duration);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch metrics history' });
+    }
+  });
+
+  app.get('/api/metrics/summary', (req: Request, res: Response) => {
+    try {
+      const summary = services.metrics.getMetricsSummary();
+      res.json(summary);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch metrics summary' });
+    }
+  });
+
+  // Leaderboard
+  app.get('/api/leaderboard', async (req: Request, res: Response) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+      const leaderboard = await services.leaderboard.getLeaderboard(limit, offset);
+      res.json(leaderboard);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch leaderboard' });
+    }
+  });
+
+  app.get('/api/leaderboard/stats', async (req: Request, res: Response) => {
+    try {
+      const stats = await services.leaderboard.getLeaderboardStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch leaderboard stats' });
+    }
+  });
+
+  app.get('/api/leaderboard/player/:playerId', async (req: Request, res: Response) => {
+    try {
+      const { playerId } = req.params;
+      const rank = await services.leaderboard.getPlayerRank(playerId);
+      const around = await services.leaderboard.getLeaderboardAroundPlayer(playerId);
+      res.json({ rank, around });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch player rank' });
+    }
+  });
+
+  // Redis queries
+  app.post('/api/redis/query', async (req: Request, res: Response) => {
+    try {
+      const { command, args = [] } = req.body;
+      const result = await services.redis.executeQuery(command, args);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.get('/api/redis/keys', async (req: Request, res: Response) => {
+    try {
+      const pattern = (req.query.pattern as string) || '*';
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const keys = await services.redis.searchKeys(pattern, limit);
+      res.json(keys);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to search keys' });
+    }
+  });
+
+  app.get('/api/redis/key/:key', async (req: Request, res: Response) => {
+    try {
+      const { key } = req.params;
+      const details = await services.redis.getKeyDetails(key);
+      res.json(details);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch key details' });
+    }
+  });
+
+  app.get('/api/redis/stats', async (req: Request, res: Response) => {
+    try {
+      const stats = await services.redis.getRedisStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch Redis stats' });
+    }
+  });
+
+  app.get('/api/redis/saved-queries', (req: Request, res: Response) => {
+    try {
+      const queries = services.redis.getSavedQueries();
+      res.json(queries);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch saved queries' });
+    }
+  });
+
+  app.post('/api/redis/saved-queries/:queryId', async (req: Request, res: Response) => {
+    try {
+      const { queryId } = req.params;
+      const result = await services.redis.executeSavedQuery(queryId);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Players
+  app.get('/api/players', async (req: Request, res: Response) => {
+    try {
+      const query = (req.query.q as string) || '';
+      const players = await services.dashboard.searchPlayers(query);
+      res.json(players);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to search players' });
+    }
+  });
+
+  app.get('/api/players/:playerId', async (req: Request, res: Response) => {
+    try {
+      const { playerId } = req.params;
+      const details = await services.dashboard.getPlayerDetails(playerId);
+      if (!details) {
+        return res.status(404).json({ error: 'Player not found' });
+      }
+      res.json(details);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch player details' });
+    }
+  });
+
+  // Events
+  app.get('/api/events', (req: Request, res: Response) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const events = services.dashboard.getRecentEvents(limit);
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch events' });
+    }
+  });
+
+  // Export endpoints
+  app.get('/api/export/leaderboard', async (req: Request, res: Response) => {
+    try {
+      const format = (req.query.format as 'json' | 'csv') || 'json';
+      const data = await services.leaderboard.exportLeaderboard(format);
+      
+      res.setHeader('Content-Type', format === 'json' ? 'application/json' : 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=leaderboard.${format}`);
+      res.send(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to export leaderboard' });
+    }
+  });
+
+  app.get('/api/export/metrics', (req: Request, res: Response) => {
+    try {
+      const format = (req.query.format as 'json' | 'csv') || 'json';
+      const data = services.metrics.exportMetrics(format);
+      
+      res.setHeader('Content-Type', format === 'json' ? 'application/json' : 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=metrics.${format}`);
+      res.send(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to export metrics' });
+    }
+  });
+
+  // Admin actions
+  app.post('/api/admin/trigger-health-check', async (req: Request, res: Response) => {
+    try {
+      const health = await services.health.triggerHealthCheck();
+      res.json(health);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to trigger health check' });
+    }
+  });
+
+  app.post('/api/admin/clear-metrics-history', (req: Request, res: Response) => {
+    try {
+      services.metrics.clearHistory();
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to clear metrics history' });
+    }
+  });
+
+  app.post('/api/admin/clear-query-history', async (req: Request, res: Response) => {
+    try {
+      await services.redis.flushHistory();
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to clear query history' });
+    }
+  });
+} 

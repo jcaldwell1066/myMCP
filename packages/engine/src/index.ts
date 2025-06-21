@@ -343,6 +343,30 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Status endpoint for admin dashboard
+app.get('/api/status', (req, res) => {
+  const memoryUsage = process.memoryUsage();
+  const cpuUsage = process.cpuUsage();
+  
+  res.json({
+    status: 'ok',
+    engineId: ENGINE_ID,
+    isPrimary: IS_PRIMARY,
+    connectedClients: wsClients.size,
+    onlinePlayers: Object.keys(gameStatesCache).filter(playerId => {
+      const state = gameStatesCache[playerId];
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      return state.session.lastAction > fiveMinutesAgo;
+    }),
+    uptime: process.uptime(),
+    memory: {
+      used: memoryUsage.heapUsed,
+      total: memoryUsage.heapTotal
+    },
+    cpu: cpuUsage.user / 1000000 // Convert to seconds
+  });
+});
+
 // Debug route to test routing
 app.get('/debug', (req, res) => {
   res.json({
@@ -364,6 +388,7 @@ app.get('/api/debug', (req, res) => {
   res.json({
     message: 'API debug endpoint working!',
     availableRoutes: [
+      'GET /api/status',
       'GET /api/state/:playerId?',
       'PUT /api/state/:playerId/player',
       'POST /api/actions/:playerId?',
