@@ -294,7 +294,7 @@ const playerUpdateSchema = Joi.object({
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3001', 'http://localhost:5173'],
+  origin: process.env.CORS_ORIGIN || ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3500', 'http://localhost:5173'],
   credentials: true,
 }));
 app.use(morgan('combined'));

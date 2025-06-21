@@ -160,6 +160,9 @@ class AdminDashboard {
         const runSavedApiBtn = document.getElementById('runSavedApi');
         const addApiBtn = document.getElementById('addApiBtn');
 
+        // Initialize resize functionality
+        this.initializeApiResize();
+
         // Show/hide body field based on method
         if (apiMethodSelect) {
             apiMethodSelect.addEventListener('change', (e) => {
@@ -225,6 +228,56 @@ class AdminDashboard {
             addApiBtn.addEventListener('click', () => {
                 this.addCurrentApiRequest();
             });
+        }
+    }
+
+    initializeApiResize() {
+        const resizeHandle = document.getElementById('apiResizeHandle');
+        const resizableContainer = document.getElementById('apiConsoleResizable');
+        const apiConsole = resizableContainer?.querySelector('.api-console');
+        
+        if (!resizeHandle || !resizableContainer || !apiConsole) return;
+
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = resizableContainer.offsetHeight;
+            document.body.style.cursor = 'nwse-resize';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const deltaY = e.clientY - startY;
+            const newHeight = Math.min(Math.max(startHeight + deltaY, 300), window.innerHeight * 0.8);
+            
+            resizableContainer.style.height = newHeight + 'px';
+            apiConsole.style.height = newHeight + 'px';
+            
+            e.preventDefault();
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                
+                // Save the height preference to localStorage
+                const height = resizableContainer.offsetHeight;
+                localStorage.setItem('apiConsoleHeight', height);
+            }
+        });
+
+        // Restore saved height if available
+        const savedHeight = localStorage.getItem('apiConsoleHeight');
+        if (savedHeight) {
+            resizableContainer.style.height = savedHeight + 'px';
+            apiConsole.style.height = savedHeight + 'px';
         }
     }
 
@@ -669,6 +722,107 @@ class AdminDashboard {
         });
     }
 
+    // Redis Syntax Highlighter
+    highlightRedis(data, dataType = 'auto') {
+        // Handle different Redis response types
+        if (data === null || data === undefined) {
+            return '<span class="redis-nil">(nil)</span>';
+        }
+        
+        if (typeof data === 'string') {
+            // Check if it's a Redis INFO response
+            if (data.includes('\r\n') && data.includes(':')) {
+                return this.highlightRedisInfo(data);
+            }
+            // Check if it's a number
+            if (!isNaN(data) && !isNaN(parseFloat(data))) {
+                return `<span class="redis-number">${data}</span>`;
+            }
+            // Regular string
+            return `<span class="redis-string">"${this.escapeHtml(data)}"</span>`;
+        }
+        
+        if (typeof data === 'number') {
+            return `<span class="redis-number">${data}</span>`;
+        }
+        
+        if (Array.isArray(data)) {
+            return this.highlightRedisArray(data);
+        }
+        
+        if (typeof data === 'object') {
+            // Could be a hash or other structure
+            return this.highlightRedisObject(data);
+        }
+        
+        return this.escapeHtml(String(data));
+    }
+
+    highlightRedisInfo(info) {
+        const sections = info.split('\r\n\r\n').filter(s => s.trim());
+        const highlighted = sections.map(section => {
+            const lines = section.split('\r\n').filter(l => l.trim());
+            const sectionName = lines[0];
+            
+            if (sectionName.startsWith('#')) {
+                // Section header
+                const sectionHtml = lines.slice(1).map(line => {
+                    const [key, value] = line.split(':');
+                    if (key && value) {
+                        return `<div class="redis-line"><span class="redis-info-key">${key}</span>:<span class="redis-info-value">${value}</span></div>`;
+                    }
+                    return `<div class="redis-line">${line}</div>`;
+                }).join('');
+                
+                return `<div class="redis-info-section">
+                    <div class="redis-section-header">${sectionName}</div>
+                    ${sectionHtml}
+                </div>`;
+            }
+            
+            return section;
+        }).join('');
+        
+        return `<div class="redis-syntax">${highlighted}</div>`;
+    }
+
+    highlightRedisArray(arr) {
+        if (arr.length === 0) {
+            return '<span class="redis-nil">(empty array)</span>';
+        }
+        
+        const items = arr.map((item, index) => {
+            const highlighted = this.highlightRedis(item);
+            return `<div class="redis-line">
+                <span class="redis-list-index">${index + 1})</span>
+                ${highlighted}
+            </div>`;
+        }).join('');
+        
+        return `<div class="redis-syntax">
+            <div class="redis-array-bracket">[</div>
+            <div style="margin-left: 1rem;">${items}</div>
+            <div class="redis-array-bracket">]</div>
+        </div>`;
+    }
+
+    highlightRedisObject(obj) {
+        const entries = Object.entries(obj).map(([key, value]) => {
+            const highlightedValue = this.highlightRedis(value);
+            return `<div class="redis-line">
+                <span class="redis-hash-field">${this.escapeHtml(key)}</span> → ${highlightedValue}
+            </div>`;
+        }).join('');
+        
+        return `<div class="redis-syntax">${entries}</div>`;
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     displayRedisResult(result) {
         const output = document.getElementById('redisOutput');
         
@@ -676,36 +830,17 @@ class AdminDashboard {
             let resultData = result.result.result || result.result;
             let formattedResult;
             
-            // Format the result based on type
-            if (typeof resultData === 'string') {
-                // Handle multi-line strings (like INFO command)
-                if (resultData.includes('\r\n')) {
-                    formattedResult = resultData.split('\r\n').join('\n');
-                } else {
-                    formattedResult = resultData;
-                }
-            } else if (Array.isArray(resultData)) {
-                if (resultData.length === 0) {
-                    formattedResult = '(empty array)';
-                } else if (resultData.length > 20) {
-                    formattedResult = JSON.stringify(resultData.slice(0, 20), null, 2) + `\n... and ${resultData.length - 20} more items`;
-                } else {
-                    formattedResult = JSON.stringify(resultData, null, 2);
-                }
-            } else if (typeof resultData === 'object' && resultData !== null) {
-                formattedResult = JSON.stringify(resultData, null, 2);
-            } else {
-                formattedResult = String(resultData);
-            }
+            // Use the Redis highlighter
+            formattedResult = this.highlightRedis(resultData);
             
             const resultDiv = document.createElement('div');
             resultDiv.className = 'redis-result';
-            resultDiv.innerHTML = `<pre style="margin: 0; color: #d4d4d4;">${formattedResult}</pre>`;
+            resultDiv.innerHTML = formattedResult;
             output.lastElementChild.appendChild(resultDiv);
         } else {
             const errorDiv = document.createElement('div');
-            errorDiv.className = 'redis-result redis-error';
-            errorDiv.textContent = `Error: ${result.error}`;
+            errorDiv.className = 'redis-result';
+            errorDiv.innerHTML = `<span class="redis-error">Error: ${this.escapeHtml(result.error)}</span>`;
             output.lastElementChild.appendChild(errorDiv);
         }
         
@@ -764,25 +899,35 @@ class AdminDashboard {
                 <span class="redis-command">&gt; help</span>
             </div>
             <div class="redis-result">
-                <pre style="margin: 0; color: #d4d4d4;">Available commands:
-  help              - Show this help message
-  clear             - Clear the console
-  
-Common Redis commands:
-  KEYS pattern      - Find all keys matching pattern
-  GET key           - Get the value of a key
-  SET key value     - Set a key to a value
-  EXISTS key        - Check if a key exists
-  DEL key           - Delete a key
-  INFO              - Get server information
-  DBSIZE            - Get number of keys in database
-  
-Player commands:
-  SMEMBERS game:players                    - List all players
-  GET player:&lt;id&gt;                         - Get player data
-  ZREVRANGE game:leaderboard:score 0 9     - Top 10 leaderboard
-  
-Use the saved queries panel for quick access to common queries.</pre>
+                <div class="redis-syntax">
+                    <div class="redis-section">
+                        <div class="redis-section-header">Available commands:</div>
+                        <div class="redis-line"><span class="redis-key">help</span> - Show this help message</div>
+                        <div class="redis-line"><span class="redis-key">clear</span> - Clear the console</div>
+                    </div>
+                    
+                    <div class="redis-section">
+                        <div class="redis-section-header">Common Redis commands:</div>
+                        <div class="redis-line"><span class="redis-key">KEYS</span> <span class="redis-string">pattern</span> - Find all keys matching pattern</div>
+                        <div class="redis-line"><span class="redis-key">GET</span> <span class="redis-string">key</span> - Get the value of a key</div>
+                        <div class="redis-line"><span class="redis-key">SET</span> <span class="redis-string">key</span> <span class="redis-string">value</span> - Set a key to a value</div>
+                        <div class="redis-line"><span class="redis-key">EXISTS</span> <span class="redis-string">key</span> - Check if a key exists</div>
+                        <div class="redis-line"><span class="redis-key">DEL</span> <span class="redis-string">key</span> - Delete a key</div>
+                        <div class="redis-line"><span class="redis-key">INFO</span> - Get server information</div>
+                        <div class="redis-line"><span class="redis-key">DBSIZE</span> - Get number of keys in database</div>
+                    </div>
+                    
+                    <div class="redis-section">
+                        <div class="redis-section-header">Player commands:</div>
+                        <div class="redis-line"><span class="redis-key">SMEMBERS</span> <span class="redis-string">game:players</span> - List all players</div>
+                        <div class="redis-line"><span class="redis-key">GET</span> <span class="redis-string">player:&lt;id&gt;</span> - Get player data</div>
+                        <div class="redis-line"><span class="redis-key">ZREVRANGE</span> <span class="redis-string">game:leaderboard:score</span> <span class="redis-number">0</span> <span class="redis-number">9</span> - Top 10 leaderboard</div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; color: #999; font-size: 0.875rem;">
+                        Use the saved queries panel for quick access to common queries.
+                    </div>
+                </div>
             </div>
         `;
         output.appendChild(helpDiv);
@@ -819,7 +964,7 @@ Use the saved queries panel for quick access to common queries.</pre>
                 id: 'health-check',
                 name: 'Health Check',
                 method: 'GET',
-                endpoint: '/api/health',
+                endpoint: '/health',
                 description: 'Check system health status'
             },
             {
@@ -833,24 +978,34 @@ Use the saved queries panel for quick access to common queries.</pre>
                 id: 'player-state',
                 name: 'Get Player State',
                 method: 'GET',
-                endpoint: '/api/state/player/jcadwell-mcp',
+                endpoint: '/api/state/jcadwell-mcp',
                 description: 'Get state for a specific player'
             },
             {
                 id: 'all-players',
                 name: 'List All Players',
                 method: 'GET',
+                endpoint: '/api/players',
+                description: 'Get all players'
+            },
+            {
+                id: 'default-state',
+                name: 'Get Default State',
+                method: 'GET',
                 endpoint: '/api/state',
-                description: 'Get all player states'
+                description: 'Get default player state'
             },
             {
                 id: 'start-quest',
                 name: 'Start Quest',
                 method: 'POST',
-                endpoint: '/api/action/start-quest',
+                endpoint: '/api/actions/jcadwell-mcp',
                 body: JSON.stringify({
-                    playerId: 'jcadwell-mcp',
-                    questId: 'time-quest'
+                    type: 'START_QUEST',
+                    payload: {
+                        questId: 'global-meeting'
+                    },
+                    playerId: 'jcadwell-mcp'
                 }, null, 2),
                 description: 'Start a quest for a player'
             },
@@ -858,37 +1013,64 @@ Use the saved queries panel for quick access to common queries.</pre>
                 id: 'complete-step',
                 name: 'Complete Quest Step',
                 method: 'POST',
-                endpoint: '/api/action/complete-step',
+                endpoint: '/api/actions/jcadwell-mcp',
                 body: JSON.stringify({
-                    playerId: 'jcadwell-mcp',
-                    stepId: 'find-clock-tower'
+                    type: 'COMPLETE_QUEST_STEP',
+                    payload: {
+                        stepId: 'find-allies'
+                    },
+                    playerId: 'jcadwell-mcp'
                 }, null, 2),
                 description: 'Complete a quest step'
             },
             {
-                id: 'use-item',
-                name: 'Use Item',
+                id: 'chat-message',
+                name: 'Send Chat Message',
                 method: 'POST',
-                endpoint: '/api/action/use-item',
+                endpoint: '/api/actions/jcadwell-mcp',
                 body: JSON.stringify({
-                    playerId: 'jcadwell-mcp',
-                    itemId: 'time-crystal'
+                    type: 'CHAT',
+                    payload: {
+                        message: 'Hello, what quests are available?'
+                    },
+                    playerId: 'jcadwell-mcp'
                 }, null, 2),
-                description: 'Use an item from inventory'
+                description: 'Send a chat message and get AI response'
             },
             {
                 id: 'get-completions',
                 name: 'Get Completions',
                 method: 'GET',
-                endpoint: '/api/completions?prefix=examine',
+                endpoint: '/api/context/completions?prefix=quest',
                 description: 'Get command completions'
             },
             {
-                id: 'leaderboard',
-                name: 'Get Leaderboard',
+                id: 'quest-catalog',
+                name: 'Quest Catalog',
                 method: 'GET',
-                endpoint: '/api/leaderboard',
-                description: 'Get the player leaderboard'
+                endpoint: '/api/quest-catalog',
+                description: 'Get all available quest definitions'
+            },
+            {
+                id: 'game-stats',
+                name: 'Game Statistics',
+                method: 'GET',
+                endpoint: '/api/stats',
+                description: 'Get overall game statistics'
+            },
+            {
+                id: 'llm-status',
+                name: 'LLM Status',
+                method: 'GET',
+                endpoint: '/api/llm/status',
+                description: 'Check LLM provider status'
+            },
+            {
+                id: 'multiplayer-status',
+                name: 'Multiplayer Status',
+                method: 'GET',
+                endpoint: '/api/multiplayer/status',
+                description: 'Get multiplayer service status'
             }
         ];
 
@@ -1018,6 +1200,45 @@ Use the saved queries panel for quick access to common queries.</pre>
         }
     }
 
+    // JSON Syntax Highlighter
+    highlightJSON(json) {
+        if (typeof json !== 'string') {
+            json = JSON.stringify(json, null, 2);
+        }
+        
+        // Escape HTML
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        // Regular expressions for different JSON parts
+        const patterns = [
+            // Keys with quotes
+            { regex: /"([^"]+)"(\s*):/, replacement: '<span class="json-key">"$1"</span><span class="json-punctuation">$2:</span>' },
+            // String values
+            { regex: /: "([^"]*)"/g, replacement: ': <span class="json-string">"$1"</span>' },
+            // Numbers
+            { regex: /: (-?\d+\.?\d*)/g, replacement: ': <span class="json-number">$1</span>' },
+            // Booleans
+            { regex: /: (true|false)/g, replacement: ': <span class="json-boolean">$1</span>' },
+            // Null
+            { regex: /: (null)/g, replacement: ': <span class="json-null">$1</span>' },
+            // Array/object brackets and commas
+            { regex: /([{}\[\],])/g, replacement: '<span class="json-punctuation">$1</span>' }
+        ];
+        
+        // Apply patterns
+        patterns.forEach(pattern => {
+            json = json.replace(pattern.regex, pattern.replacement);
+        });
+        
+        // Add line wrapping for better readability
+        const lines = json.split('\n');
+        const wrappedLines = lines.map((line, index) => {
+            return `<div class="json-line" data-line="${index + 1}">${line}</div>`;
+        });
+        
+        return `<div class="json-syntax">${wrappedLines.join('')}</div>`;
+    }
+
     async sendApiRequest() {
         const method = document.getElementById('apiMethodSelect').value;
         const endpoint = document.getElementById('apiEndpoint').value.trim();
@@ -1038,22 +1259,19 @@ Use the saved queries panel for quick access to common queries.</pre>
         const timestamp = new Date().toLocaleTimeString();
         const requestDiv = document.createElement('div');
         requestDiv.className = 'api-request';
-        requestDiv.innerHTML = `
-            <div class="api-request-header">
-                <span class="api-timestamp">[${timestamp}]</span>
-                <span class="api-method">${method}</span>
-                <span class="api-endpoint">${endpoint}</span>
-                <span style="color: #666;">→ ${target}</span>
-            </div>
-        `;
+        requestDiv.innerHTML = `<div class="api-request-header"><span class="api-timestamp">[${timestamp}]</span> <span class="api-method">${method}</span> <span class="api-endpoint">${endpoint}</span> <span style="color: #666;">→ ${target}</span></div>`;
         
         if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-            requestDiv.innerHTML += `
-                <div style="margin-left: 1rem; margin-bottom: 0.5rem;">
-                    <div style="color: #666; font-size: 0.8rem;">Request Body:</div>
-                    <pre style="margin: 0.25rem 0; color: #999; font-size: 0.8rem;">${body}</pre>
-                </div>
-            `;
+            // Highlight request body if it's JSON
+            let highlightedBody = body;
+            try {
+                const parsedBody = JSON.parse(body);
+                highlightedBody = this.highlightJSON(parsedBody);
+            } catch (e) {
+                // Not JSON, display as plain text
+                highlightedBody = `<pre style="margin: 0.25rem 0; color: #999; font-size: 0.8rem;">${body}</pre>`;
+            }
+            requestDiv.innerHTML += `<div style="margin-left: 1rem; margin-bottom: 0.5rem;"><div style="color: #666; font-size: 0.8rem;">Request Body:</div>${highlightedBody}</div>`;
         }
         
         output.appendChild(requestDiv);
@@ -1070,42 +1288,41 @@ Use the saved queries panel for quick access to common queries.</pre>
                 options.body = body;
             }
 
+            // Use the proxy endpoint to avoid CORS issues
+            const proxyEndpoint = `/api/proxy${endpoint}?target=${encodeURIComponent(target)}`;
+            
             const startTime = Date.now();
-            const response = await fetch(target + endpoint, options);
+            const response = await fetch(proxyEndpoint, options);
             const responseTime = Date.now() - startTime;
             
             const responseData = await response.text();
             let jsonData;
+            let isJson = false;
             try {
                 jsonData = JSON.parse(responseData);
+                isJson = true;
             } catch (e) {
                 jsonData = responseData;
             }
 
             const responseDiv = document.createElement('div');
             responseDiv.className = 'api-response';
-            responseDiv.innerHTML = `
-                <div class="api-status ${response.ok ? 'success' : 'error'}">
-                    ${response.status} ${response.statusText} (${responseTime}ms)
-                </div>
-                <div class="api-headers">
-                    Content-Type: ${response.headers.get('content-type') || 'unknown'}
-                </div>
-                <div class="api-result">
-                    <pre style="margin: 0; color: ${response.ok ? '#d4d4d4' : '#e74c3c'};">${typeof jsonData === 'object' ? JSON.stringify(jsonData, null, 2) : jsonData}</pre>
-                </div>
-            `;
+            
+            // Format the response based on content type
+            let formattedResponse;
+            if (isJson) {
+                formattedResponse = this.highlightJSON(jsonData);
+            } else {
+                formattedResponse = `<pre style="margin: 0; color: ${response.ok ? '#d4d4d4' : '#e74c3c'};">${jsonData}</pre>`;
+            }
+            
+            responseDiv.innerHTML = `<div class="api-status ${response.ok ? 'success' : 'error'}">${response.status} ${response.statusText} (${responseTime}ms)</div><div class="api-headers">Content-Type: ${response.headers.get('content-type') || 'unknown'}</div><div class="api-result">${formattedResponse}</div>`;
             
             requestDiv.appendChild(responseDiv);
         } catch (error) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'api-response';
-            errorDiv.innerHTML = `
-                <div class="api-status error">Request Failed</div>
-                <div class="api-result">
-                    <pre style="margin: 0; color: #e74c3c;">${error.message}</pre>
-                </div>
-            `;
+            errorDiv.innerHTML = `<div class="api-status error">Request Failed</div><div class="api-result"><pre style="margin: 0; color: #e74c3c;">${error.message}</pre></div>`;
             requestDiv.appendChild(errorDiv);
         }
         

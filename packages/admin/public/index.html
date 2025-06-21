@@ -420,6 +420,50 @@
             display: flex;
             flex-direction: column;
             height: 500px;
+            min-height: 300px;
+            max-height: 80vh;
+            position: relative;
+            resize: vertical;
+            overflow: hidden;
+        }
+
+        .api-console-resizable {
+            position: relative;
+            height: 500px;
+            min-height: 300px;
+            max-height: 80vh;
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            cursor: nwse-resize;
+            z-index: 10;
+        }
+
+        .resize-handle::before {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            width: 6px;
+            height: 6px;
+            border-right: 2px solid #666;
+            border-bottom: 2px solid #666;
+        }
+
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            right: 8px;
+            width: 6px;
+            height: 6px;
+            border-right: 2px solid #666;
+            border-bottom: 2px solid #666;
         }
 
         .api-header {
@@ -579,6 +623,206 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+        }
+
+        /* JSON Syntax Highlighting - Theme-aware */
+        :root {
+            /* Default theme colors for JSON */
+            --json-key: #9cdcfe;
+            --json-string: #ce9178;
+            --json-number: #b5cea8;
+            --json-boolean: #569cd6;
+            --json-null: #569cd6;
+            --json-punctuation: #d4d4d4;
+            --json-background: #1e1e1e;
+            
+            /* Dark theme (default) */
+            --theme-json-key: #9cdcfe;
+            --theme-json-string: #ce9178;
+            --theme-json-number: #b5cea8;
+            --theme-json-boolean: #569cd6;
+            --theme-json-null: #569cd6;
+            --theme-json-punctuation: #d4d4d4;
+        }
+
+        /* Light theme colors (for future use) */
+        [data-theme="light"] {
+            --theme-json-key: #0451a5;
+            --theme-json-string: #a31515;
+            --theme-json-number: #098658;
+            --theme-json-boolean: #0000ff;
+            --theme-json-null: #0000ff;
+            --theme-json-punctuation: #000000;
+        }
+
+        /* Monokai theme colors (for future use) */
+        [data-theme="monokai"] {
+            --theme-json-key: #66d9ef;
+            --theme-json-string: #e6db74;
+            --theme-json-number: #ae81ff;
+            --theme-json-boolean: #ae81ff;
+            --theme-json-null: #ae81ff;
+            --theme-json-punctuation: #f8f8f2;
+        }
+
+        .json-syntax {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .json-key {
+            color: var(--theme-json-key);
+        }
+
+        .json-string {
+            color: var(--theme-json-string);
+        }
+
+        .json-number {
+            color: var(--theme-json-number);
+        }
+
+        .json-boolean {
+            color: var(--theme-json-boolean);
+        }
+
+        .json-null {
+            color: var(--theme-json-null);
+        }
+
+        .json-punctuation {
+            color: var(--theme-json-punctuation);
+        }
+
+        /* Nested JSON indentation */
+        .json-indent {
+            display: inline-block;
+            width: 2ch;
+        }
+
+        /* JSON line with hover effect */
+        .json-line:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Collapsible JSON sections (future enhancement) */
+        .json-toggle {
+            cursor: pointer;
+            user-select: none;
+            color: var(--theme-json-punctuation);
+            opacity: 0.6;
+        }
+
+        .json-toggle:hover {
+            opacity: 1;
+        }
+
+        /* Redis Syntax Highlighting - Theme-aware */
+        .redis-syntax {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* Redis data types */
+        .redis-key {
+            color: var(--theme-json-key);
+            font-weight: 500;
+        }
+
+        .redis-string {
+            color: var(--theme-json-string);
+        }
+
+        .redis-number {
+            color: var(--theme-json-number);
+        }
+
+        .redis-nil {
+            color: var(--theme-json-null);
+            font-style: italic;
+        }
+
+        .redis-type {
+            color: #b267e6;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .redis-ttl {
+            color: #ff9800;
+            font-size: 0.75rem;
+        }
+
+        .redis-list-index {
+            color: #666;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .redis-hash-field {
+            color: #4fc3f7;
+        }
+
+        .redis-set-member {
+            color: #81c784;
+        }
+
+        .redis-zset-score {
+            color: #ffb74d;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .redis-section {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-left: 2px solid #3e3e3e;
+        }
+
+        .redis-section-header {
+            color: #999;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .redis-line {
+            padding: 0.125rem 0;
+        }
+
+        .redis-line:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .redis-info-section {
+            margin: 0.5rem 0;
+        }
+
+        .redis-info-key {
+            color: #9cdcfe;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .redis-info-value {
+            color: #ce9178;
+        }
+
+        .redis-error {
+            color: #f44336;
+            font-weight: 500;
+        }
+
+        .redis-success {
+            color: #4caf50;
+        }
+
+        .redis-array-bracket {
+            color: var(--theme-json-punctuation);
+            font-weight: bold;
         }
     </style>
 </head>
@@ -763,31 +1007,34 @@
                 <h2>API Console</h2>
                 <div class="dashboard-grid">
                     <div class="card" style="grid-column: 1 / -1;">
-                        <div class="api-console">
-                            <div class="api-header">
-                                <span>API Console - Target: </span>
-                                <select id="apiTargetSelect" class="api-target-select">
-                                    <option value="http://localhost:3001">Engine 1 (Leader) - :3001</option>
-                                    <option value="http://localhost:3002">Engine 2 - :3002</option>
-                                    <option value="http://localhost:3003">Engine 3 - :3003</option>
-                                </select>
-                            </div>
-                            <div class="api-output" id="apiOutput">
-                                <div class="api-welcome">Welcome to API Console. Select a request from saved queries or compose your own.</div>
-                            </div>
-                            <div class="api-input-container">
-                                <select id="apiMethodSelect" class="api-method-select">
-                                    <option value="GET">GET</option>
-                                    <option value="POST">POST</option>
-                                    <option value="PUT">PUT</option>
-                                    <option value="DELETE">DELETE</option>
-                                    <option value="PATCH">PATCH</option>
-                                </select>
-                                <input type="text" class="api-input" id="apiEndpoint" placeholder="/api/health, /api/status, /api/state/player/:id" autofocus>
-                                <button id="apiSendBtn" class="btn btn-primary">Send</button>
-                            </div>
-                            <div class="api-body-container hidden" id="apiBodyContainer">
-                                <textarea id="apiBody" class="api-body" placeholder='{"key": "value"}' rows="4"></textarea>
+                        <div class="api-console-resizable" id="apiConsoleResizable">
+                            <div class="api-console">
+                                <div class="api-header">
+                                    <span>API Console - Target: </span>
+                                    <select id="apiTargetSelect" class="api-target-select">
+                                        <option value="http://localhost:3001">Engine 1 (Leader) - :3001</option>
+                                        <option value="http://localhost:3002">Engine 2 - :3002</option>
+                                        <option value="http://localhost:3003">Engine 3 - :3003</option>
+                                    </select>
+                                </div>
+                                <div class="api-output" id="apiOutput">
+                                    <div class="api-welcome">Welcome to API Console. Select a request from saved queries or compose your own.</div>
+                                </div>
+                                <div class="api-input-container">
+                                    <select id="apiMethodSelect" class="api-method-select">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                        <option value="PATCH">PATCH</option>
+                                    </select>
+                                    <input type="text" class="api-input" id="apiEndpoint" placeholder="/api/health, /api/status, /api/state/player/:id" autofocus>
+                                    <button id="apiSendBtn" class="btn btn-primary">Send</button>
+                                </div>
+                                <div class="api-body-container hidden" id="apiBodyContainer">
+                                    <textarea id="apiBody" class="api-body" placeholder='{"key": "value"}' rows="4"></textarea>
+                                </div>
+                                <div class="resize-handle" id="apiResizeHandle"></div>
                             </div>
                         </div>
                     </div>

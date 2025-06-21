@@ -4,6 +4,7 @@ import { HealthMonitor } from '../services/HealthMonitor';
 import { RedisQueryService } from '../services/RedisQueryService';
 import { LeaderboardService } from '../services/LeaderboardService';
 import { SystemMetricsService } from '../services/SystemMetricsService';
+import axios from 'axios';
 
 export interface Services {
   dashboard: AdminDashboardService;
@@ -257,6 +258,42 @@ export function setupRoutes(app: Application, services: Services) {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to clear query history' });
+    }
+  });
+
+  // API Proxy endpoint for testing engine APIs
+  app.all('/api/proxy/*', async (req: Request, res: Response) => {
+    try {
+      const targetUrl = req.query.target as string;
+      if (!targetUrl) {
+        return res.status(400).json({ error: 'Target URL is required' });
+      }
+
+      // Extract the path after /api/proxy/
+      const apiPath = req.params[0] || '';
+      const fullUrl = `${targetUrl}/${apiPath}`;
+
+      // Forward the request
+      const response = await axios({
+        method: req.method,
+        url: fullUrl,
+        data: req.body,
+        headers: {
+          'Content-Type': req.get('Content-Type') || 'application/json',
+        },
+        validateStatus: () => true, // Don't throw on non-2xx status
+      });
+
+      // Forward the response
+      res.status(response.status).json(response.data);
+    } catch (error: any) {
+      console.error('Proxy error:', error.message);
+      res.status(500).json({ 
+        error: 'Proxy request failed', 
+        message: error.message,
+        target: req.query.target,
+        path: req.params[0]
+      });
     }
   });
 } 
