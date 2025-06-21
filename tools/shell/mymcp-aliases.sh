@@ -78,6 +78,43 @@ mcp-quest-active() {
     jq '.data.quests.active | {title, steps: .steps | map({description, completed})}'
 }
 
+# Save current game conversation
+mcp-save-conversation() {
+    local player_id="${1:-jcadwell-mcp}"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local dir="$MYMCP_HOME/conversations"
+    
+    mkdir -p "$dir"
+    
+    # Get conversation and save as JSON
+    curl -s "http://localhost:${MCP_ENGINE_PORT:-3456}/api/state/$player_id" | \
+    jq '.data.session.conversationHistory' > "$dir/conversation_${player_id}_${timestamp}.json"
+    
+    echo "✅ Saved to: $dir/conversation_${player_id}_${timestamp}.json"
+}
+
+# Export conversation as markdown
+mcp-export-conversation() {
+    local player_id="${1:-jcadwell-mcp}"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local dir="$MYMCP_HOME/conversations"
+    
+    mkdir -p "$dir"
+    
+    # Create markdown file
+    {
+        echo "# myMCP Conversation Export"
+        echo "Player: $player_id"
+        echo "Date: $(date)"
+        echo ""
+        
+        curl -s "http://localhost:${MCP_ENGINE_PORT:-3456}/api/state/$player_id" | \
+        jq -r '.data.session.conversationHistory[] | 
+            "## \(.sender | ascii_upcase) - \(.timestamp)\n\n\(.message)\n\n---\n"'
+    } > "$dir/conversation_${player_id}_${timestamp}.md"
+    
+    echo "✅ Exported to: $dir/conversation_${player_id}_${timestamp}.md"
+}
 # ========================================
 # Testing & Debugging
 # ========================================
@@ -264,6 +301,7 @@ mcp-help() {
     echo "  mcp-env             - Show environment info"
     echo "  mcp-help            - Show this help"
 }
+
 
 # Welcome message when sourcing
 echo "🎮 myMCP aliases loaded! Type 'mcp-help' for available commands." 
