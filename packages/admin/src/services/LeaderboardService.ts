@@ -53,18 +53,34 @@ export class LeaderboardService {
     );
 
     const leaderboard: LeaderboardEntry[] = [];
-
+    
+    // Prepare all player data fetches in parallel
+    const playerDataPromises: Promise<[any, number, string | null]>[] = [];
+    
     for (let i = 0; i < scores.length; i += 2) {
       const playerId = scores[i];
-      const score = parseInt(scores[i + 1]);
-      const rank = offset + (i / 2) + 1;
-
-      // Get player details
-      const [playerData, questsCompleted, sessionData] = await Promise.all([
+      
+      // Create a promise that fetches all data for this player in parallel
+      const playerDataPromise = Promise.all([
         this.redis.hgetall(`game:state:${playerId}`),
         this.redis.scard(`game:quest:completed:${playerId}`),
         this.redis.hget(`game:session:${playerId}`, 'lastAction')
       ]);
+      
+      playerDataPromises.push(playerDataPromise);
+    }
+    
+    // Wait for all player data to be fetched
+    const allPlayerData = await Promise.all(playerDataPromises);
+    
+    // Process the results
+    for (let i = 0; i < scores.length; i += 2) {
+      const playerId = scores[i];
+      const score = parseInt(scores[i + 1]);
+      const rank = offset + (i / 2) + 1;
+      const dataIndex = i / 2;
+      
+      const [playerData, questsCompleted, sessionData] = allPlayerData[dataIndex];
 
       // Determine trend
       const previousRank = this.previousRankings.get(playerId);
@@ -160,30 +176,35 @@ export class LeaderboardService {
 
   private async getQuestLeaderboard(limit: number): Promise<any[]> {
     const players = await this.redis.smembers('game:players');
-    const questCounts: Array<{ playerId: string; count: number }> = [];
-
-    for (const playerId of players) {
-      const count = await this.redis.scard(`game:quest:completed:${playerId}`);
-      questCounts.push({ playerId, count });
-    }
+    
+    // Fetch all quest counts in parallel
+    const questCountPromises = players.map(playerId => 
+      this.redis.scard(`game:quest:completed:${playerId}`)
+        .then(count => ({ playerId, count }))
+    );
+    
+    const questCounts = await Promise.all(questCountPromises);
 
     // Sort by quest count
     questCounts.sort((a, b) => b.count - a.count);
 
-    const leaderboard = [];
-    for (let i = 0; i < Math.min(limit, questCounts.length); i++) {
-      const { playerId, count } = questCounts[i];
-      const playerData = await this.redis.hgetall(`game:state:${playerId}`);
-      
-      leaderboard.push({
-        rank: i + 1,
-        playerId,
-        playerName: playerData.name || 'Unknown',
-        questsCompleted: count,
-        score: parseInt(playerData.score) || 0,
-        level: playerData.level || 'novice'
-      });
-    }
+    // Get top players and fetch their data in parallel
+    const topPlayers = questCounts.slice(0, limit);
+    const playerDataPromises = topPlayers.map(({ playerId }) =>
+      this.redis.hgetall(`game:state:${playerId}`)
+    );
+    
+    const playerDataArray = await Promise.all(playerDataPromises);
+    
+    // Build leaderboard
+    const leaderboard = topPlayers.map((item, index) => ({
+      rank: index + 1,
+      playerId: item.playerId,
+      playerName: playerDataArray[index].name || 'Unknown',
+      questsCompleted: item.count,
+      score: parseInt(playerDataArray[index].score) || 0,
+      level: playerDataArray[index].level || 'novice'
+    }));
 
     return leaderboard;
   }
@@ -199,17 +220,23 @@ export class LeaderboardService {
 
     const players = await this.redis.smembers('game:players');
 
-    for (const playerId of players) {
-      const playerData = await this.redis.hgetall(`game:state:${playerId}`);
-      const level = playerData.level || 'novice';
-      
-      if (playersByLevel[level]) {
-        playersByLevel[level].push({
+    // Fetch all player data in parallel
+    const playerDataPromises = players.map(playerId => 
+      this.redis.hgetall(`game:state:${playerId}`)
+        .then(playerData => ({
           playerId,
           playerName: playerData.name || 'Unknown',
           score: parseInt(playerData.score) || 0,
-          level
-        });
+          level: playerData.level || 'novice'
+        }))
+    );
+    
+    const allPlayerData = await Promise.all(playerDataPromises);
+    
+    // Group players by level
+    for (const player of allPlayerData) {
+      if (playersByLevel[player.level]) {
+        playersByLevel[player.level].push(player);
       }
     }
 

@@ -10,6 +10,9 @@ console.log(chalk.cyan('🚀 Starting myMCP Full System with Admin Dashboard...\
 // Track all processes
 const processes = [];
 
+// Constants
+const CRITICAL_SERVICE_COUNT = 2; // Redis and Engine 1 (Leader) are critical services
+
 // Service configurations
 const services = [
   {
@@ -120,7 +123,7 @@ async function startService(service, index) {
     console.log(`${prefix} ${chalk.gray(`Exited with code ${code}`)}`);
     
     // If a critical service fails, stop all
-    if (index < 2 && code !== 0) {
+    if (index < CRITICAL_SERVICE_COUNT && code !== 0) {
       console.log(chalk.red('\n❌ Critical service failed. Stopping all services...'));
       stopAll();
     }

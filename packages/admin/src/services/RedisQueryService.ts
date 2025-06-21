@@ -71,8 +71,8 @@ export class RedisQueryService {
     const start = Date.now();
 
     try {
-      // Execute the Redis command dynamically
-      const result = await (this.redis as any)[query.command.toLowerCase()](...args);
+      // Execute the Redis command using type-safe wrapper
+      const result = await this.executeRedisCommand(query.command, args);
       query.executionTime = Date.now() - start;
       query.result = this.formatResult(result);
       this.addToHistory(query);
@@ -82,6 +82,80 @@ export class RedisQueryService {
       query.error = error instanceof Error ? error.message : 'Unknown error';
       this.addToHistory(query);
       throw error;
+    }
+  }
+
+  /**
+   * Type-safe wrapper for executing Redis commands
+   */
+  private async executeRedisCommand(command: string, args: string[]): Promise<any> {
+    const cmd = command.toLowerCase();
+    
+    // Map commands to their Redis client methods
+    switch (cmd) {
+      // String commands
+      case 'get': return this.redis.get(args[0]);
+      case 'set': return this.redis.set(args[0], args[1]);
+      case 'mget': return this.redis.mget(...args);
+      case 'mset': return this.redis.mset(...args);
+      
+      // Hash commands
+      case 'hget': return this.redis.hget(args[0], args[1]);
+      case 'hgetall': return this.redis.hgetall(args[0]);
+      case 'hset': return this.redis.hset(args[0], args[1], args[2]);
+      case 'hmset': return this.redis.hmset(args[0], ...args.slice(1));
+      
+      // Set commands
+      case 'smembers': return this.redis.smembers(args[0]);
+      case 'sadd': return this.redis.sadd(args[0], ...args.slice(1));
+      case 'srem': return this.redis.srem(args[0], ...args.slice(1));
+      case 'scard': return this.redis.scard(args[0]);
+      
+      // Sorted set commands
+      case 'zrange': 
+        if (args[args.length - 1]?.toUpperCase() === 'WITHSCORES') {
+          return this.redis.zrange(args[0], args[1], args[2], 'WITHSCORES');
+        }
+        return this.redis.zrange(args[0], args[1], args[2]);
+      case 'zrevrange':
+        if (args[args.length - 1]?.toUpperCase() === 'WITHSCORES') {
+          return this.redis.zrevrange(args[0], args[1], args[2], 'WITHSCORES');
+        }
+        return this.redis.zrevrange(args[0], args[1], args[2]);
+      
+      // Key commands
+      case 'keys': return this.redis.keys(args[0]);
+      case 'scan': {
+        // Handle scan command - simplified approach
+        const cursor = args[0] || '0';
+        // For now, just support basic scan without options
+        // Full scan command support would require complex argument parsing
+        return this.redis.scan(cursor);
+      }
+      case 'type': return this.redis.type(args[0]);
+      case 'ttl': return this.redis.ttl(args[0]);
+      case 'exists': return this.redis.exists(...args);
+      case 'del': return this.redis.del(...args);
+      case 'expire': return this.redis.expire(args[0], parseInt(args[1]));
+      
+      // Server commands
+      case 'info': return this.redis.info(...args);
+      case 'ping': return this.redis.ping();
+      case 'dbsize': return this.redis.dbsize();
+      case 'flushdb': return this.redis.flushdb();
+      case 'flushall': return this.redis.flushall();
+      
+      // Client commands
+      case 'client':
+        if (args[0]?.toLowerCase() === 'list') return this.redis.client('LIST');
+        throw new Error(`Unsupported CLIENT subcommand: ${args[0]}`);
+      
+      case 'config':
+        if (args[0]?.toLowerCase() === 'get') return this.redis.config('GET', args[1]);
+        throw new Error(`Unsupported CONFIG subcommand: ${args[0]}`);
+      
+      default:
+        throw new Error(`Unsupported command: ${command}`);
     }
   }
 
