@@ -22,9 +22,7 @@ import {
   ChatMessage,
   PlayerLevel,
   PlayerStatus,
-  LocationStatus,
-  QuestStep,
-  Item
+  LocationStatus
 } from '@mymcp/types';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
@@ -489,7 +487,7 @@ async function executeGameAction(action: GameAction, gameState: GameState): Prom
     case 'COMPLETE_QUEST_STEP':
       if (gameState.quests.active) {
         const stepId = action.payload.stepId;
-        const step = gameState.quests.active.steps.find((s: QuestStep) => s.id === stepId);
+        const step = gameState.quests.active.steps.find((s: any) => s.id === stepId);
         if (step) {
           step.completed = true;
           
@@ -622,7 +620,7 @@ app.post('/api/actions/:playerId?', async (req, res) => {
     case 'COMPLETE_QUEST_STEP':
       if (gameState.quests.active) {
         const stepId = action.payload.stepId;
-        const step = gameState.quests.active.steps.find((s: QuestStep) => s.id === stepId);
+        const step = gameState.quests.active.steps.find((s: any) => s.id === stepId);
         if (step) {
           step.completed = true;
           result = { step: step.description, completed: true };
@@ -893,7 +891,7 @@ app.get('/api/context/completions/:playerId?', (req, res) => {
   }
   
   if (prefix.toLowerCase().includes('use') || prefix.toLowerCase().includes('item')) {
-    gameState.inventory.items.forEach((item: Item) => {
+    gameState.inventory.items.forEach((item: any) => {
       suggestions.push(item.name);
     });
   }
@@ -952,7 +950,7 @@ app.get('/api/quest-catalog', (req, res) => {
         description: quest.description,
         realWorldSkill: quest.realWorldSkill,
         fantasyTheme: quest.fantasyTheme,
-        steps: quest.steps.map((step: QuestStep) => ({
+        steps: quest.steps.map((step: any) => ({
           id: step.id,
           description: step.description,
         })),
@@ -1071,9 +1069,9 @@ function generateContextualFallback(userMessage: string, gameState: GameState): 
   // Quest-specific responses
   if (gameState.quests.active) {
     const quest = gameState.quests.active;
-    const completedSteps = quest.steps.filter((s: QuestStep) => s.completed).length;
+    const completedSteps = quest.steps.filter((s: any) => s.completed).length;
     const totalSteps = quest.steps.length;
-    const nextStep = quest.steps.find((s: QuestStep) => !s.completed);
+    const nextStep = quest.steps.find((s: any) => !s.completed);
     
     if (message.includes('quest') || message.includes('current') || message.includes('progress')) {
       return `Greetings, ${playerName}! Thou art currently engaged in the noble quest "${quest.title}". Progress stands at ${completedSteps} of ${totalSteps} steps completed. ${nextStep ? `Thy next challenge: ${nextStep.description}` : 'Thou art nearly finished with this grand adventure!'}`;
@@ -1128,7 +1126,7 @@ function generateContextualFallback(userMessage: string, gameState: GameState): 
   if (message.includes('item') || message.includes('inventory') || message.includes('treasure')) {
     const itemCount = gameState.inventory.items.length;
     if (itemCount > 0) {
-      const itemNames = gameState.inventory.items.map((item: Item) => item.name).join(', ');
+      const itemNames = gameState.inventory.items.map((item: any) => item.name).join(', ');
       return `Thy inventory contains ${itemCount} items of note: ${itemNames}. Each has been earned through thy noble deeds and adventures.`;
     } else {
       return `Thy inventory awaits treasures from future adventures, ${playerName}. Complete quests and explore the realm to gather items of power and value.`;

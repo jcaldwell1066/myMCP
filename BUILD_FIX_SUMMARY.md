@@ -55,6 +55,13 @@ Fixed multiple instances where arrow function parameters had implicit 'any' type
 - **Error**: Type-check job was not building dependencies before checking types
 - **Fix**: Added build steps for shared packages (types, config, utils) before running type checks
 
+### 6. Missing Source File in Git
+- **Error**: `Cannot find module '../data/stepEnhancements'` - file existed locally but wasn't tracked by git
+- **Fix**: 
+  - Updated .gitignore to only ignore root `/data/` directory instead of all `data/` directories
+  - Added `packages/engine/src/data/stepEnhancements.ts` to git tracking
+  - This was the root cause of CI failures even after other fixes
+
 ## Build Results
 - All packages now build successfully
 - All 117 tests pass in the engine package
@@ -79,6 +86,7 @@ npm run build
 ## Commits Made
 1. `fix: resolve TypeScript build errors for strict type checking` - Initial fixes for type annotations
 2. `fix: resolve remaining TypeScript issues for CI` - Additional fixes for CI environment
+3. `fix: add missing stepEnhancements.ts file to git` - Added missing source file that was being ignored
 
 ## Next Steps
 The branch should now pass the GitHub workflow tests when pushed. 
