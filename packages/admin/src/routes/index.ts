@@ -5,6 +5,11 @@ import { RedisQueryService } from '../services/RedisQueryService';
 import { LeaderboardService } from '../services/LeaderboardService';
 import { SystemMetricsService } from '../services/SystemMetricsService';
 import axios from 'axios';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import path from 'path';
+
+const execAsync = promisify(exec);
 
 export interface Services {
   dashboard: AdminDashboardService;
@@ -295,5 +300,126 @@ export function setupRoutes(app: Application, services: Services) {
         path: req.params[0]
       });
     }
+  });
+
+  // CLI proxy endpoint for executing CLI commands
+  app.post('/cli/execute', async (req: Request, res: Response) => {
+    try {
+      const { command, args = [], mode = 'simple' } = req.body;
+      
+      if (!command) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Command is required' 
+        });
+      }
+
+      // Sanitize command to prevent injection
+      const allowedCommands = ['status', 'chat', 'health', 'quests', 'get-score', 
+                              'start-quest', 'quest-steps', 'complete-step', 
+                              'complete-quest', 'next', 'progress', 'history'];
+      
+      if (!allowedCommands.includes(command)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: `Command '${command}' is not allowed` 
+        });
+      }
+
+      // Build the CLI command based on mode
+      let cliPath: string;
+      let cliArgs: string[] = [];
+      
+      if (mode === 'simple') {
+        // Use simple-cli.js for basic commands
+        cliPath = path.join(__dirname, '..', '..', '..', 'cli', 'src', 'simple-cli.js');
+        cliArgs = [command, ...args];
+      } else if (mode === 'full') {
+        // Use the built TypeScript CLI
+        cliPath = path.join(__dirname, '..', '..', '..', 'cli', 'dist', 'index.js');
+        cliArgs = [command, ...args];
+      } else {
+        return res.status(400).json({ 
+          success: false, 
+          error: `Invalid mode '${mode}'. Use 'simple' or 'full'` 
+        });
+      }
+
+      // Execute the command
+      const fullCommand = `node ${cliPath} ${cliArgs.map(arg => 
+        typeof arg === 'string' && arg.includes(' ') ? `"${arg}"` : arg
+      ).join(' ')}`;
+      
+      console.log(`Executing CLI command: ${fullCommand}`);
+      
+      const { stdout, stderr } = await execAsync(fullCommand, {
+        env: { ...process.env, FORCE_COLOR: '1' }, // Preserve colors
+        timeout: 30000 // 30 second timeout
+      });
+
+      res.json({
+        success: true,
+        command,
+        args,
+        mode,
+        output: stdout,
+        error: stderr,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error: any) {
+      console.error('CLI execution error:', error);
+      
+      // Handle execution errors
+      if (error.code === 'ENOENT') {
+        res.status(500).json({ 
+          success: false, 
+          error: 'CLI not found. Make sure the CLI is built.',
+          details: 'Run: cd packages/cli && npm run build'
+        });
+      } else if (error.killed || error.signal === 'SIGTERM') {
+        res.status(408).json({ 
+          success: false, 
+          error: 'Command timed out after 30 seconds' 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          error: error.message,
+          output: error.stdout || '',
+          errorOutput: error.stderr || ''
+        });
+      }
+    }
+  });
+
+  // CLI command suggestions endpoint
+  app.get('/cli/suggestions', (req: Request, res: Response) => {
+    const { prefix = '' } = req.query;
+    
+    const commands = [
+      { command: 'status', description: 'Show current game status' },
+      { command: 'health', description: 'Check engine connection' },
+      { command: 'chat', description: 'Chat with the AI guide', requiresArgs: true },
+      { command: 'quests', description: 'List all quests' },
+      { command: 'get-score', description: 'Get current score' },
+      { command: 'start-quest', description: 'Start a quest', requiresArgs: true },
+      { command: 'quest-steps', description: 'View active quest steps' },
+      { command: 'complete-step', description: 'Complete a quest step', requiresArgs: true },
+      { command: 'complete-quest', description: 'Complete active quest' },
+      { command: 'next', description: 'Show next step to do' },
+      { command: 'progress', description: 'Show quest progress' },
+      { command: 'history', description: 'Show conversation history' }
+    ];
+    
+    const filtered = commands.filter(cmd => 
+      cmd.command.toLowerCase().includes(String(prefix).toLowerCase())
+    );
+    
+    res.json({
+      success: true,
+      suggestions: filtered,
+      timestamp: new Date().toISOString()
+    });
   });
 } 

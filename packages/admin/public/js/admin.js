@@ -149,6 +149,9 @@ class AdminDashboard {
 
         // API Console functionality
         this.initializeApiConsole();
+        
+        // CLI Console functionality
+        this.initializeCLIConsole();
     }
 
     initializeApiConsole() {
@@ -445,6 +448,14 @@ class AdminDashboard {
                 setTimeout(() => {
                     const apiInput = document.getElementById('apiEndpoint');
                     if (apiInput) apiInput.focus();
+                }, 100);
+                break;
+            case 'cli':
+                this.loadCLICommands();
+                // Auto-focus the CLI input
+                setTimeout(() => {
+                    const cliInput = document.getElementById('cliCommand');
+                    if (cliInput) cliInput.focus();
                 }, 100);
                 break;
             case 'events':
@@ -1615,6 +1626,627 @@ class AdminDashboard {
             } else {
                 headerElement.classList.remove('has-active-filters');
             }
+        }
+    }
+    
+    // CLI Console Methods
+    initializeCLIConsole() {
+        const cliCommand = document.getElementById('cliCommand');
+        const clearBtn = document.getElementById('clearCliConsole');
+        const modeSelect = document.getElementById('cliModeSelect');
+        const savedCliSelect = document.getElementById('savedCliSelect');
+        const runSavedCliBtn = document.getElementById('runSavedCli');
+        const addCliBtn = document.getElementById('addCliBtn');
+        
+        // Initialize resize functionality
+        this.initializeCLIResize();
+        
+        // Initialize pipeline filters
+        this.initializeCLIPipelineFilters();
+        
+        // Initialize command history
+        this.cliHistory = [];
+        this.cliHistoryIndex = -1;
+        
+        // Clear button functionality
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearCLIConsole());
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'l' && !document.getElementById('cli-view').classList.contains('hidden')) {
+                e.preventDefault();
+                this.clearCLIConsole();
+            }
+        });
+        
+        // Command input handling
+        if (cliCommand) {
+            cliCommand.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.executeCLICommand();
+                }
+            });
+            
+            // Command history navigation
+            cliCommand.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    this.navigateCLIHistory(-1);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    this.navigateCLIHistory(1);
+                } else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    this.showCLISuggestions();
+                }
+            });
+            
+            // Auto-complete suggestions
+            cliCommand.addEventListener('input', (e) => {
+                this.updateCLISuggestions(e.target.value);
+            });
+        }
+        
+        // Saved commands functionality
+        if (savedCliSelect) {
+            savedCliSelect.addEventListener('change', (e) => {
+                runSavedCliBtn.disabled = !e.target.value;
+            });
+        }
+        
+        if (runSavedCliBtn) {
+            runSavedCliBtn.addEventListener('click', () => {
+                const selectedId = savedCliSelect.value;
+                if (selectedId) {
+                    const command = this.getCLICommand(selectedId);
+                    if (command) {
+                        document.getElementById('cliCommand').value = command.command;
+                        this.executeCLICommand();
+                    }
+                }
+            });
+        }
+        
+        if (addCliBtn) {
+            addCliBtn.addEventListener('click', () => {
+                this.addCurrentCLICommand();
+            });
+        }
+        
+        // Load saved commands
+        this.loadCLICommands();
+    }
+    
+    initializeCLIResize() {
+        const resizeHandle = document.getElementById('cliResizeHandle');
+        const resizableContainer = document.getElementById('cliConsoleResizable');
+        const cliConsole = resizableContainer?.querySelector('.api-console');
+        
+        if (!resizeHandle || !resizableContainer || !cliConsole) return;
+        
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+        
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = resizableContainer.offsetHeight;
+            document.body.style.cursor = 'nwse-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const deltaY = e.clientY - startY;
+            const newHeight = Math.min(Math.max(startHeight + deltaY, 300), window.innerHeight * 0.8);
+            
+            resizableContainer.style.height = newHeight + 'px';
+            cliConsole.style.height = newHeight + 'px';
+            
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                
+                // Save the height preference
+                const height = resizableContainer.offsetHeight;
+                localStorage.setItem('cliConsoleHeight', height);
+            }
+        });
+        
+        // Restore saved height
+        const savedHeight = localStorage.getItem('cliConsoleHeight');
+        if (savedHeight) {
+            resizableContainer.style.height = savedHeight + 'px';
+            cliConsole.style.height = savedHeight + 'px';
+        }
+    }
+    
+    initializeCLIPipelineFilters() {
+        const pipelineHeader = document.getElementById('cliPipelineHeader');
+        const pipelineFilters = document.getElementById('cliPipelineFilters');
+        const checkboxes = document.querySelectorAll('#cliPipelineContainer .pipeline-checkbox');
+        
+        // Collapse/expand functionality
+        if (pipelineHeader && pipelineFilters) {
+            const isCollapsed = localStorage.getItem('cliPipelineFiltersCollapsed') === 'true';
+            if (isCollapsed) {
+                pipelineHeader.classList.add('collapsed');
+                pipelineFilters.classList.add('collapsed');
+            }
+            
+            pipelineHeader.addEventListener('click', () => {
+                const isCurrentlyCollapsed = pipelineHeader.classList.contains('collapsed');
+                
+                if (isCurrentlyCollapsed) {
+                    pipelineHeader.classList.remove('collapsed');
+                    pipelineFilters.classList.remove('collapsed');
+                    localStorage.setItem('cliPipelineFiltersCollapsed', 'false');
+                } else {
+                    pipelineHeader.classList.add('collapsed');
+                    pipelineFilters.classList.add('collapsed');
+                    localStorage.setItem('cliPipelineFiltersCollapsed', 'true');
+                }
+            });
+        }
+        
+        // Enable/disable inputs based on checkbox state
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const inputId = e.target.id + 'Query';
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.disabled = !e.target.checked;
+                    if (e.target.checked) {
+                        input.focus();
+                    }
+                }
+                
+                // Update active filter count
+                this.updateCLIPipelineActiveCount();
+            });
+        });
+        
+        // Initial count update
+        this.updateCLIPipelineActiveCount();
+    }
+    
+    updateCLIPipelineActiveCount() {
+        const activeCheckboxes = document.querySelectorAll('#cliPipelineContainer .pipeline-checkbox:checked');
+        const count = activeCheckboxes.length;
+        const countElement = document.getElementById('cliPipelineActiveCount');
+        
+        if (countElement) {
+            countElement.textContent = count.toString();
+            countElement.style.display = count > 0 ? 'inline-block' : 'none';
+            
+            // Add visual indicator
+            if (count > 0) {
+                countElement.style.background = '#4CAF50';
+                countElement.style.color = 'white';
+                countElement.style.padding = '0 0.5rem';
+                countElement.style.borderRadius = '10px';
+                countElement.style.fontSize = '0.75rem';
+                countElement.style.marginLeft = '0.5rem';
+            }
+        }
+    }
+    
+    clearCLIConsole() {
+        const output = document.getElementById('cliOutput');
+        output.innerHTML = '<div class="api-welcome">CLI Console cleared. Ready for new commands.</div>';
+        output.scrollTop = 0;
+    }
+    
+    navigateCLIHistory(direction) {
+        const input = document.getElementById('cliCommand');
+        if (!input || this.cliHistory.length === 0) return;
+        
+        if (direction === -1 && this.cliHistoryIndex < this.cliHistory.length - 1) {
+            this.cliHistoryIndex++;
+        } else if (direction === 1 && this.cliHistoryIndex > -1) {
+            this.cliHistoryIndex--;
+        }
+        
+        if (this.cliHistoryIndex === -1) {
+            input.value = '';
+        } else {
+            input.value = this.cliHistory[this.cliHistory.length - 1 - this.cliHistoryIndex];
+        }
+    }
+    
+    async updateCLISuggestions(value) {
+        const suggestionsDiv = document.getElementById('cliSuggestions');
+        if (!value) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/cli/suggestions?prefix=${encodeURIComponent(value)}`);
+            const data = await response.json();
+            
+            if (data.suggestions && data.suggestions.length > 0) {
+                suggestionsDiv.innerHTML = data.suggestions.map((cmd, index) => `
+                    <div class="suggestion-item ${index === 0 ? 'selected' : ''}" data-command="${cmd.command}">
+                        <span class="suggestion-command">${cmd.command}</span>
+                        <span class="suggestion-description">${cmd.description}</span>
+                        ${cmd.requiresArgs ? '<span class="suggestion-args">requires args</span>' : ''}
+                    </div>
+                `).join('');
+                
+                suggestionsDiv.style.display = 'block';
+                
+                // Add click handlers
+                suggestionsDiv.querySelectorAll('.suggestion-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        document.getElementById('cliCommand').value = item.dataset.command;
+                        suggestionsDiv.style.display = 'none';
+                        document.getElementById('cliCommand').focus();
+                    });
+                });
+            } else {
+                suggestionsDiv.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Failed to fetch CLI suggestions:', error);
+            suggestionsDiv.style.display = 'none';
+        }
+    }
+    
+    showCLISuggestions() {
+        const input = document.getElementById('cliCommand');
+        const suggestionsDiv = document.getElementById('cliSuggestions');
+        
+        if (suggestionsDiv.style.display === 'block') {
+            // Navigate through suggestions
+            const items = suggestionsDiv.querySelectorAll('.suggestion-item');
+            const selected = suggestionsDiv.querySelector('.suggestion-item.selected');
+            
+            if (selected && items.length > 0) {
+                const currentIndex = Array.from(items).indexOf(selected);
+                const nextIndex = (currentIndex + 1) % items.length;
+                
+                selected.classList.remove('selected');
+                items[nextIndex].classList.add('selected');
+                
+                // Auto-complete with selected suggestion
+                input.value = items[nextIndex].dataset.command;
+            }
+        } else {
+            // Show suggestions
+            this.updateCLISuggestions(input.value);
+        }
+    }
+    
+    async executeCLICommand() {
+        const input = document.getElementById('cliCommand');
+        const command = input.value.trim();
+        
+        if (!command) return;
+        
+        // Hide suggestions
+        document.getElementById('cliSuggestions').style.display = 'none';
+        
+        // Add to history
+        this.cliHistory.push(command);
+        this.cliHistoryIndex = -1;
+        
+        // Clear input
+        input.value = '';
+        
+        // Clear welcome message
+        const welcome = document.querySelector('#cliOutput .api-welcome');
+        if (welcome) welcome.remove();
+        
+        // Display command
+        const output = document.getElementById('cliOutput');
+        const timestamp = new Date().toLocaleTimeString();
+        const commandDiv = document.createElement('div');
+        commandDiv.className = 'cli-command-line';
+        commandDiv.innerHTML = `<span style="color: #666;">[${timestamp}]</span> <span style="color: #4CAF50;">mycli&gt;</span> ${this.escapeHtml(command)}`;
+        output.appendChild(commandDiv);
+        
+        // Parse command and arguments
+        const parts = this.parseCommand(command);
+        const mode = document.getElementById('cliModeSelect').value;
+        
+        try {
+            const response = await fetch('/cli/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    command: parts.command,
+                    args: parts.args,
+                    mode: mode
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                let outputText = result.output || '';
+                
+                // Apply pipeline filters if any are enabled
+                outputText = await this.processCLIPipeline(outputText);
+                
+                // Convert ANSI colors to HTML if not stripped
+                if (!document.getElementById('cliPipeStripAnsi').checked) {
+                    outputText = this.convertAnsiToHtml(outputText);
+                }
+                
+                const outputDiv = document.createElement('div');
+                outputDiv.className = 'cli-output-section';
+                outputDiv.innerHTML = outputText;
+                output.appendChild(outputDiv);
+            } else {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'cli-error';
+                errorDiv.innerHTML = `Error: ${result.error}`;
+                if (result.details) {
+                    errorDiv.innerHTML += `<br><small>${result.details}</small>`;
+                }
+                if (result.errorOutput) {
+                    errorDiv.innerHTML += `<pre style="margin-top: 0.5rem;">${this.escapeHtml(result.errorOutput)}</pre>`;
+                }
+                output.appendChild(errorDiv);
+            }
+        } catch (error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'cli-error';
+            errorDiv.innerHTML = `Failed to execute command: ${error.message}`;
+            output.appendChild(errorDiv);
+        }
+        
+        output.scrollTop = output.scrollHeight;
+    }
+    
+    parseCommand(commandString) {
+        // Simple command parsing that handles quoted arguments
+        const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
+        const parts = [];
+        let match;
+        
+        while ((match = regex.exec(commandString)) !== null) {
+            parts.push(match[1] || match[2] || match[0]);
+        }
+        
+        return {
+            command: parts[0] || '',
+            args: parts.slice(1)
+        };
+    }
+    
+    convertAnsiToHtml(text) {
+        // Basic ANSI escape code to HTML conversion
+        const ansiRegex = /\x1b\[([0-9;]+)m/g;
+        const colorMap = {
+            '30': 'ansi-black',
+            '31': 'ansi-red',
+            '32': 'ansi-green',
+            '33': 'ansi-yellow',
+            '34': 'ansi-blue',
+            '35': 'ansi-magenta',
+            '36': 'ansi-cyan',
+            '37': 'ansi-white',
+            '90': 'ansi-bright-black',
+            '91': 'ansi-bright-red',
+            '92': 'ansi-bright-green',
+            '93': 'ansi-bright-yellow',
+            '94': 'ansi-bright-blue',
+            '95': 'ansi-bright-magenta',
+            '96': 'ansi-bright-cyan',
+            '97': 'ansi-bright-white',
+            '1': 'ansi-bold',
+            '2': 'ansi-dim',
+            '3': 'ansi-italic',
+            '4': 'ansi-underline'
+        };
+        
+        let openSpans = [];
+        
+        return text.replace(ansiRegex, (match, codes) => {
+            if (codes === '0') {
+                // Reset
+                const closeTags = openSpans.map(() => '</span>').join('');
+                openSpans = [];
+                return closeTags;
+            }
+            
+            const codeList = codes.split(';');
+            const classes = codeList.map(code => colorMap[code]).filter(Boolean);
+            
+            if (classes.length > 0) {
+                openSpans.push(...classes);
+                return classes.map(cls => `<span class="${cls}">`).join('');
+            }
+            
+            return '';
+        }) + openSpans.map(() => '</span>').join('');
+    }
+    
+    async processCLIPipeline(text) {
+        let result = text;
+        
+        // Strip ANSI codes if enabled
+        if (document.getElementById('cliPipeStripAnsi').checked) {
+            result = result.replace(/\x1b\[[0-9;]+m/g, '');
+        }
+        
+        // Apply grep filter
+        if (document.getElementById('cliPipeGrep').checked) {
+            const pattern = document.getElementById('cliPipeGrepQuery').value;
+            if (pattern) {
+                result = this.applyGrepFilter(result, pattern);
+            }
+        }
+        
+        // Apply sed filter
+        if (document.getElementById('cliPipeSed').checked) {
+            const pattern = document.getElementById('cliPipeSedQuery').value;
+            if (pattern) {
+                try {
+                    result = this.applySedFilter(result, pattern);
+                } catch (error) {
+                    console.error('Sed filter error:', error);
+                }
+            }
+        }
+        
+        // Extract JSON if enabled
+        if (document.getElementById('cliPipeJson').checked) {
+            const jsonMatches = result.match(/\{[\s\S]*\}|\[[\s\S]*\]/g);
+            if (jsonMatches) {
+                try {
+                    const jsonData = JSON.parse(jsonMatches[0]);
+                    result = this.highlightJSON(jsonData);
+                } catch (error) {
+                    // Not valid JSON, keep original
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    loadCLICommands() {
+        // Predefined CLI commands
+        const predefinedCommands = [
+            { id: 'status', name: 'Player Status', command: 'status' },
+            { id: 'health', name: 'Health Check', command: 'health' },
+            { id: 'quests', name: 'List Quests', command: 'quests' },
+            { id: 'score', name: 'Get Score', command: 'get-score' },
+            { id: 'chat-hello', name: 'Chat Hello', command: 'chat "Hello there!"' },
+            { id: 'progress', name: 'Quest Progress', command: 'progress' },
+            { id: 'history', name: 'Chat History', command: 'history 10' }
+        ];
+        
+        // Load custom commands from localStorage
+        this.customCLICommands = this.loadCustomCLICommands();
+        
+        // Update the select dropdown
+        const select = document.getElementById('savedCliSelect');
+        if (select) {
+            select.innerHTML = '<option value="">Select a command...</option>';
+            
+            // Add predefined commands
+            predefinedCommands.forEach(cmd => {
+                const option = document.createElement('option');
+                option.value = cmd.id;
+                option.textContent = cmd.name;
+                select.appendChild(option);
+            });
+            
+            // Add custom commands
+            if (this.customCLICommands.length > 0) {
+                const separator = document.createElement('option');
+                separator.disabled = true;
+                separator.textContent = '── Custom Commands ──';
+                select.appendChild(separator);
+                
+                this.customCLICommands.forEach(cmd => {
+                    const option = document.createElement('option');
+                    option.value = cmd.id;
+                    option.textContent = cmd.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        // Store predefined commands for reference
+        this.predefinedCLICommands = predefinedCommands;
+        this.updateSavedCLIList();
+    }
+    
+    updateSavedCLIList() {
+        const listContainer = document.getElementById('savedCliList');
+        if (!listContainer) return;
+        
+        const allCommands = [
+            ...this.predefinedCLICommands,
+            ...this.customCLICommands
+        ];
+        
+        if (allCommands.length === 0) {
+            listContainer.innerHTML = '<p style="color: #999; font-size: 0.875rem;">No saved commands</p>';
+            return;
+        }
+        
+        listContainer.innerHTML = allCommands.map(cmd => {
+            const isCustom = cmd.id.startsWith('custom-');
+            return `
+                <div class="saved-query-item ${isCustom ? 'custom' : ''}">
+                    <div class="query-info">
+                        <strong>${cmd.name}</strong>
+                        <div class="query-command">${cmd.command}</div>
+                    </div>
+                    ${isCustom ? `<button class="delete-btn" onclick="dashboard.deleteCustomCLICommand('${cmd.id}')" title="Delete">×</button>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+    
+    getCLICommand(id) {
+        const predefined = this.predefinedCLICommands.find(c => c.id === id);
+        if (predefined) return predefined;
+        
+        return this.customCLICommands.find(c => c.id === id);
+    }
+    
+    loadCustomCLICommands() {
+        const stored = localStorage.getItem('customCLICommands');
+        return stored ? JSON.parse(stored) : [];
+    }
+    
+    saveCustomCLICommands() {
+        localStorage.setItem('customCLICommands', JSON.stringify(this.customCLICommands));
+    }
+    
+    addCurrentCLICommand() {
+        const input = document.getElementById('cliCommand');
+        const command = input?.value.trim() || this.cliHistory[this.cliHistory.length - 1];
+        
+        if (!command) {
+            alert('Please enter a CLI command first');
+            return;
+        }
+        
+        const name = prompt('Enter a name for this command:', command);
+        if (!name) return;
+        
+        const customCommand = {
+            id: `custom-${Date.now()}`,
+            name: name,
+            command: command
+        };
+        
+        this.customCLICommands.push(customCommand);
+        this.saveCustomCLICommands();
+        this.loadCLICommands();
+        
+        // Select the newly added command
+        const select = document.getElementById('savedCliSelect');
+        if (select) {
+            select.value = customCommand.id;
+            document.getElementById('runSavedCli').disabled = false;
+        }
+    }
+    
+    deleteCustomCLICommand(id) {
+        if (confirm('Delete this custom command?')) {
+            this.customCLICommands = this.customCLICommands.filter(c => c.id !== id);
+            this.saveCustomCLICommands();
+            this.loadCLICommands();
         }
     }
 }
