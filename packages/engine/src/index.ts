@@ -36,7 +36,7 @@ import { EventBroadcaster } from './services/EventBroadcaster';
 import { createServer } from 'http';
 
 // Load environment variables from project root
-config({ path: join(__dirname, '..', '..', '..', '.env') });
+config({ path: join(__dirname, '../../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +45,9 @@ const PORT = process.env.PORT || 3000;
 const ENGINE_ID = process.env.ENGINE_ID || `engine-${PORT}`;
 const IS_PRIMARY = process.env.IS_PRIMARY === 'true';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+
+// Debug logging
+console.log(`🔍 Engine ${ENGINE_ID} Redis URL: ${REDIS_URL}`);
 
 // Initialize event broadcaster
 const eventBroadcaster = new EventBroadcaster(REDIS_URL);
@@ -294,7 +297,7 @@ const playerUpdateSchema = Joi.object({
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3001', 'http://localhost:5173'],
+  origin: process.env.CORS_ORIGIN || ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3500', 'http://localhost:5173'],
   credentials: true,
 }));
 app.use(morgan('combined'));
@@ -343,6 +346,30 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Status endpoint for admin dashboard
+app.get('/api/status', (req, res) => {
+  const memoryUsage = process.memoryUsage();
+  const cpuUsage = process.cpuUsage();
+  
+  res.json({
+    status: 'ok',
+    engineId: ENGINE_ID,
+    isPrimary: IS_PRIMARY,
+    connectedClients: wsClients.size,
+    onlinePlayers: Object.keys(gameStatesCache).filter(playerId => {
+      const state = gameStatesCache[playerId];
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      return state.session.lastAction > fiveMinutesAgo;
+    }),
+    uptime: process.uptime(),
+    memory: {
+      used: memoryUsage.heapUsed,
+      total: memoryUsage.heapTotal
+    },
+    cpu: cpuUsage.user / 1000000 // Convert to seconds
+  });
+});
+
 // Debug route to test routing
 app.get('/debug', (req, res) => {
   res.json({
@@ -364,6 +391,7 @@ app.get('/api/debug', (req, res) => {
   res.json({
     message: 'API debug endpoint working!',
     availableRoutes: [
+      'GET /api/status',
       'GET /api/state/:playerId?',
       'PUT /api/state/:playerId/player',
       'POST /api/actions/:playerId?',

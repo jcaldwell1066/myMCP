@@ -15,7 +15,22 @@ export class EventBroadcaster {
   constructor(redisUrl?: string) {
     if (redisUrl) {
       try {
-        this.redis = new Redis(redisUrl);
+        this.redis = new Redis(redisUrl, {
+          connectTimeout: 10000,
+          retryStrategy: (times: number) => {
+            const delay = Math.min(times * 50, 2000);
+            return delay;
+          },
+          maxRetriesPerRequest: 3,
+          enableReadyCheck: true,
+          enableOfflineQueue: true
+        });
+        
+        // Add error handler to prevent unhandled error warnings
+        this.redis.on('error', (err) => {
+          console.error('[EventBroadcaster] Redis client error:', err);
+        });
+        
         this.enabled = true;
         console.log('📡 Event broadcaster initialized');
       } catch (error) {

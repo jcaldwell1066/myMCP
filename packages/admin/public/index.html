@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myMCP Admin Dashboard</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-healthy { background: #27ae60; }
+        .status-warning { background: #f39c12; }
+        .status-critical { background: #e74c3c; }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 1rem;
+        }
+
+        .sidebar-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            margin: 0.25rem 0;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar-item.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .engine-list {
+            list-style: none;
+        }
+
+        .engine-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .leaderboard-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .redis-console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .redis-header {
+            padding: 0.75rem 1rem;
+            background: #2d2d2d;
+            border-bottom: 1px solid #3e3e3e;
+            font-size: 0.875rem;
+            color: #999;
+        }
+
+        .redis-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .redis-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .redis-output::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        .redis-output::-webkit-scrollbar-thumb {
+            background: #3e3e3e;
+            border-radius: 4px;
+        }
+
+        .redis-output::-webkit-scrollbar-thumb:hover {
+            background: #4e4e4e;
+        }
+
+        .redis-welcome {
+            color: #999;
+            font-style: italic;
+        }
+
+        .redis-input-container {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #2d2d2d;
+            border-top: 1px solid #3e3e3e;
+        }
+
+        .redis-prompt {
+            color: #4CAF50;
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+
+        .redis-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #d4d4d4;
+            padding: 0;
+            font-family: inherit;
+            font-size: 0.875rem;
+            outline: none;
+        }
+
+        .redis-command {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .redis-timestamp {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .redis-error {
+            color: #f44336;
+        }
+
+        .redis-result {
+            margin-left: 1rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .quick-ref {
+            font-size: 0.875rem;
+        }
+
+        .ref-section {
+            margin-bottom: 1rem;
+        }
+
+        .ref-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .ref-section code {
+            display: block;
+            background: #f0f0f0;
+            padding: 0.25rem 0.5rem;
+            margin: 0.25rem 0;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            color: #333;
+        }
+
+        .event-log {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border-left: 3px solid;
+            background: #f8f9fa;
+        }
+
+        .event-info { border-color: #3498db; }
+        .event-warning { border-color: #f39c12; }
+        .event-error { border-color: #e74c3c; }
+
+        .hidden { display: none; }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #3498db;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #4a4a4a;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #5a5a5a;
+        }
+
+        .btn-secondary:active {
+            background: #3a3a3a;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .saved-queries-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .query-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .query-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .query-actions .btn {
+            flex: 1;
+        }
+
+        .saved-queries-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .saved-query-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .saved-query-item:hover {
+            background: #e9ecef;
+        }
+
+        .saved-query-item.custom {
+            background: #e3f2fd;
+        }
+
+        .saved-query-item .query-info {
+            flex: 1;
+        }
+
+        .saved-query-item .query-command {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .saved-query-item .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .saved-query-item .delete-btn:hover {
+            color: #c0392b;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        /* API Console styles - extending Redis console */
+        .api-console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            min-height: 300px;
+            max-height: 80vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .api-console-resizable {
+            position: relative;
+            height: 500px;
+            min-height: 300px;
+            max-height: 80vh;
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 24px;
+            height: 24px;
+            cursor: ns-resize;
+            background: transparent;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, transparent 50%, #666 50%);
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle:hover::after {
+            opacity: 1;
+            background: linear-gradient(135deg, transparent 50%, #999 50%);
+        }
+
+        .resize-handle::before {
+            content: '⋮⋮';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            color: #666;
+            transform: rotate(45deg);
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        .resize-handle:hover::before {
+            color: #999;
+            opacity: 1;
+        }
+
+        .api-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: #2d2d2d;
+            border-bottom: 1px solid #3e3e3e;
+        }
+
+        .api-header > span:first-child {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .api-target-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .api-target-select {
+            background: #1e1e1e;
+            border: 1px solid #3e3e3e;
+            color: #d4d4d4;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        .api-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .api-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .api-output::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        .api-output::-webkit-scrollbar-thumb {
+            background: #3e3e3e;
+            border-radius: 4px;
+        }
+
+        .api-output::-webkit-scrollbar-thumb:hover {
+            background: #4e4e4e;
+        }
+
+        .api-welcome {
+            color: #999;
+            font-style: italic;
+        }
+
+        .api-input-container {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #2d2d2d;
+            border-top: 1px solid #3e3e3e;
+            gap: 0.5rem;
+        }
+
+        .api-method-select {
+            background: #1e1e1e;
+            border: 1px solid #3e3e3e;
+            color: #4CAF50;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        .api-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #d4d4d4;
+            padding: 0;
+            font-family: inherit;
+            font-size: 0.875rem;
+            outline: none;
+        }
+
+        .api-body-container {
+            padding: 0.75rem 1rem;
+            background: #2d2d2d;
+            border-top: 1px solid #3e3e3e;
+        }
+
+        .api-body {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #3e3e3e;
+            color: #d4d4d4;
+            padding: 0.5rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            border-radius: 4px;
+        }
+
+        .api-request {
+            margin-bottom: 1rem;
+        }
+
+        .api-request-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .api-method {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .api-endpoint {
+            color: #3498db;
+        }
+
+        .api-timestamp {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .api-response {
+            margin-left: 1rem;
+        }
+
+        .api-status {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .api-status.success {
+            color: #27ae60;
+        }
+
+        .api-status.error {
+            color: #e74c3c;
+        }
+
+        .api-headers {
+            color: #999;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .api-result {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .api-pipeline-info {
+            color: #4fc3f7;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(79, 195, 247, 0.1);
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .saved-api-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Pipeline Filter Styles */
+        .api-pipeline-container {
+            background: #252525;
+            border-top: 1px solid #3e3e3e;
+            padding: 0.75rem;
+        }
+
+        .pipeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+            padding: 0.25rem;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+
+        .pipeline-header:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .pipeline-toggle-icon {
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            transition: transform 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .pipeline-header.collapsed .pipeline-toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .pipeline-title {
+            color: #999;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .pipeline-hint {
+            color: #666;
+            font-size: 0.75rem;
+            font-style: italic;
+            transition: opacity 0.2s;
+        }
+
+        .pipeline-header.collapsed .pipeline-hint {
+            opacity: 0.5;
+        }
+
+        .pipeline-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        .pipeline-filters.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+        }
+
+        .pipeline-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pipeline-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .pipeline-label {
+            color: #9cdcfe;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            min-width: 60px;
+            font-weight: 500;
+        }
+
+        .pipeline-input {
+            flex: 1;
+            background: #1e1e1e;
+            border: 1px solid #3e3e3e;
+            color: #d4d4d4;
+            padding: 0.25rem 0.5rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .pipeline-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #1a1a1a;
+        }
+
+        .pipeline-input:not(:disabled):hover {
+            border-color: #4e4e4e;
+        }
+
+        .pipeline-input:not(:disabled):focus {
+            border-color: #3498db;
+            outline: none;
+            background: #2d2d2d;
+        }
+
+        .pipeline-checkbox:checked + .pipeline-label {
+            color: #4CAF50;
+        }
+
+        .pipeline-header.has-active-filters .pipeline-title {
+            color: #4CAF50;
+        }
+
+        .pipeline-active-count {
+            background: #4CAF50;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+            display: none;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .pipeline-header.has-active-filters .pipeline-active-count {
+            display: inline-block;
+        }
+
+        /* JSON Syntax Highlighting - Theme-aware */
+        :root {
+            /* Default theme colors for JSON */
+            --json-key: #9cdcfe;
+            --json-string: #ce9178;
+            --json-number: #b5cea8;
+            --json-boolean: #569cd6;
+            --json-null: #569cd6;
+            --json-punctuation: #d4d4d4;
+            --json-background: #1e1e1e;
+            
+            /* Dark theme (default) */
+            --theme-json-key: #9cdcfe;
+            --theme-json-string: #ce9178;
+            --theme-json-number: #b5cea8;
+            --theme-json-boolean: #569cd6;
+            --theme-json-null: #569cd6;
+            --theme-json-punctuation: #d4d4d4;
+        }
+
+        /* Light theme colors (for future use) */
+        [data-theme="light"] {
+            --theme-json-key: #0451a5;
+            --theme-json-string: #a31515;
+            --theme-json-number: #098658;
+            --theme-json-boolean: #0000ff;
+            --theme-json-null: #0000ff;
+            --theme-json-punctuation: #000000;
+        }
+
+        /* Monokai theme colors (for future use) */
+        [data-theme="monokai"] {
+            --theme-json-key: #66d9ef;
+            --theme-json-string: #e6db74;
+            --theme-json-number: #ae81ff;
+            --theme-json-boolean: #ae81ff;
+            --theme-json-null: #ae81ff;
+            --theme-json-punctuation: #f8f8f2;
+        }
+
+        .json-syntax {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .json-key {
+            color: var(--theme-json-key);
+        }
+
+        .json-string {
+            color: var(--theme-json-string);
+        }
+
+        .json-number {
+            color: var(--theme-json-number);
+        }
+
+        .json-boolean {
+            color: var(--theme-json-boolean);
+        }
+
+        .json-null {
+            color: var(--theme-json-null);
+        }
+
+        .json-punctuation {
+            color: var(--theme-json-punctuation);
+        }
+
+        /* Nested JSON indentation */
+        .json-indent {
+            display: inline-block;
+            width: 2ch;
+        }
+
+        /* JSON line with hover effect */
+        .json-line:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Collapsible JSON sections (future enhancement) */
+        .json-toggle {
+            cursor: pointer;
+            user-select: none;
+            color: var(--theme-json-punctuation);
+            opacity: 0.6;
+        }
+
+        .json-toggle:hover {
+            opacity: 1;
+        }
+
+        /* Redis Syntax Highlighting - Theme-aware */
+        .redis-syntax {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* Redis data types */
+        .redis-key {
+            color: var(--theme-json-key);
+            font-weight: 500;
+        }
+
+        .redis-string {
+            color: var(--theme-json-string);
+        }
+
+        .redis-number {
+            color: var(--theme-json-number);
+        }
+
+        .redis-nil {
+            color: var(--theme-json-null);
+            font-style: italic;
+        }
+
+        .redis-type {
+            color: #b267e6;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .redis-ttl {
+            color: #ff9800;
+            font-size: 0.75rem;
+        }
+
+        .redis-list-index {
+            color: #666;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .redis-hash-field {
+            color: #4fc3f7;
+        }
+
+        .redis-set-member {
+            color: #81c784;
+        }
+
+        .redis-zset-score {
+            color: #ffb74d;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .redis-section {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-left: 2px solid #3e3e3e;
+        }
+
+        .redis-section-header {
+            color: #999;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .redis-line {
+            padding: 0.125rem 0;
+        }
+
+        .redis-line:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .redis-info-section {
+            margin: 0.5rem 0;
+        }
+
+        .redis-info-key {
+            color: #9cdcfe;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .redis-info-value {
+            color: #ce9178;
+        }
+
+        .redis-error {
+            color: #f44336;
+            font-weight: 500;
+        }
+
+        .redis-success {
+            color: #4caf50;
+        }
+
+        .redis-array-bracket {
+            color: var(--theme-json-punctuation);
+            font-weight: bold;
+        }
+
+        textarea {
+            background: #2d2d2d;
+            border: 1px solid #3e3e3e;
+            color: #d4d4d4;
+            padding: 0.5rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            border-radius: 4px;
+        }
+
+        /* CLI Console specific styles */
+        .cli-mode-select {
+            background: #1e1e1e;
+            border: 1px solid #3e3e3e;
+            color: #d4d4d4;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 3rem; /* Account for mycli> prompt */
+            right: 0;
+            background: #2d2d2d;
+            border: 1px solid #3e3e3e;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .suggestion-item {
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestion-item:hover,
+        .suggestion-item.selected {
+            background: #3e3e3e;
+        }
+
+        .suggestion-command {
+            color: #4CAF50;
+            font-weight: bold;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .suggestion-description {
+            color: #999;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+
+        .suggestion-args {
+            color: #ff9800;
+            font-size: 0.75rem;
+            font-style: italic;
+        }
+
+        /* ANSI color support for CLI output */
+        .ansi-black { color: #000000; }
+        .ansi-red { color: #e74c3c; }
+        .ansi-green { color: #27ae60; }
+        .ansi-yellow { color: #f39c12; }
+        .ansi-blue { color: #3498db; }
+        .ansi-magenta { color: #9b59b6; }
+        .ansi-cyan { color: #1abc9c; }
+        .ansi-white { color: #ecf0f1; }
+        .ansi-bright-black { color: #7f8c8d; }
+        .ansi-bright-red { color: #e74c3c; }
+        .ansi-bright-green { color: #2ecc71; }
+        .ansi-bright-yellow { color: #f1c40f; }
+        .ansi-bright-blue { color: #3498db; }
+        .ansi-bright-magenta { color: #9b59b6; }
+        .ansi-bright-cyan { color: #1abc9c; }
+        .ansi-bright-white { color: #ffffff; }
+        .ansi-bold { font-weight: bold; }
+        .ansi-dim { opacity: 0.7; }
+        .ansi-italic { font-style: italic; }
+        .ansi-underline { text-decoration: underline; }
+
+        /* CLI output formatting */
+        .cli-command-line {
+            color: #4CAF50;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .cli-output-section {
+            margin-left: 1rem;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.4;
+        }
+
+        .cli-error {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🎮 myMCP Admin Dashboard</h1>
+        <div class="connection-status">
+            <span class="status-indicator status-healthy" id="connectionStatus"></span>
+            <span id="connectionText">Connected</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="sidebar">
+            <a class="sidebar-item active" data-view="dashboard">📊 Dashboard</a>
+            <a class="sidebar-item" data-view="health">🏥 System Health</a>
+            <a class="sidebar-item" data-view="engines">⚙️ Engines</a>
+            <a class="sidebar-item" data-view="players">👥 Players</a>
+            <a class="sidebar-item" data-view="leaderboard">🏆 Leaderboard</a>
+            <a class="sidebar-item" data-view="redis">🗄️ Redis Console</a>
+            <a class="sidebar-item" data-view="api">🔌 API Console</a>
+            <a class="sidebar-item" data-view="cli">🖥️ CLI Console</a>
+            <a class="sidebar-item" data-view="events">📋 Event Log</a>
+            <a class="sidebar-item" data-view="metrics">📈 Metrics</a>
+        </nav>
+
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view">
+                <h2>Dashboard Overview</h2>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h2>System Status</h2>
+                        <div class="metric">
+                            <span>Overall Health</span>
+                            <span class="metric-value" id="overallHealth">-</span>
+                        </div>
+                        <div class="metric">
+                            <span>Active Engines</span>
+                            <span class="metric-value" id="activeEngines">-</span>
+                        </div>
+                        <div class="metric">
+                            <span>Redis Status</span>
+                            <span class="metric-value" id="redisStatus">-</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Player Statistics</h2>
+                        <div class="metric">
+                            <span>Total Players</span>
+                            <span class="metric-value" id="totalPlayers">-</span>
+                        </div>
+                        <div class="metric">
+                            <span>Active Players</span>
+                            <span class="metric-value" id="activePlayers">-</span>
+                        </div>
+                        <div class="metric">
+                            <span>Quests Completed</span>
+                            <span class="metric-value" id="questsCompleted">-</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Top Players</h2>
+                        <div id="topPlayersList" class="loading">Loading...</div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Recent Events</h2>
+                        <div id="recentEventsList" class="event-log loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health View -->
+            <div id="health-view" class="view hidden">
+                <h2>System Health</h2>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h2>Health Checks</h2>
+                        <div id="healthChecks" class="loading">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <h2>System Resources</h2>
+                        <div id="systemResources" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engines View -->
+            <div id="engines-view" class="view hidden">
+                <h2>Game Engines</h2>
+                <div class="card">
+                    <ul id="enginesList" class="engine-list loading">Loading...</ul>
+                </div>
+            </div>
+
+            <!-- Players View -->
+            <div id="players-view" class="view hidden">
+                <h2>Player Management</h2>
+                <div class="card">
+                    <input type="text" class="search-box" id="playerSearch" placeholder="Search players...">
+                    <div id="playersList" class="loading">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Leaderboard View -->
+            <div id="leaderboard-view" class="view hidden">
+                <h2>Leaderboard</h2>
+                <div class="card">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Score</th>
+                                <th>Level</th>
+                                <th>Quests</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody">
+                            <tr><td colspan="5" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Redis Console View -->
+            <div id="redis-view" class="view hidden">
+                <h2>Redis Console</h2>
+                <div class="dashboard-grid">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="redis-console">
+                            <div class="redis-header">Redis Console - Connected to <span id="redisUrl">localhost:6379</span></div>
+                            <div class="redis-output" id="redisOutput">
+                                <div class="redis-welcome">Welcome to Redis Console. Type 'help' for commands or use the saved queries.</div>
+                            </div>
+                            <div class="redis-input-container">
+                                <span class="redis-prompt">&gt;</span>
+                                <input type="text" class="redis-input" id="redisCommand" placeholder="Try: KEYS *, GET player:jcadwell-mcp, INFO, SMEMBERS game:players" autofocus>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Saved Queries</h3>
+                        <div class="saved-queries-container">
+                            <select id="savedQuerySelect" class="query-select">
+                                <option value="">Select a query...</option>
+                            </select>
+                            <div class="query-actions">
+                                <button id="runSavedQuery" class="btn btn-primary" disabled>Run Query</button>
+                                <button id="addQueryBtn" class="btn btn-secondary">+ Add Current</button>
+                            </div>
+                            <div id="savedQueriesList" class="saved-queries-list"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Quick Reference</h3>
+                        <div class="quick-ref">
+                            <div class="ref-section">
+                                <strong>Player Commands:</strong>
+                                <code>GET player:&lt;id&gt;</code>
+                                <code>SMEMBERS game:players</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>Leaderboard:</strong>
+                                <code>ZREVRANGE game:leaderboard:score 0 9</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>System:</strong>
+                                <code>INFO</code>
+                                <code>DBSIZE</code>
+                                <code>KEYS *</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Console View -->
+            <div id="api-view" class="view hidden">
+                <h2>API Console</h2>
+                <div class="dashboard-grid">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="api-console-resizable" id="apiConsoleResizable">
+                            <div class="api-console">
+                                <div class="api-header">
+                                    <div class="api-target-container">
+                                        <span>API Console - Target: </span>
+                                        <select id="apiTargetSelect" class="api-target-select">
+                                            <option value="http://localhost:3001">Engine 1 (Leader) - :3001</option>
+                                            <option value="http://localhost:3002">Engine 2 - :3002</option>
+                                            <option value="http://localhost:3003">Engine 3 - :3003</option>
+                                        </select>
+                                    </div>
+                                    <button id="clearApiConsole" class="btn btn-secondary btn-sm" title="Clear console output">Clear</button>
+                                </div>
+                                <div class="api-output" id="apiOutput">
+                                    <div class="api-welcome">Welcome to API Console. Select a request from saved queries or compose your own.</div>
+                                </div>
+                                <div class="api-input-container">
+                                    <select id="apiMethodSelect" class="api-method-select">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                        <option value="PATCH">PATCH</option>
+                                    </select>
+                                    <input type="text" class="api-input" id="apiEndpoint" placeholder="/api/health, /api/status, /api/state/player/:id" autofocus>
+                                    <button id="apiSendBtn" class="btn btn-primary">Send</button>
+                                </div>
+                                <div class="api-body-container hidden" id="apiBodyContainer">
+                                    <textarea id="apiBody" class="api-body" placeholder='{"key": "value"}' rows="4"></textarea>
+                                </div>
+                                <div class="api-pipeline-container" id="apiPipelineContainer">
+                                    <div class="pipeline-header" id="pipelineHeader">
+                                        <span class="pipeline-title">
+                                            <span class="pipeline-toggle-icon">▼</span>
+                                            Output Pipeline Filters
+                                            <span class="pipeline-active-count" id="pipelineActiveCount">0</span>
+                                        </span>
+                                        <span class="pipeline-hint">Process API response before display</span>
+                                    </div>
+                                    <div class="pipeline-filters" id="pipelineFilters">
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="pipeJq" class="pipeline-checkbox">
+                                            <label for="pipeJq" class="pipeline-label">jq</label>
+                                            <input type="text" id="pipeJqQuery" class="pipeline-input" placeholder=". (pretty print)" value="." disabled>
+                                        </div>
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="pipeGrep" class="pipeline-checkbox">
+                                            <label for="pipeGrep" class="pipeline-label">grep</label>
+                                            <input type="text" id="pipeGrepQuery" class="pipeline-input" placeholder="filter lines containing..." disabled>
+                                        </div>
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="pipeSed" class="pipeline-checkbox">
+                                            <label for="pipeSed" class="pipeline-label">sed</label>
+                                            <input type="text" id="pipeSedQuery" class="pipeline-input" placeholder="s/search/replace/g" disabled>
+                                        </div>
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="pipeCustom" class="pipeline-checkbox">
+                                            <label for="pipeCustom" class="pipeline-label">custom</label>
+                                            <input type="text" id="pipeCustomQuery" class="pipeline-input" placeholder="custom filter command..." disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="resize-handle" id="apiResizeHandle"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Saved API Requests</h3>
+                        <div class="saved-api-container">
+                            <select id="savedApiSelect" class="query-select">
+                                <option value="">Select a request...</option>
+                            </select>
+                            <div class="query-actions">
+                                <button id="runSavedApi" class="btn btn-primary" disabled>Run Request</button>
+                                <button id="addApiBtn" class="btn btn-secondary">+ Add Current</button>
+                            </div>
+                            <div id="savedApiList" class="saved-queries-list"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Quick Reference</h3>
+                        <div class="quick-ref">
+                            <div class="ref-section">
+                                <strong>Health & Status:</strong>
+                                <code>GET /api/health</code>
+                                <code>GET /api/status</code>
+                                <code>GET /health</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>Player Operations:</strong>
+                                <code>GET /api/state/player/:id</code>
+                                <code>POST /api/action/start-quest</code>
+                                <code>POST /api/action/use-item</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>Game State:</strong>
+                                <code>GET /api/state</code>
+                                <code>GET /api/leaderboard</code>
+                                <code>GET /api/completions</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CLI Console View -->
+            <div id="cli-view" class="view hidden">
+                <h2>CLI Console</h2>
+                <div class="dashboard-grid">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="api-console-resizable" id="cliConsoleResizable">
+                            <div class="api-console">
+                                <div class="api-header">
+                                    <div class="api-target-container">
+                                        <span>CLI Console - Mode: </span>
+                                        <select id="cliModeSelect" class="api-target-select">
+                                            <option value="simple">Simple CLI</option>
+                                            <option value="full">Full CLI (TypeScript)</option>
+                                        </select>
+                                        <span style="margin-left: 1rem;">Engine: </span>
+                                        <select id="cliEngineSelect" class="api-target-select">
+                                            <option value="http://localhost:3001">Engine 1 (Leader) - :3001</option>
+                                            <option value="http://localhost:3002">Engine 2 - :3002</option>
+                                            <option value="http://localhost:3003">Engine 3 - :3003</option>
+                                        </select>
+                                    </div>
+                                    <button id="clearCliConsole" class="btn btn-secondary btn-sm" title="Clear console output (Ctrl+L)">Clear</button>
+                                </div>
+                                <div class="api-output" id="cliOutput">
+                                    <div class="api-welcome">Welcome to CLI Console. Type commands like 'status', 'health', or 'chat "Hello!"'</div>
+                                </div>
+                                <div class="api-input-container">
+                                    <span style="color: #4CAF50; font-weight: bold; margin-right: 0.5rem;">mycli&gt;</span>
+                                    <input type="text" class="api-input" id="cliCommand" placeholder="status, health, chat 'Hello!', quests, start-quest, help" autofocus>
+                                    <div id="cliSuggestions" class="suggestions-dropdown" style="display: none;"></div>
+                                </div>
+                                <div class="api-pipeline-container" id="cliPipelineContainer">
+                                    <div class="pipeline-header collapsed" id="cliPipelineHeader">
+                                        <span class="pipeline-title">
+                                            <span class="pipeline-toggle-icon">▶</span>
+                                            Output Pipeline Filters
+                                            <span class="pipeline-active-count" id="cliPipelineActiveCount" style="display: none;">0</span>
+                                        </span>
+                                        <span class="pipeline-hint">Process CLI output before display</span>
+                                    </div>
+                                    <div class="pipeline-filters collapsed" id="cliPipelineFilters">
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="cliPipeStripAnsi" class="pipeline-checkbox">
+                                            <label for="cliPipeStripAnsi" class="pipeline-label">Strip ANSI</label>
+                                            <input type="text" class="pipeline-input" placeholder="Remove color codes" disabled>
+                                        </div>
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="cliPipeGrep" class="pipeline-checkbox">
+                                            <label for="cliPipeGrep" class="pipeline-label">grep</label>
+                                            <input type="text" id="cliPipeGrepQuery" class="pipeline-input" placeholder="filter lines containing..." disabled>
+                                        </div>
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="cliPipeSed" class="pipeline-checkbox">
+                                            <label for="cliPipeSed" class="pipeline-label">sed</label>
+                                            <input type="text" id="cliPipeSedQuery" class="pipeline-input" placeholder="s/search/replace/g" disabled>
+                                        </div>
+                                        <div class="pipeline-filter">
+                                            <input type="checkbox" id="cliPipeJson" class="pipeline-checkbox">
+                                            <label for="cliPipeJson" class="pipeline-label">JSON Extract</label>
+                                            <input type="text" id="cliPipeJsonQuery" class="pipeline-input" placeholder="Extract JSON from output" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="resize-handle" id="cliResizeHandle"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Saved CLI Commands</h3>
+                        <div class="saved-api-container">
+                            <select id="savedCliSelect" class="query-select">
+                                <option value="">Select a command...</option>
+                            </select>
+                            <div class="query-actions">
+                                <button id="runSavedCli" class="btn btn-primary" disabled>Run Command</button>
+                                <button id="addCliBtn" class="btn btn-secondary">+ Add Current</button>
+                            </div>
+                            <div id="savedCliList" class="saved-queries-list"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Quick Reference</h3>
+                        <div class="quick-ref">
+                            <div class="ref-section">
+                                <strong>Basic Commands:</strong>
+                                <code>status</code>
+                                <code>health</code>
+                                <code>get-score</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>Chat & Interaction:</strong>
+                                <code>chat "Hello there!"</code>
+                                <code>chat -i</code>
+                                <code>history 10</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>Quest Management:</strong>
+                                <code>quests</code>
+                                <code>start-quest global-meeting</code>
+                                <code>quest-steps</code>
+                                <code>complete-step find-allies</code>
+                                <code>complete-quest</code>
+                                <code>progress</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events View -->
+            <div id="events-view" class="view hidden">
+                <h2>Event Log</h2>
+                <div class="card">
+                    <div class="event-log" id="eventLog">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics View -->
+            <div id="metrics-view" class="view hidden">
+                <h2>System Metrics</h2>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h2>CPU Usage</h2>
+                        <canvas id="cpuChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="card">
+                        <h2>Memory Usage</h2>
+                        <canvas id="memoryChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="card">
+                        <h2>Current Metrics</h2>
+                        <div id="currentMetrics" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html> 

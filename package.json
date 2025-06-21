@@ -32,7 +32,10 @@
     "dev:engine:worker3": "ENGINE_ID=worker3 PORT=3003 npm run dev:engine",
     "redis:start": "docker run -d -p 6379:6379 --name mymcp-redis redis:7-alpine",
     "redis:stop": "docker stop mymcp-redis && docker rm mymcp-redis",
-    "slack:setup": "cd packages/slack-integration && cp .env.example .env && echo 'Please edit packages/slack-integration/.env with your Slack credentials'"
+    "slack:setup": "cd packages/slack-integration && cp .env.example .env && echo 'Please edit packages/slack-integration/.env with your Slack credentials'",
+    "start:admin": "node tools/startup/start-admin.js",
+    "start:full": "node tools/startup/start-full-system.js",
+    "build:all": "npm run build --workspaces"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -73,6 +76,7 @@
     "@modelcontextprotocol/server-memory": "^2025.4.25",
     "@modelcontextprotocol/server-sequential-thinking": "^0.6.2",
     "@socket.io/redis-adapter": "^8.3.0",
+    "dotenv": "^16.5.0",
     "ioredis": "^5.6.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"

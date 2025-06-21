@@ -1,0 +1,11 @@
+Shut Down! 🛑
+
+✅✅✅✅✅
+o
+::ffff:127.0.0.1 - - [21/Jun/2025:21:21:19 +0000] "GET /api/status HTTP/1.1" 200 181 "-" "node"
+::ffff:127.0.0.1 - - [21/Jun/2025:21:21:24 +0000] "GET /api/status HTTP/1.1" 200 180 "-" "node"
+::ffff:127.0.0.1 - - [21/Jun/2025:21:21:29 +0000] "GET /api/status HTTP/1.1" 200 181 "-" "node"
+::ffff:127.0.0.1 - - [21/Jun/2025:21:21:29 +0000] "GET /api/status HTTP/1.1" 200 181 "-" "node"
+::ffff:127.0.0.1 - - [21/Jun/2025:21:21:34 +0000] "GET /api/status HTTP/1.1" 200 181 "-" "node"
+🛑 Received SIGTERM, shutting down gracefully
+jcaldwell@JCALDWELL-LT2:~/vibe/sub-modules/myMCP$ ps aux 

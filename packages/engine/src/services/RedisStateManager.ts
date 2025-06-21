@@ -13,8 +13,28 @@ export class RedisStateManager extends EventEmitter {
     this.debugMode = debugMode;
     
     // 🔴 BREAKPOINT: Constructor initialization
-    this.redis = new Redis(redisUrl);
-    this.sub = new Redis(redisUrl);
+    const redisOptions = {
+      connectTimeout: 10000,
+      retryStrategy: (times: number) => {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: true,
+      enableOfflineQueue: true
+    };
+    
+    this.redis = new Redis(redisUrl, redisOptions);
+    this.sub = new Redis(redisUrl, redisOptions);
+    
+    // Add error handlers to prevent unhandled error warnings
+    this.redis.on('error', (err) => {
+      console.error('Redis client error:', err);
+    });
+    
+    this.sub.on('error', (err) => {
+      console.error('Redis subscription client error:', err);
+    });
     
     this.setupSubscriptions();
     

@@ -3,14 +3,28 @@
  * Start myMCP Engine
  */
 
+// Load environment variables
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+
 const { spawn } = require('child_process');
 const path = require('path');
 
-console.log('🚀 Starting myMCP Engine...');
+// Get port and isPrimary from command line args
+const port = process.argv[2] || '3000';
+const isPrimary = process.argv[3] === 'true';
+
+console.log(`🚀 Starting myMCP Engine on port ${port}${isPrimary ? ' (PRIMARY)' : ''}...`);
 
 const engineProcess = spawn('node', ['dist/index.js'], {
   cwd: path.join(__dirname, '..', '..', 'packages', 'engine'),
-  stdio: 'inherit'
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    PORT: port,
+    IS_PRIMARY: isPrimary ? 'true' : 'false',
+    ENGINE_ID: `engine-${port}`,
+    REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379'
+  }
 });
 
 engineProcess.on('close', (code) => {
