@@ -85,6 +85,12 @@ export class AdminDashboardService extends EventEmitter {
 
     // Subscribe to game events
     const sub = this.redis.duplicate();
+    
+    // Add error handler for subscription client
+    sub.on('error', (err) => {
+      console.error('AdminDashboardService subscription Redis error:', err.message);
+    });
+    
     sub.subscribe('game:state:updates', 'game:player:presence', 'admin:alerts');
     
     sub.on('message', (channel, message) => {

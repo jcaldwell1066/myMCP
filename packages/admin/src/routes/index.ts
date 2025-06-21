@@ -305,7 +305,7 @@ export function setupRoutes(app: Application, services: Services) {
   // CLI proxy endpoint for executing CLI commands
   app.post('/cli/execute', async (req: Request, res: Response) => {
     try {
-      const { command, args = [], mode = 'simple' } = req.body;
+      const { command, args = [], mode = 'simple', engineUrl = 'http://localhost:3001' } = req.body;
       
       if (!command) {
         return res.status(400).json({ 
@@ -350,10 +350,14 @@ export function setupRoutes(app: Application, services: Services) {
         typeof arg === 'string' && arg.includes(' ') ? `"${arg}"` : arg
       ).join(' ')}`;
       
-      console.log(`Executing CLI command: ${fullCommand}`);
+      console.log(`Executing CLI command: ${fullCommand} with engine: ${engineUrl}`);
       
       const { stdout, stderr } = await execAsync(fullCommand, {
-        env: { ...process.env, FORCE_COLOR: '1' }, // Preserve colors
+        env: { 
+          ...process.env, 
+          FORCE_COLOR: '1', // Preserve colors
+          ENGINE_URL: engineUrl // Pass the selected engine URL
+        },
         timeout: 30000 // 30 second timeout
       });
 

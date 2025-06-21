@@ -1958,6 +1958,7 @@ class AdminDashboard {
         // Parse command and arguments
         const parts = this.parseCommand(command);
         const mode = document.getElementById('cliModeSelect').value;
+        const engineUrl = document.getElementById('cliEngineSelect').value;
         
         try {
             const response = await fetch('/cli/execute', {
@@ -1968,7 +1969,8 @@ class AdminDashboard {
                 body: JSON.stringify({
                     command: parts.command,
                     args: parts.args,
-                    mode: mode
+                    mode: mode,
+                    engineUrl: engineUrl
                 })
             });
             

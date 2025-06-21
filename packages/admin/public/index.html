@@ -1426,6 +1426,12 @@
                                             <option value="simple">Simple CLI</option>
                                             <option value="full">Full CLI (TypeScript)</option>
                                         </select>
+                                        <span style="margin-left: 1rem;">Engine: </span>
+                                        <select id="cliEngineSelect" class="api-target-select">
+                                            <option value="http://localhost:3001">Engine 1 (Leader) - :3001</option>
+                                            <option value="http://localhost:3002">Engine 2 - :3002</option>
+                                            <option value="http://localhost:3003">Engine 3 - :3003</option>
+                                        </select>
                                     </div>
                                     <button id="clearCliConsole" class="btn btn-secondary btn-sm" title="Clear console output (Ctrl+L)">Clear</button>
                                 </div>

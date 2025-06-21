@@ -212,7 +212,7 @@ export class HealthMonitor extends EventEmitter {
         const response = await fetch(`${endpoint}/api/status`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(5000) // 5 second timeout
+          signal: AbortSignal.timeout(10000) // 10 second timeout
         });
 
         if (response.ok) {
