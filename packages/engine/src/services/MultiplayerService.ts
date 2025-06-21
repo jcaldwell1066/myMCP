@@ -35,6 +35,15 @@ export class MultiplayerService extends EventEmitter {
     this.pubClient = new Redis(config.redisUrl);
     this.subClient = this.pubClient.duplicate();
     
+    // Add error handlers to prevent unhandled error warnings
+    this.pubClient.on('error', (err) => {
+      console.error('[MultiplayerService] Redis pub client error:', err);
+    });
+    
+    this.subClient.on('error', (err) => {
+      console.error('[MultiplayerService] Redis sub client error:', err);
+    });
+    
     // Initialize Socket.IO with Redis adapter
     this.io = new SocketServer(server, {
       cors: {

@@ -16,6 +16,12 @@ export class EventBroadcaster {
     if (redisUrl) {
       try {
         this.redis = new Redis(redisUrl);
+        
+        // Add error handler to prevent unhandled error warnings
+        this.redis.on('error', (err) => {
+          console.error('[EventBroadcaster] Redis client error:', err);
+        });
+        
         this.enabled = true;
         console.log('📡 Event broadcaster initialized');
       } catch (error) {

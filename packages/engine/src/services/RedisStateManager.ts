@@ -16,6 +16,15 @@ export class RedisStateManager extends EventEmitter {
     this.redis = new Redis(redisUrl);
     this.sub = new Redis(redisUrl);
     
+    // Add error handlers to prevent unhandled error warnings
+    this.redis.on('error', (err) => {
+      console.error('Redis client error:', err);
+    });
+    
+    this.sub.on('error', (err) => {
+      console.error('Redis subscription client error:', err);
+    });
+    
     this.setupSubscriptions();
     
     if (this.debugMode) {
