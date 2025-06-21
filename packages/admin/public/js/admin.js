@@ -77,9 +77,23 @@ class AdminDashboard {
         if (redisInput) {
             redisInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    this.executeRedisCommand(e.target.value);
-                    e.target.value = '';
+                    const command = e.target.value.trim();
+                    if (command) {
+                        if (command.toLowerCase() === 'help') {
+                            this.showRedisHelp();
+                        } else if (command.toLowerCase() === 'clear') {
+                            this.clearRedisConsole();
+                        } else {
+                            this.executeRedisCommand(command);
+                        }
+                        e.target.value = '';
+                    }
                 }
+            });
+
+            // Auto-focus on Redis console when switching to it
+            redisInput.addEventListener('focus', () => {
+                redisInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
         }
 
@@ -148,6 +162,11 @@ class AdminDashboard {
             case 'redis':
                 const savedQueries = await this.fetchData('/api/redis/saved-queries');
                 this.updateSavedQueries(savedQueries);
+                // Auto-focus the Redis input
+                setTimeout(() => {
+                    const redisInput = document.getElementById('redisCommand');
+                    if (redisInput) redisInput.focus();
+                }, 100);
                 break;
             case 'events':
                 const eventsData = await this.fetchData('/api/events');
@@ -388,10 +407,21 @@ class AdminDashboard {
     executeRedisCommand(command) {
         if (!command) return;
 
+        // Clear welcome message if it exists
+        const welcome = document.querySelector('.redis-welcome');
+        if (welcome) welcome.remove();
+
         // Display the command being executed
         const output = document.getElementById('redisOutput');
         const timestamp = new Date().toLocaleTimeString();
-        output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <span style="color: #4CAF50">&gt; ${command}</span></div>`;
+        const commandDiv = document.createElement('div');
+        commandDiv.innerHTML = `
+            <div style="margin-bottom: 0.5rem;">
+                <span class="redis-timestamp">[${timestamp}]</span>
+                <span class="redis-command">&gt; ${command}</span>
+            </div>
+        `;
+        output.appendChild(commandDiv);
 
         const parts = command.split(' ');
         const cmd = parts[0];
@@ -406,7 +436,6 @@ class AdminDashboard {
 
     displayRedisResult(result) {
         const output = document.getElementById('redisOutput');
-        const timestamp = new Date().toLocaleTimeString();
         
         if (result.success) {
             let resultData = result.result.result || result.result;
@@ -414,7 +443,12 @@ class AdminDashboard {
             
             // Format the result based on type
             if (typeof resultData === 'string') {
-                formattedResult = resultData;
+                // Handle multi-line strings (like INFO command)
+                if (resultData.includes('\r\n')) {
+                    formattedResult = resultData.split('\r\n').join('\n');
+                } else {
+                    formattedResult = resultData;
+                }
             } else if (Array.isArray(resultData)) {
                 if (resultData.length === 0) {
                     formattedResult = '(empty array)';
@@ -429,9 +463,15 @@ class AdminDashboard {
                 formattedResult = String(resultData);
             }
             
-            output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <pre style="margin: 0; color: #d4d4d4; display: inline-block;">${formattedResult}</pre></div>`;
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'redis-result';
+            resultDiv.innerHTML = `<pre style="margin: 0; color: #d4d4d4;">${formattedResult}</pre>`;
+            output.lastElementChild.appendChild(resultDiv);
         } else {
-            output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <span style="color: #f44336">Error: ${result.error}</span></div>`;
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'redis-result redis-error';
+            errorDiv.textContent = `Error: ${result.error}`;
+            output.lastElementChild.appendChild(errorDiv);
         }
         
         output.scrollTop = output.scrollHeight;
@@ -439,16 +479,31 @@ class AdminDashboard {
 
     async executeSavedQuery(queryId) {
         try {
+            // Find the saved query
+            const savedQuery = this.data.savedQueries?.find(q => q.id === queryId);
+            if (!savedQuery) {
+                throw new Error('Saved query not found');
+            }
+
+            // Clear welcome message if it exists
+            const welcome = document.querySelector('.redis-welcome');
+            if (welcome) welcome.remove();
+
+            // Display the command being executed
+            const output = document.getElementById('redisOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const commandDiv = document.createElement('div');
+            commandDiv.innerHTML = `
+                <div style="margin-bottom: 0.5rem;">
+                    <span class="redis-timestamp">[${timestamp}]</span>
+                    <span class="redis-command">&gt; ${savedQuery.command} ${savedQuery.args.join(' ')}</span>
+                </div>
+            `;
+            output.appendChild(commandDiv);
+
+            // Execute the query
             const response = await fetch(`/api/redis/saved-queries/${queryId}`, { method: 'POST' });
             const result = await response.json();
-            
-            // Display the command being executed
-            const savedQuery = this.data.savedQueries?.find(q => q.id === queryId);
-            if (savedQuery) {
-                const output = document.getElementById('redisOutput');
-                const timestamp = new Date().toLocaleTimeString();
-                output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <span style="color: #4CAF50">&gt; ${savedQuery.command} ${savedQuery.args.join(' ')}</span></div>`;
-            }
             
             // Display the result
             this.displayRedisResult({ success: true, result });
@@ -462,6 +517,46 @@ class AdminDashboard {
         this.socket.once('players:results', (players) => {
             this.updatePlayers(players);
         });
+    }
+
+    showRedisHelp() {
+        const output = document.getElementById('redisOutput');
+        const timestamp = new Date().toLocaleTimeString();
+        const helpDiv = document.createElement('div');
+        helpDiv.innerHTML = `
+            <div style="margin-bottom: 0.5rem;">
+                <span class="redis-timestamp">[${timestamp}]</span>
+                <span class="redis-command">&gt; help</span>
+            </div>
+            <div class="redis-result">
+                <pre style="margin: 0; color: #d4d4d4;">Available commands:
+  help              - Show this help message
+  clear             - Clear the console
+  
+Common Redis commands:
+  KEYS pattern      - Find all keys matching pattern
+  GET key           - Get the value of a key
+  SET key value     - Set a key to a value
+  EXISTS key        - Check if a key exists
+  DEL key           - Delete a key
+  INFO              - Get server information
+  DBSIZE            - Get number of keys in database
+  
+Player commands:
+  SMEMBERS game:players                    - List all players
+  GET player:&lt;id&gt;                         - Get player data
+  ZREVRANGE game:leaderboard:score 0 9     - Top 10 leaderboard
+  
+Use the saved queries panel for quick access to common queries.</pre>
+            </div>
+        `;
+        output.appendChild(helpDiv);
+        output.scrollTop = output.scrollHeight;
+    }
+
+    clearRedisConsole() {
+        const output = document.getElementById('redisOutput');
+        output.innerHTML = '<div class="redis-welcome">Console cleared. Type \'help\' for commands.</div>';
     }
 
     addEvent(event) {
