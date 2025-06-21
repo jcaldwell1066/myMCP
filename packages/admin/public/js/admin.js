@@ -5,6 +5,7 @@ class AdminDashboard {
         this.currentView = 'dashboard';
         this.data = {};
         this.customQueries = [];
+        this.customApiRequests = [];
         this.initializeSocket();
         this.initializeUI();
         this.subscribeToUpdates();
@@ -145,6 +146,86 @@ class AdminDashboard {
                 }, 300);
             });
         }
+
+        // API Console functionality
+        this.initializeApiConsole();
+    }
+
+    initializeApiConsole() {
+        const apiMethodSelect = document.getElementById('apiMethodSelect');
+        const apiBodyContainer = document.getElementById('apiBodyContainer');
+        const apiEndpoint = document.getElementById('apiEndpoint');
+        const apiSendBtn = document.getElementById('apiSendBtn');
+        const savedApiSelect = document.getElementById('savedApiSelect');
+        const runSavedApiBtn = document.getElementById('runSavedApi');
+        const addApiBtn = document.getElementById('addApiBtn');
+
+        // Show/hide body field based on method
+        if (apiMethodSelect) {
+            apiMethodSelect.addEventListener('change', (e) => {
+                const method = e.target.value;
+                if (['POST', 'PUT', 'PATCH'].includes(method)) {
+                    apiBodyContainer.classList.remove('hidden');
+                } else {
+                    apiBodyContainer.classList.add('hidden');
+                }
+            });
+        }
+
+        // Send API request
+        if (apiSendBtn) {
+            apiSendBtn.addEventListener('click', () => {
+                this.sendApiRequest();
+            });
+        }
+
+        // Handle Enter key in endpoint input
+        if (apiEndpoint) {
+            apiEndpoint.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendApiRequest();
+                }
+            });
+        }
+
+        // Saved API requests functionality
+        if (savedApiSelect) {
+            savedApiSelect.addEventListener('change', (e) => {
+                runSavedApiBtn.disabled = !e.target.value;
+            });
+        }
+
+        if (runSavedApiBtn) {
+            runSavedApiBtn.addEventListener('click', () => {
+                const selectedId = savedApiSelect.value;
+                if (selectedId) {
+                    const request = this.getApiRequest(selectedId);
+                    if (request) {
+                        // Load the request into the form
+                        document.getElementById('apiMethodSelect').value = request.method;
+                        document.getElementById('apiEndpoint').value = request.endpoint;
+                        document.getElementById('apiTargetSelect').value = request.target || 'http://localhost:3001';
+                        
+                        if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+                            apiBodyContainer.classList.remove('hidden');
+                            document.getElementById('apiBody').value = request.body || '';
+                        } else {
+                            apiBodyContainer.classList.add('hidden');
+                        }
+                        
+                        // Send the request
+                        this.sendApiRequest();
+                    }
+                }
+            });
+        }
+
+        if (addApiBtn) {
+            addApiBtn.addEventListener('click', () => {
+                this.addCurrentApiRequest();
+            });
+        }
     }
 
     subscribeToUpdates() {
@@ -203,6 +284,14 @@ class AdminDashboard {
                 setTimeout(() => {
                     const redisInput = document.getElementById('redisCommand');
                     if (redisInput) redisInput.focus();
+                }, 100);
+                break;
+            case 'api':
+                this.loadApiRequests();
+                // Auto-focus the API endpoint input
+                setTimeout(() => {
+                    const apiInput = document.getElementById('apiEndpoint');
+                    if (apiInput) apiInput.focus();
                 }, 100);
                 break;
             case 'events':
@@ -702,44 +791,330 @@ Use the saved queries panel for quick access to common queries.</pre>
 
     clearRedisConsole() {
         const output = document.getElementById('redisOutput');
-        output.innerHTML = '<div class="redis-welcome">Console cleared. Type \'help\' for commands.</div>';
+        output.innerHTML = '<div class="redis-welcome">Console cleared. Type "help" for available commands.</div>';
     }
 
     addEvent(event) {
-        // Add to events view if visible
         if (this.currentView === 'events') {
             const eventLog = document.getElementById('eventLog');
-            const eventHtml = `
-                <div class="event-item event-${event.type}">
-                    <small>${new Date(event.timestamp).toLocaleString()}</small>
-                    <div><strong>${event.source}</strong>: ${event.message}</div>
-                </div>
+            const eventDiv = document.createElement('div');
+            eventDiv.className = `event-item event-${event.type}`;
+            eventDiv.innerHTML = `
+                <small>${new Date(event.timestamp).toLocaleString()}</small>
+                <div><strong>${event.source}</strong>: ${event.message}</div>
+                ${event.details ? `<pre>${JSON.stringify(event.details, null, 2)}</pre>` : ''}
             `;
-            eventLog.insertAdjacentHTML('afterbegin', eventHtml);
+            eventLog.insertBefore(eventDiv, eventLog.firstChild);
+        }
+    }
+
+    // API Console Methods
+    loadApiRequests() {
+        // Load custom API requests from localStorage
+        this.customApiRequests = this.loadCustomApiRequests();
+        
+        // Predefined API requests from test suite
+        const predefinedRequests = [
+            {
+                id: 'health-check',
+                name: 'Health Check',
+                method: 'GET',
+                endpoint: '/api/health',
+                description: 'Check system health status'
+            },
+            {
+                id: 'engine-status',
+                name: 'Engine Status',
+                method: 'GET',
+                endpoint: '/api/status',
+                description: 'Get engine status information'
+            },
+            {
+                id: 'player-state',
+                name: 'Get Player State',
+                method: 'GET',
+                endpoint: '/api/state/player/jcadwell-mcp',
+                description: 'Get state for a specific player'
+            },
+            {
+                id: 'all-players',
+                name: 'List All Players',
+                method: 'GET',
+                endpoint: '/api/state',
+                description: 'Get all player states'
+            },
+            {
+                id: 'start-quest',
+                name: 'Start Quest',
+                method: 'POST',
+                endpoint: '/api/action/start-quest',
+                body: JSON.stringify({
+                    playerId: 'jcadwell-mcp',
+                    questId: 'time-quest'
+                }, null, 2),
+                description: 'Start a quest for a player'
+            },
+            {
+                id: 'complete-step',
+                name: 'Complete Quest Step',
+                method: 'POST',
+                endpoint: '/api/action/complete-step',
+                body: JSON.stringify({
+                    playerId: 'jcadwell-mcp',
+                    stepId: 'find-clock-tower'
+                }, null, 2),
+                description: 'Complete a quest step'
+            },
+            {
+                id: 'use-item',
+                name: 'Use Item',
+                method: 'POST',
+                endpoint: '/api/action/use-item',
+                body: JSON.stringify({
+                    playerId: 'jcadwell-mcp',
+                    itemId: 'time-crystal'
+                }, null, 2),
+                description: 'Use an item from inventory'
+            },
+            {
+                id: 'get-completions',
+                name: 'Get Completions',
+                method: 'GET',
+                endpoint: '/api/completions?prefix=examine',
+                description: 'Get command completions'
+            },
+            {
+                id: 'leaderboard',
+                name: 'Get Leaderboard',
+                method: 'GET',
+                endpoint: '/api/leaderboard',
+                description: 'Get the player leaderboard'
+            }
+        ];
+
+        this.data.savedApiRequests = predefinedRequests;
+        this.updateSavedApiRequests();
+    }
+
+    updateSavedApiRequests() {
+        const select = document.getElementById('savedApiSelect');
+        const listContainer = document.getElementById('savedApiList');
+        
+        if (!select) return;
+
+        // Clear and rebuild select
+        select.innerHTML = '<option value="">Select a request...</option>';
+        
+        // Add predefined requests
+        this.data.savedApiRequests.forEach(request => {
+            const option = document.createElement('option');
+            option.value = request.id;
+            option.textContent = request.name;
+            select.appendChild(option);
+        });
+
+        // Add separator if there are custom requests
+        if (this.customApiRequests.length > 0) {
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = '── Custom Requests ──';
+            select.appendChild(separator);
+
+            // Add custom requests
+            this.customApiRequests.forEach(request => {
+                const option = document.createElement('option');
+                option.value = request.id;
+                option.textContent = request.name;
+                select.appendChild(option);
+            });
         }
 
-        // Also update recent events in dashboard
-        if (this.currentView === 'dashboard') {
-            const recentEventsList = document.getElementById('recentEventsList');
-            if (recentEventsList) {
-                const eventHtml = `
-                    <div class="event-item event-${event.type}">
-                        <small>${new Date(event.timestamp).toLocaleTimeString()}</small>
-                        <div>${event.message}</div>
+        // Update the list display
+        if (listContainer) {
+            const allRequests = [
+                ...(this.data.savedApiRequests || []),
+                ...this.customApiRequests
+            ];
+
+            if (allRequests.length === 0) {
+                listContainer.innerHTML = '<p style="color: #999; font-size: 0.875rem;">No saved requests</p>';
+                return;
+            }
+
+            listContainer.innerHTML = allRequests.map(request => {
+                const isCustom = request.id.startsWith('custom-');
+                return `
+                    <div class="saved-query-item ${isCustom ? 'custom' : ''}">
+                        <div class="query-info">
+                            <strong>${request.name}</strong>
+                            <div class="query-command">${request.method} ${request.endpoint}</div>
+                        </div>
+                        ${isCustom ? `<button class="delete-btn" onclick="dashboard.deleteCustomApiRequest('${request.id}')" title="Delete">×</button>` : ''}
                     </div>
                 `;
-                recentEventsList.insertAdjacentHTML('afterbegin', eventHtml);
-                
-                // Keep only 5 most recent
-                while (recentEventsList.children.length > 5) {
-                    recentEventsList.removeChild(recentEventsList.lastChild);
-                }
-            }
+            }).join('');
         }
+    }
+
+    getApiRequest(id) {
+        // Check predefined requests
+        const predefined = this.data.savedApiRequests?.find(r => r.id === id);
+        if (predefined) return predefined;
+        
+        // Check custom requests
+        return this.customApiRequests.find(r => r.id === id);
+    }
+
+    loadCustomApiRequests() {
+        const stored = localStorage.getItem('customApiRequests');
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    saveCustomApiRequests() {
+        localStorage.setItem('customApiRequests', JSON.stringify(this.customApiRequests));
+    }
+
+    addCurrentApiRequest() {
+        const method = document.getElementById('apiMethodSelect').value;
+        const endpoint = document.getElementById('apiEndpoint').value.trim();
+        const target = document.getElementById('apiTargetSelect').value;
+        const body = document.getElementById('apiBody').value.trim();
+        
+        if (!endpoint) {
+            alert('Please enter an API endpoint first');
+            return;
+        }
+
+        const name = prompt('Enter a name for this request:', `${method} ${endpoint}`);
+        if (!name) return;
+
+        const customRequest = {
+            id: `custom-${Date.now()}`,
+            name: name,
+            method: method,
+            endpoint: endpoint,
+            target: target,
+            body: body || undefined,
+            description: `Custom request: ${method} ${endpoint}`
+        };
+
+        this.customApiRequests.push(customRequest);
+        this.saveCustomApiRequests();
+        this.updateSavedApiRequests();
+        
+        // Select the newly added request
+        const select = document.getElementById('savedApiSelect');
+        if (select) {
+            select.value = customRequest.id;
+            document.getElementById('runSavedApi').disabled = false;
+        }
+    }
+
+    deleteCustomApiRequest(id) {
+        if (confirm('Delete this custom request?')) {
+            this.customApiRequests = this.customApiRequests.filter(r => r.id !== id);
+            this.saveCustomApiRequests();
+            this.updateSavedApiRequests();
+        }
+    }
+
+    async sendApiRequest() {
+        const method = document.getElementById('apiMethodSelect').value;
+        const endpoint = document.getElementById('apiEndpoint').value.trim();
+        const target = document.getElementById('apiTargetSelect').value;
+        const body = document.getElementById('apiBody').value.trim();
+        
+        if (!endpoint) {
+            alert('Please enter an API endpoint');
+            return;
+        }
+
+        // Clear welcome message if it exists
+        const welcome = document.querySelector('.api-welcome');
+        if (welcome) welcome.remove();
+
+        // Display the request being sent
+        const output = document.getElementById('apiOutput');
+        const timestamp = new Date().toLocaleTimeString();
+        const requestDiv = document.createElement('div');
+        requestDiv.className = 'api-request';
+        requestDiv.innerHTML = `
+            <div class="api-request-header">
+                <span class="api-timestamp">[${timestamp}]</span>
+                <span class="api-method">${method}</span>
+                <span class="api-endpoint">${endpoint}</span>
+                <span style="color: #666;">→ ${target}</span>
+            </div>
+        `;
+        
+        if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+            requestDiv.innerHTML += `
+                <div style="margin-left: 1rem; margin-bottom: 0.5rem;">
+                    <div style="color: #666; font-size: 0.8rem;">Request Body:</div>
+                    <pre style="margin: 0.25rem 0; color: #999; font-size: 0.8rem;">${body}</pre>
+                </div>
+            `;
+        }
+        
+        output.appendChild(requestDiv);
+
+        try {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+                options.body = body;
+            }
+
+            const startTime = Date.now();
+            const response = await fetch(target + endpoint, options);
+            const responseTime = Date.now() - startTime;
+            
+            const responseData = await response.text();
+            let jsonData;
+            try {
+                jsonData = JSON.parse(responseData);
+            } catch (e) {
+                jsonData = responseData;
+            }
+
+            const responseDiv = document.createElement('div');
+            responseDiv.className = 'api-response';
+            responseDiv.innerHTML = `
+                <div class="api-status ${response.ok ? 'success' : 'error'}">
+                    ${response.status} ${response.statusText} (${responseTime}ms)
+                </div>
+                <div class="api-headers">
+                    Content-Type: ${response.headers.get('content-type') || 'unknown'}
+                </div>
+                <div class="api-result">
+                    <pre style="margin: 0; color: ${response.ok ? '#d4d4d4' : '#e74c3c'};">${typeof jsonData === 'object' ? JSON.stringify(jsonData, null, 2) : jsonData}</pre>
+                </div>
+            `;
+            
+            requestDiv.appendChild(responseDiv);
+        } catch (error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'api-response';
+            errorDiv.innerHTML = `
+                <div class="api-status error">Request Failed</div>
+                <div class="api-result">
+                    <pre style="margin: 0; color: #e74c3c;">${error.message}</pre>
+                </div>
+            `;
+            requestDiv.appendChild(errorDiv);
+        }
+        
+        output.scrollTop = output.scrollHeight;
     }
 }
 
-// Initialize dashboard when DOM is ready
+// Initialize dashboard on page load
+let dashboard;
 document.addEventListener('DOMContentLoaded', () => {
-    window.dashboard = new AdminDashboard();
+    dashboard = new AdminDashboard();
 }); 
