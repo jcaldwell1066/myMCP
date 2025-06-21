@@ -4,6 +4,7 @@ class AdminDashboard {
         this.socket = io();
         this.currentView = 'dashboard';
         this.data = {};
+        this.customQueries = [];
         this.initializeSocket();
         this.initializeUI();
         this.subscribeToUpdates();
@@ -94,6 +95,42 @@ class AdminDashboard {
             // Auto-focus on Redis console when switching to it
             redisInput.addEventListener('focus', () => {
                 redisInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        }
+
+        // Saved queries functionality
+        const savedQuerySelect = document.getElementById('savedQuerySelect');
+        const runSavedQueryBtn = document.getElementById('runSavedQuery');
+        const addQueryBtn = document.getElementById('addQueryBtn');
+
+        if (savedQuerySelect) {
+            savedQuerySelect.addEventListener('change', (e) => {
+                runSavedQueryBtn.disabled = !e.target.value;
+            });
+        }
+
+        if (runSavedQueryBtn) {
+            runSavedQueryBtn.addEventListener('click', () => {
+                const selectedId = savedQuerySelect.value;
+                if (selectedId) {
+                    if (selectedId.startsWith('custom-')) {
+                        // Run custom query
+                        const customQuery = this.getCustomQuery(selectedId);
+                        if (customQuery) {
+                            const fullCommand = `${customQuery.command} ${customQuery.args.join(' ')}`;
+                            this.executeRedisCommand(fullCommand);
+                        }
+                    } else {
+                        // Run predefined query
+                        this.executeSavedQuery(selectedId);
+                    }
+                }
+            });
+        }
+
+        if (addQueryBtn) {
+            addQueryBtn.addEventListener('click', () => {
+                this.addCurrentCommandAsQuery();
             });
         }
 
@@ -354,17 +391,126 @@ class AdminDashboard {
         // Store the queries data for later use
         this.data.savedQueries = queries;
 
-        const savedQueries = document.getElementById('savedQueries');
-        savedQueries.innerHTML = queries.map(query => `
-            <div class="metric">
-                <div>
-                    <strong>${query.name}</strong>
-                    <br>
-                    <small>${query.description || query.command}</small>
+        // Get custom queries from localStorage
+        this.customQueries = this.loadCustomQueries();
+
+        // Update the select dropdown
+        const select = document.getElementById('savedQuerySelect');
+        if (select) {
+            select.innerHTML = '<option value="">Select a query...</option>';
+            
+            // Add predefined queries
+            queries.forEach(query => {
+                const option = document.createElement('option');
+                option.value = query.id;
+                option.textContent = query.name;
+                select.appendChild(option);
+            });
+
+            // Add separator if there are custom queries
+            if (this.customQueries.length > 0) {
+                const separator = document.createElement('option');
+                separator.disabled = true;
+                separator.textContent = '── Custom Queries ──';
+                select.appendChild(separator);
+
+                // Add custom queries
+                this.customQueries.forEach(query => {
+                    const option = document.createElement('option');
+                    option.value = query.id;
+                    option.textContent = query.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // Update the list display
+        this.updateSavedQueriesList();
+    }
+
+    updateSavedQueriesList() {
+        const listContainer = document.getElementById('savedQueriesList');
+        if (!listContainer) return;
+
+        const allQueries = [
+            ...(this.data.savedQueries || []),
+            ...this.customQueries
+        ];
+
+        if (allQueries.length === 0) {
+            listContainer.innerHTML = '<p style="color: #999; font-size: 0.875rem;">No saved queries</p>';
+            return;
+        }
+
+        listContainer.innerHTML = allQueries.map(query => {
+            const isCustom = query.id.startsWith('custom-');
+            return `
+                <div class="saved-query-item ${isCustom ? 'custom' : ''}">
+                    <div class="query-info">
+                        <strong>${query.name}</strong>
+                        <div class="query-command">${query.command} ${query.args ? query.args.join(' ') : ''}</div>
+                    </div>
+                    ${isCustom ? `<button class="delete-btn" onclick="dashboard.deleteCustomQuery('${query.id}')" title="Delete">×</button>` : ''}
                 </div>
-                <button class="btn" onclick="dashboard.executeSavedQuery('${query.id}')">Run</button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+    }
+
+    loadCustomQueries() {
+        const stored = localStorage.getItem('redisCustomQueries');
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    saveCustomQueries() {
+        localStorage.setItem('redisCustomQueries', JSON.stringify(this.customQueries));
+    }
+
+    getCustomQuery(id) {
+        return this.customQueries.find(q => q.id === id);
+    }
+
+    addCurrentCommandAsQuery() {
+        const input = document.getElementById('redisCommand');
+        const command = input?.value.trim();
+        
+        if (!command) {
+            alert('Please enter a Redis command first');
+            return;
+        }
+
+        const name = prompt('Enter a name for this query:', command);
+        if (!name) return;
+
+        const parts = command.split(' ');
+        const customQuery = {
+            id: `custom-${Date.now()}`,
+            name: name,
+            command: parts[0].toUpperCase(),
+            args: parts.slice(1),
+            description: `Custom query: ${command}`
+        };
+
+        this.customQueries.push(customQuery);
+        this.saveCustomQueries();
+        this.updateSavedQueries(this.data.savedQueries);
+        
+        // Clear the input
+        input.value = '';
+        
+        // Select the newly added query
+        const select = document.getElementById('savedQuerySelect');
+        if (select) {
+            select.value = customQuery.id;
+            document.getElementById('runSavedQuery').disabled = false;
+        }
+    }
+
+    deleteCustomQuery(id) {
+        if (confirm('Delete this custom query?')) {
+            this.customQueries = this.customQueries.filter(q => q.id !== id);
+            this.saveCustomQueries();
+            this.updateSavedQueries(this.data.savedQueries);
+        }
     }
 
     updateEvents(events) {

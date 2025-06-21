@@ -300,12 +300,107 @@
             background: #2980b9;
         }
 
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #3498db;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #7f8c8d;
+        }
+
         .btn-danger {
             background: #e74c3c;
         }
 
         .btn-danger:hover {
             background: #c0392b;
+        }
+
+        .saved-queries-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .query-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .query-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .query-actions .btn {
+            flex: 1;
+        }
+
+        .saved-queries-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .saved-query-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .saved-query-item:hover {
+            background: #e9ecef;
+        }
+
+        .saved-query-item.custom {
+            background: #e3f2fd;
+        }
+
+        .saved-query-item .query-info {
+            flex: 1;
+        }
+
+        .saved-query-item .query-command {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .saved-query-item .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .saved-query-item .delete-btn:hover {
+            color: #c0392b;
         }
 
         .search-box {
@@ -458,7 +553,16 @@
                     </div>
                     <div class="card">
                         <h3>Saved Queries</h3>
-                        <div id="savedQueries" class="loading">Loading...</div>
+                        <div class="saved-queries-container">
+                            <select id="savedQuerySelect" class="query-select">
+                                <option value="">Select a query...</option>
+                            </select>
+                            <div class="query-actions">
+                                <button id="runSavedQuery" class="btn btn-primary" disabled>Run Query</button>
+                                <button id="addQueryBtn" class="btn btn-secondary">+ Add Current</button>
+                            </div>
+                            <div id="savedQueriesList" class="saved-queries-list"></div>
+                        </div>
                     </div>
                     <div class="card">
                         <h3>Quick Reference</h3>
