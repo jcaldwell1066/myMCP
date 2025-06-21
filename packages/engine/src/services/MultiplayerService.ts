@@ -31,16 +31,21 @@ export class MultiplayerService extends EventEmitter {
     super();
     this.engineConfig = config;
     
-    // Initialize Redis clients
-    this.pubClient = new Redis(config.redisUrl, {
+    // Initialize Redis clients with proper configuration
+    const redisOptions = {
       connectTimeout: 10000,
-      retryStrategy: (times) => {
+      retryStrategy: (times: number) => {
         const delay = Math.min(times * 50, 2000);
         console.log(`[MultiplayerService] Redis connection retry attempt ${times}, waiting ${delay}ms`);
         return delay;
-      }
-    });
-    this.subClient = this.pubClient.duplicate();
+      },
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: true,
+      lazyConnect: false
+    };
+    
+    this.pubClient = new Redis(config.redisUrl, redisOptions);
+    this.subClient = new Redis(config.redisUrl, redisOptions);
     
     // Add error handlers to prevent unhandled error warnings
     this.pubClient.on('error', (err) => {
