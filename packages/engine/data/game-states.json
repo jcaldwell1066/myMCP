@@ -1446,6 +1446,39 @@
               "HMAC Grimoire"
             ]
           }
+        },
+        {
+          "id": "release-milestone-v2",
+          "title": "Path to Release: Version 2.0",
+          "description": "Guide the project to its next major release milestone by completing critical development tasks.",
+          "realWorldSkill": "Software release management and project coordination",
+          "fantasyTheme": "Forging the legendary artifact of deployment",
+          "status": "available",
+          "steps": [
+            {
+              "id": "complete-testing",
+              "description": "Ensure all test suites pass and achieve 80% code coverage",
+              "completed": false
+            },
+            {
+              "id": "update-documentation",
+              "description": "Update all documentation including API docs and user guides",
+              "completed": false
+            },
+            {
+              "id": "deploy-staging",
+              "description": "Successfully deploy to staging environment and verify functionality",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 200,
+            "items": [
+              "Release Artifact",
+              "Deployment Scroll",
+              "Version Badge"
+            ]
+          }
         }
       ],
       "active": null,
@@ -1920,6 +1953,191 @@
     "metadata": {
       "version": "1.0.0",
       "lastUpdated": "2025-06-20T19:34:23.286Z"
+    }
+  },
+  "jcadwell-mcp": {
+    "player": {
+      "id": "jcadwell-mcp",
+      "name": "Hero",
+      "score": 0,
+      "level": "novice",
+      "status": "in-quest",
+      "location": "town",
+      "currentQuest": "release-milestone-v2"
+    },
+    "quests": {
+      "available": [
+        {
+          "id": "global-meeting",
+          "title": "Council of Three Realms",
+          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
+          "realWorldSkill": "Timezone coordination and meeting scheduling",
+          "fantasyTheme": "Gathering allies across distant realms",
+          "status": "available",
+          "steps": [
+            {
+              "id": "find-allies",
+              "description": "Locate suitable allies in different time zones",
+              "completed": false
+            },
+            {
+              "id": "coordinate-meeting",
+              "description": "Find optimal meeting time for all parties",
+              "completed": false
+            },
+            {
+              "id": "confirm-attendance",
+              "description": "Confirm all allies can attend the council",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 100,
+            "items": [
+              "Council Seal",
+              "Diplomatic Medallion"
+            ]
+          }
+        },
+        {
+          "id": "server-health",
+          "title": "Dungeon Keeper's Vigil",
+          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
+          "realWorldSkill": "Server monitoring and system health checks",
+          "fantasyTheme": "Guardian of mystical computing crystals",
+          "status": "available",
+          "steps": [
+            {
+              "id": "enter-dungeon",
+              "description": "Venture into the server caverns",
+              "completed": false
+            },
+            {
+              "id": "check-crystals",
+              "description": "Examine the health of processing crystals",
+              "completed": false
+            },
+            {
+              "id": "report-status",
+              "description": "Document crystal conditions",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 75,
+            "items": [
+              "Crystal Monitor",
+              "System Rune"
+            ]
+          }
+        },
+        {
+          "id": "hmac-security",
+          "title": "Cryptomancer's Seal",
+          "description": "Master the arcane arts of message authentication and integrity.",
+          "realWorldSkill": "HMAC cryptographic implementation",
+          "fantasyTheme": "Forging magical seals of authenticity",
+          "status": "available",
+          "steps": [
+            {
+              "id": "learn-theory",
+              "description": "Study the ancient cryptographic texts",
+              "completed": false
+            },
+            {
+              "id": "craft-seal",
+              "description": "Create your first authentication seal",
+              "completed": false
+            },
+            {
+              "id": "verify-seal",
+              "description": "Prove the seal's authenticity",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 125,
+            "items": [
+              "Cryptomancer Staff",
+              "HMAC Grimoire"
+            ]
+          }
+        }
+      ],
+      "active": {
+        "id": "release-milestone-v2",
+        "title": "Path to Release: Version 2.0",
+        "description": "Guide the project to its next major release milestone by completing critical development tasks.",
+        "realWorldSkill": "Software release management and project coordination",
+        "fantasyTheme": "Forging the legendary artifact of deployment",
+        "status": "active",
+        "steps": [
+          {
+            "id": "complete-testing",
+            "description": "Ensure all test suites pass and achieve 80% code coverage",
+            "completed": false
+          },
+          {
+            "id": "update-documentation",
+            "description": "Update all documentation including API docs and user guides",
+            "completed": false
+          },
+          {
+            "id": "deploy-staging",
+            "description": "Successfully deploy to staging environment and verify functionality",
+            "completed": false
+          }
+        ],
+        "reward": {
+          "score": 200,
+          "items": [
+            "Release Artifact",
+            "Deployment Scroll",
+            "Version Badge"
+          ]
+        }
+      },
+      "completed": []
+    },
+    "inventory": {
+      "items": [],
+      "capacity": 10,
+      "status": "empty"
+    },
+    "session": {
+      "id": "ab3f5f70-40d7-47a8-b3eb-32b07dd4b132",
+      "startTime": "2025-06-21T03:48:22.378Z",
+      "lastAction": "2025-06-21T04:02:47.126Z",
+      "turnCount": 2,
+      "conversationHistory": [
+        {
+          "id": "23f56f59-787d-4a87-b0e0-fff9ee9dc2e3",
+          "timestamp": "2025-06-21T03:50:21.804Z",
+          "sender": "player",
+          "message": "What adventures are available for me to embark upon?",
+          "type": "chat"
+        },
+        {
+          "id": "4c38b439-e953-4e3d-98c6-5c66596a12eb",
+          "timestamp": "2025-06-21T03:50:34.481Z",
+          "sender": "bot",
+          "message": "*Adjusts weathered robes while consulting an ancient scroll*\n\nAh, young hero. As twilight descends upon our humble town, several worthy quests await one of thy novice standing:\n\n- The merchant's guild seeks brave souls to escort their caravan through the Whispering Woods\n- Old Willem at the mill speaks of troublesome rats with peculiar magical properties\n- The herbalist requires assistance gathering moonflowers, which bloom only under evening stars\n- Strange sounds echo from the abandoned tower at the edge of town\n\n*Rolls scroll thoughtfully*\n\nFor one just beginning their journey, I would recommend either Willem's task or the herbalist's request. Both shall test thy mettle while building experience for greater challenges ahead.\n\nWhat calls to thy spirit, young adventurer?",
+          "type": "chat",
+          "metadata": {
+            "provider": "anthropic",
+            "model": "claude-3-5-sonnet-20241022",
+            "tokensUsed": 196,
+            "responseTime": 12676,
+            "cached": false,
+            "confidence": 0.8,
+            "contentFiltered": false
+          }
+        }
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "lastUpdated": "2025-06-21T04:02:47.126Z"
     }
   }
 }

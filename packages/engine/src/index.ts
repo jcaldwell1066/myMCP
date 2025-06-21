@@ -214,6 +214,35 @@ function createDefaultGameState(playerId: string = 'default-player'): GameState 
             items: ['Cryptomancer Staff', 'HMAC Grimoire'],
           },
         },
+        {
+          id: 'release-milestone-v2',
+          title: 'Path to Release: Version 2.0',
+          description: 'Guide the project to its next major release milestone by completing critical development tasks.',
+          realWorldSkill: 'Software release management and project coordination',
+          fantasyTheme: 'Forging the legendary artifact of deployment',
+          status: 'available',
+          steps: [
+            {
+              id: 'complete-testing',
+              description: 'Ensure all test suites pass and achieve 80% code coverage',
+              completed: false,
+            },
+            {
+              id: 'update-documentation',
+              description: 'Update all documentation including API docs and user guides',
+              completed: false,
+            },
+            {
+              id: 'deploy-staging',
+              description: 'Successfully deploy to staging environment and verify functionality',
+              completed: false,
+            },
+          ],
+          reward: {
+            score: 200,
+            items: ['Release Artifact', 'Deployment Scroll', 'Version Badge'],
+          },
+        },
       ],
       active: null,
       completed: [],
