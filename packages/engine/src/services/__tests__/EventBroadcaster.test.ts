@@ -30,7 +30,13 @@ describe('EventBroadcaster Tests', () => {
 
   describe('Initialization', () => {
     test('should create Redis client when URL provided', () => {
-      expect(Redis).toHaveBeenCalledWith('redis://localhost:6379');
+      expect(Redis).toHaveBeenCalledWith('redis://localhost:6379', expect.objectContaining({
+        connectTimeout: 10000,
+        retryStrategy: expect.any(Function),
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: true,
+        enableOfflineQueue: true
+      }));
     });
 
     test('should not create Redis client without URL', () => {
