@@ -11,10 +11,14 @@ describe('HealthMonitor', () => {
   beforeEach(() => {
     mockRedis = new Redis() as jest.Mocked<Redis>;
     healthMonitor = new HealthMonitor('redis://localhost:6379');
+    
+    // Mock clearInterval globally
+    global.clearInterval = jest.fn();
   });
 
   afterEach(() => {
     healthMonitor.stopMonitoring();
+    jest.clearAllMocks();
   });
 
   describe('initialization', () => {
@@ -44,7 +48,17 @@ describe('HealthMonitor', () => {
     });
 
     it('should handle Redis connection failure', async () => {
-      mockRedis.ping.mockRejectedValue(new Error('Connection refused'));
+      // Create a new HealthMonitor instance with mocked Redis that fails
+      const failingRedis = new Redis() as jest.Mocked<Redis>;
+      failingRedis.ping.mockRejectedValue(new Error('Connection refused'));
+      failingRedis.info.mockRejectedValue(new Error('Connection refused'));
+      
+      // Mock the redis property to use our failing Redis instance
+      Object.defineProperty(healthMonitor, 'redis', {
+        value: failingRedis,
+        writable: true,
+        configurable: true
+      });
 
       const health = await healthMonitor.getSystemHealth();
 
@@ -61,7 +75,7 @@ describe('HealthMonitor', () => {
       expect(healthMonitor['monitoringInterval']).toBeDefined();
 
       healthMonitor.stopMonitoring();
-      expect(clearInterval).toHaveBeenCalled();
+      expect(global.clearInterval).toHaveBeenCalled();
     });
 
     it('should emit health updates', (done) => {
@@ -124,19 +138,36 @@ describe('HealthMonitor', () => {
     });
 
     it('should detect degraded engine status', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() => 
-        new Promise(resolve => 
-          setTimeout(() => resolve({
-            ok: true,
-            json: async () => ({ engineId: 'engine-1', isPrimary: false })
-          }), 600) // Simulate slow response
-        )
-      );
+      // Mock a fast response that simulates high response time
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ 
+          engineId: 'engine-1', 
+          isPrimary: false,
+          connectedClients: 5,
+          onlinePlayers: ['player1', 'player2'],
+          uptime: 3600
+        })
+      });
+
+      // Manually set response time to trigger degraded status
+      const originalDateNow = Date.now;
+      let callCount = 0;
+      Date.now = jest.fn(() => {
+        callCount++;
+        // First call is start time, second call is end time
+        // Make it look like the request took > 1000ms (the default threshold)
+        return callCount === 1 ? 1000 : 2500;
+      });
 
       const engines = await healthMonitor['checkEnginesHealth']();
       
-      // Note: This test might need adjustment based on actual timeout implementation
-      expect(engines[0].responseTime).toBeGreaterThan(500);
+      // Restore Date.now
+      Date.now = originalDateNow;
+      
+      // The response time should be 1500ms (2500 - 1000)
+      expect(engines[0].responseTime).toBe(1500);
+      expect(engines[0].status).toBe('degraded');
     });
   });
 

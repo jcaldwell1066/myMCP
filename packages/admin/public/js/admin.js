@@ -332,6 +332,9 @@ class AdminDashboard {
     updateSavedQueries(queries) {
         if (!queries) return;
 
+        // Store the queries data for later use
+        this.data.savedQueries = queries;
+
         const savedQueries = document.getElementById('savedQueries');
         savedQueries.innerHTML = queries.map(query => `
             <div class="metric">
@@ -385,6 +388,11 @@ class AdminDashboard {
     executeRedisCommand(command) {
         if (!command) return;
 
+        // Display the command being executed
+        const output = document.getElementById('redisOutput');
+        const timestamp = new Date().toLocaleTimeString();
+        output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <span style="color: #4CAF50">&gt; ${command}</span></div>`;
+
         const parts = command.split(' ');
         const cmd = parts[0];
         const args = parts.slice(1);
@@ -401,7 +409,27 @@ class AdminDashboard {
         const timestamp = new Date().toLocaleTimeString();
         
         if (result.success) {
-            output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> ${JSON.stringify(result.result.result, null, 2)}</div>`;
+            let resultData = result.result.result || result.result;
+            let formattedResult;
+            
+            // Format the result based on type
+            if (typeof resultData === 'string') {
+                formattedResult = resultData;
+            } else if (Array.isArray(resultData)) {
+                if (resultData.length === 0) {
+                    formattedResult = '(empty array)';
+                } else if (resultData.length > 20) {
+                    formattedResult = JSON.stringify(resultData.slice(0, 20), null, 2) + `\n... and ${resultData.length - 20} more items`;
+                } else {
+                    formattedResult = JSON.stringify(resultData, null, 2);
+                }
+            } else if (typeof resultData === 'object' && resultData !== null) {
+                formattedResult = JSON.stringify(resultData, null, 2);
+            } else {
+                formattedResult = String(resultData);
+            }
+            
+            output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <pre style="margin: 0; color: #d4d4d4; display: inline-block;">${formattedResult}</pre></div>`;
         } else {
             output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <span style="color: #f44336">Error: ${result.error}</span></div>`;
         }
@@ -413,6 +441,16 @@ class AdminDashboard {
         try {
             const response = await fetch(`/api/redis/saved-queries/${queryId}`, { method: 'POST' });
             const result = await response.json();
+            
+            // Display the command being executed
+            const savedQuery = this.data.savedQueries?.find(q => q.id === queryId);
+            if (savedQuery) {
+                const output = document.getElementById('redisOutput');
+                const timestamp = new Date().toLocaleTimeString();
+                output.innerHTML += `<div><span style="color: #999">[${timestamp}]</span> <span style="color: #4CAF50">&gt; ${savedQuery.command} ${savedQuery.args.join(' ')}</span></div>`;
+            }
+            
+            // Display the result
             this.displayRedisResult({ success: true, result });
         } catch (error) {
             this.displayRedisResult({ success: false, error: error.message });
