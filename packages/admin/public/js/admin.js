@@ -159,9 +159,32 @@ class AdminDashboard {
         const savedApiSelect = document.getElementById('savedApiSelect');
         const runSavedApiBtn = document.getElementById('runSavedApi');
         const addApiBtn = document.getElementById('addApiBtn');
+        const clearBtn = document.getElementById('clearApiConsole');
 
         // Initialize resize functionality
         this.initializeApiResize();
+
+        // Initialize pipeline filters
+        this.initializePipelineFilters();
+
+        // Clear button functionality
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                const output = document.getElementById('apiOutput');
+                output.innerHTML = '<div class="api-welcome">API Console cleared. Ready for new requests.</div>';
+                output.scrollTop = 0;
+            });
+        }
+
+        // Keyboard shortcut for clearing console (Ctrl+L)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'l' && !document.getElementById('api-view').classList.contains('hidden')) {
+                e.preventDefault();
+                const output = document.getElementById('apiOutput');
+                output.innerHTML = '<div class="api-welcome">API Console cleared. Ready for new requests.</div>';
+                output.scrollTop = 0;
+            }
+        });
 
         // Show/hide body field based on method
         if (apiMethodSelect) {
@@ -279,6 +302,83 @@ class AdminDashboard {
             resizableContainer.style.height = savedHeight + 'px';
             apiConsole.style.height = savedHeight + 'px';
         }
+    }
+
+    initializePipelineFilters() {
+        // Get all pipeline checkboxes and inputs
+        const pipelineCheckboxes = document.querySelectorAll('.pipeline-checkbox');
+        const pipelineInputs = document.querySelectorAll('.pipeline-input');
+        const pipelineHeader = document.getElementById('pipelineHeader');
+        const pipelineFilters = document.getElementById('pipelineFilters');
+
+        // Add collapse/expand functionality
+        if (pipelineHeader && pipelineFilters) {
+            // Load saved state from localStorage
+            const isCollapsed = localStorage.getItem('pipelineFiltersCollapsed') === 'true';
+            if (isCollapsed) {
+                pipelineHeader.classList.add('collapsed');
+                pipelineFilters.classList.add('collapsed');
+            }
+
+            pipelineHeader.addEventListener('click', () => {
+                const isCurrentlyCollapsed = pipelineHeader.classList.contains('collapsed');
+                
+                if (isCurrentlyCollapsed) {
+                    pipelineHeader.classList.remove('collapsed');
+                    pipelineFilters.classList.remove('collapsed');
+                    localStorage.setItem('pipelineFiltersCollapsed', 'false');
+                } else {
+                    pipelineHeader.classList.add('collapsed');
+                    pipelineFilters.classList.add('collapsed');
+                    localStorage.setItem('pipelineFiltersCollapsed', 'true');
+                }
+            });
+        }
+
+        // Add event listeners to checkboxes
+        pipelineCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const inputId = e.target.id + 'Query';
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.disabled = !e.target.checked;
+                    if (e.target.checked) {
+                        input.focus();
+                    }
+                }
+                
+                // Update active filter count
+                this.updatePipelineActiveCount();
+            });
+        });
+
+        // Initial count update
+        this.updatePipelineActiveCount();
+
+        // Add example queries on focus for better UX
+        document.getElementById('pipeJqQuery').addEventListener('focus', function() {
+            if (this.value === '.') {
+                this.placeholder = 'Examples: .data | .player.name | .[] | keys';
+            }
+        });
+
+        document.getElementById('pipeGrepQuery').addEventListener('focus', function() {
+            if (!this.value) {
+                this.placeholder = 'Examples: error | -v "debug" | -i "player"';
+            }
+        });
+
+        document.getElementById('pipeSedQuery').addEventListener('focus', function() {
+            if (!this.value) {
+                this.placeholder = 'Examples: s/localhost/127.0.0.1/g | s/"//g';
+            }
+        });
+
+        document.getElementById('pipeCustomQuery').addEventListener('focus', function() {
+            if (!this.value) {
+                this.placeholder = 'Examples: awk \'{print $1}\' | sort | uniq -c';
+            }
+        });
     }
 
     subscribeToUpdates() {
@@ -1293,16 +1393,17 @@ class AdminDashboard {
             
             const startTime = Date.now();
             const response = await fetch(proxyEndpoint, options);
-            const responseTime = Date.now() - startTime;
+            const endTime = Date.now();
+            const responseTime = endTime - startTime;
             
-            const responseData = await response.text();
             let jsonData;
-            let isJson = false;
             try {
-                jsonData = JSON.parse(responseData);
-                isJson = true;
+                jsonData = await response.json();
+                
+                // Process through pipeline if any filters are enabled
+                jsonData = await this.processPipeline(jsonData);
             } catch (e) {
-                jsonData = responseData;
+                jsonData = await response.text();
             }
 
             const responseDiv = document.createElement('div');
@@ -1310,13 +1411,24 @@ class AdminDashboard {
             
             // Format the response based on content type
             let formattedResponse;
-            if (isJson) {
-                formattedResponse = this.highlightJSON(jsonData);
-            } else {
+            if (typeof jsonData === 'string') {
                 formattedResponse = `<pre style="margin: 0; color: ${response.ok ? '#d4d4d4' : '#e74c3c'};">${jsonData}</pre>`;
+            } else {
+                formattedResponse = this.highlightJSON(jsonData);
             }
             
-            responseDiv.innerHTML = `<div class="api-status ${response.ok ? 'success' : 'error'}">${response.status} ${response.statusText} (${responseTime}ms)</div><div class="api-headers">Content-Type: ${response.headers.get('content-type') || 'unknown'}</div><div class="api-result">${formattedResponse}</div>`;
+            // Add pipeline indicator if filters are active
+            const activeFilters = [];
+            if (document.getElementById('pipeJq').checked) activeFilters.push('jq');
+            if (document.getElementById('pipeGrep').checked) activeFilters.push('grep');
+            if (document.getElementById('pipeSed').checked) activeFilters.push('sed');
+            if (document.getElementById('pipeCustom').checked) activeFilters.push('custom');
+            
+            const pipelineInfo = activeFilters.length > 0 
+                ? `<div class="api-pipeline-info">📊 Filtered through: ${activeFilters.join(' | ')}</div>`
+                : '';
+            
+            responseDiv.innerHTML = `<div class="api-status ${response.ok ? 'success' : 'error'}">${response.status} ${response.statusText} (${responseTime}ms)</div><div class="api-headers">Content-Type: ${response.headers.get('content-type') || 'unknown'}</div>${pipelineInfo}<div class="api-result">${formattedResponse}</div>`;
             
             requestDiv.appendChild(responseDiv);
         } catch (error) {
@@ -1327,6 +1439,183 @@ class AdminDashboard {
         }
         
         output.scrollTop = output.scrollHeight;
+    }
+
+    // Process the API response through the enabled pipeline filters
+    async processPipeline(data) {
+        let result = data;
+        
+        // Check which filters are enabled and build the pipeline
+        const filters = [];
+        
+        if (document.getElementById('pipeJq').checked) {
+            const query = document.getElementById('pipeJqQuery').value || '.';
+            filters.push({ type: 'jq', query });
+        }
+        
+        if (document.getElementById('pipeGrep').checked) {
+            const query = document.getElementById('pipeGrepQuery').value;
+            if (query) {
+                filters.push({ type: 'grep', query });
+            }
+        }
+        
+        if (document.getElementById('pipeSed').checked) {
+            const query = document.getElementById('pipeSedQuery').value;
+            if (query) {
+                filters.push({ type: 'sed', query });
+            }
+        }
+        
+        if (document.getElementById('pipeCustom').checked) {
+            const query = document.getElementById('pipeCustomQuery').value;
+            if (query) {
+                filters.push({ type: 'custom', query });
+            }
+        }
+        
+        // Apply filters in sequence
+        for (const filter of filters) {
+            try {
+                result = await this.applyFilter(result, filter);
+            } catch (error) {
+                console.error(`Pipeline filter error (${filter.type}):`, error);
+                // Return error message but continue with other filters
+                result = { 
+                    pipelineError: `Filter '${filter.type}' failed: ${error.message}`,
+                    originalData: result 
+                };
+            }
+        }
+        
+        return result;
+    }
+
+    // Apply individual filter based on type
+    async applyFilter(data, filter) {
+        const jsonString = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        
+        switch (filter.type) {
+            case 'jq':
+                return this.applyJqFilter(data, filter.query);
+                
+            case 'grep':
+                return this.applyGrepFilter(jsonString, filter.query);
+                
+            case 'sed':
+                return this.applySedFilter(jsonString, filter.query);
+                
+            case 'custom':
+                // For custom filters, we'll just return the data with a note
+                // In a real implementation, this could call a server-side endpoint
+                return {
+                    customFilter: filter.query,
+                    data: data,
+                    note: 'Custom filters would be processed server-side for security'
+                };
+                
+            default:
+                return data;
+        }
+    }
+
+    // Simple jq-like filter implementation
+    applyJqFilter(data, query) {
+        if (query === '.') {
+            return data;
+        }
+        
+        try {
+            // Basic jq query support
+            let result = data;
+            const parts = query.split('|').map(p => p.trim());
+            
+            for (const part of parts) {
+                if (part === '.') {
+                    continue;
+                } else if (part === 'keys') {
+                    result = Object.keys(result);
+                } else if (part === '.[]') {
+                    result = Array.isArray(result) ? result : Object.values(result);
+                } else if (part.startsWith('.')) {
+                    // Property access like .data or .player.name
+                    const path = part.substring(1).split('.');
+                    for (const key of path) {
+                        if (result && typeof result === 'object' && key in result) {
+                            result = result[key];
+                        } else {
+                            throw new Error(`Property '${key}' not found`);
+                        }
+                    }
+                }
+            }
+            
+            return result;
+        } catch (error) {
+            throw new Error(`jq filter error: ${error.message}`);
+        }
+    }
+
+    // Simple grep-like filter
+    applyGrepFilter(text, pattern) {
+        const lines = text.split('\n');
+        let filtered;
+        
+        if (pattern.startsWith('-v ')) {
+            // Inverse match
+            const searchPattern = pattern.substring(3);
+            filtered = lines.filter(line => !line.includes(searchPattern));
+        } else if (pattern.startsWith('-i ')) {
+            // Case insensitive
+            const searchPattern = pattern.substring(3).toLowerCase();
+            filtered = lines.filter(line => line.toLowerCase().includes(searchPattern));
+        } else {
+            // Normal match
+            filtered = lines.filter(line => line.includes(pattern));
+        }
+        
+        return filtered.join('\n');
+    }
+
+    // Simple sed-like filter
+    applySedFilter(text, pattern) {
+        if (!pattern.startsWith('s/')) {
+            throw new Error('Only substitution (s///) is supported');
+        }
+        
+        const parts = pattern.split('/');
+        if (parts.length < 4) {
+            throw new Error('Invalid sed pattern');
+        }
+        
+        const search = parts[1];
+        const replace = parts[2];
+        const flags = parts[3] || '';
+        
+        if (flags.includes('g')) {
+            return text.replace(new RegExp(search, 'g'), replace);
+        } else {
+            return text.replace(search, replace);
+        }
+    }
+
+    updatePipelineActiveCount() {
+        const activeCheckboxes = document.querySelectorAll('.pipeline-checkbox:checked');
+        const count = activeCheckboxes.length;
+        const countElement = document.getElementById('pipelineActiveCount');
+        const headerElement = document.getElementById('pipelineHeader');
+        
+        if (countElement) {
+            countElement.textContent = count.toString();
+        }
+        
+        if (headerElement) {
+            if (count > 0) {
+                headerElement.classList.add('has-active-filters');
+            } else {
+                headerElement.classList.remove('has-active-filters');
+            }
+        }
     }
 }
 
