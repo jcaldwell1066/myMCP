@@ -1,3 +1,10 @@
+// Load environment variables
+import { config as dotenvConfig } from 'dotenv';
+import { join } from 'path';
+
+// Load from root .env file
+dotenvConfig({ path: join(__dirname, '../../../.env') });
+
 export const config = {
   port: process.env.ADMIN_PORT || 3500,
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',

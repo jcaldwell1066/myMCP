@@ -107,12 +107,16 @@ if (options.pattern) {
 }
 console.log('');
 
+// Load environment variables
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+
 // Check if Redis is available for integration tests
 if (options.testType === 'integration' || options.testType === 'all') {
   const redis = require('ioredis');
-  const client = new redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
+  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+  console.log(`  Redis URL: ${colors.dim}${redisUrl.replace(/:[^:@]+@/, ':****@')}${colors.reset}\n`);
+  
+  const client = new redis(redisUrl, {
     retryStrategy: () => null
   });
 

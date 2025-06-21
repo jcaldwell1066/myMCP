@@ -36,7 +36,7 @@ import { EventBroadcaster } from './services/EventBroadcaster';
 import { createServer } from 'http';
 
 // Load environment variables from project root
-config({ path: join(__dirname, '..', '..', '..', '.env') });
+config({ path: join(__dirname, '../../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;

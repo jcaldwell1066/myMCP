@@ -91,3 +91,4 @@ my-training-notes-PRIVATE.txt
 # Build artifacts
 tsconfig.tsbuildinfo
 *.iml
+.env
