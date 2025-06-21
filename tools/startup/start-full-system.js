@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
+// Load environment variables first
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+
 const { spawn } = require('child_process');
 const path = require('path');
 const chalk = require('chalk');
-require('dotenv').config();
 
 // Show help if requested
 if (process.argv.includes('--help') || process.argv.includes('-h')) {

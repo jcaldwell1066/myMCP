@@ -46,6 +46,9 @@ const ENGINE_ID = process.env.ENGINE_ID || `engine-${PORT}`;
 const IS_PRIMARY = process.env.IS_PRIMARY === 'true';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
+// Debug logging
+console.log(`🔍 Engine ${ENGINE_ID} Redis URL: ${REDIS_URL}`);
+
 // Initialize event broadcaster
 const eventBroadcaster = new EventBroadcaster(REDIS_URL);
 

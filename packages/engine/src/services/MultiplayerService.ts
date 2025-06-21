@@ -32,7 +32,14 @@ export class MultiplayerService extends EventEmitter {
     this.engineConfig = config;
     
     // Initialize Redis clients
-    this.pubClient = new Redis(config.redisUrl);
+    this.pubClient = new Redis(config.redisUrl, {
+      connectTimeout: 10000,
+      retryStrategy: (times) => {
+        const delay = Math.min(times * 50, 2000);
+        console.log(`[MultiplayerService] Redis connection retry attempt ${times}, waiting ${delay}ms`);
+        return delay;
+      }
+    });
     this.subClient = this.pubClient.duplicate();
     
     // Add error handlers to prevent unhandled error warnings

@@ -8,7 +8,7 @@ console.log('🚀 Starting myMCP Admin Dashboard...\n');
 const adminPath = path.join(__dirname, '../../packages/admin');
 
 // Load environment variables
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 // Environment variables
 const env = {
