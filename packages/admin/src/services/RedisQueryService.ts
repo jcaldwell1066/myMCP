@@ -37,7 +37,8 @@ export class RedisQueryService {
           return true;
         }
         return false;
-      }
+      },
+      enableOfflineQueue: true
     });
     
     this.redis.on('error', (err) => {

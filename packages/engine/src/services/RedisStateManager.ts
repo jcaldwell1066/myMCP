@@ -20,7 +20,8 @@ export class RedisStateManager extends EventEmitter {
         return delay;
       },
       maxRetriesPerRequest: 3,
-      enableReadyCheck: true
+      enableReadyCheck: true,
+      enableOfflineQueue: true
     };
     
     this.redis = new Redis(redisUrl, redisOptions);

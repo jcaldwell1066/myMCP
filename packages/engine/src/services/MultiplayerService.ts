@@ -41,7 +41,8 @@ export class MultiplayerService extends EventEmitter {
       },
       maxRetriesPerRequest: 3,
       enableReadyCheck: true,
-      lazyConnect: false
+      lazyConnect: false,
+      enableOfflineQueue: true // Allow commands to be queued while connecting
     };
     
     this.pubClient = new Redis(config.redisUrl, redisOptions);

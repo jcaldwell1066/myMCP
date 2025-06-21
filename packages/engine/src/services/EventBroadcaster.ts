@@ -22,7 +22,8 @@ export class EventBroadcaster {
             return delay;
           },
           maxRetriesPerRequest: 3,
-          enableReadyCheck: true
+          enableReadyCheck: true,
+          enableOfflineQueue: true
         });
         
         // Add error handler to prevent unhandled error warnings

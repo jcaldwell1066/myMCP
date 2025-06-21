@@ -68,7 +68,8 @@ export class HealthMonitor extends EventEmitter {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
-      maxRetriesPerRequest: 3
+      maxRetriesPerRequest: 3,
+      enableOfflineQueue: true
     });
     
     this.redis.on('error', (err) => {
