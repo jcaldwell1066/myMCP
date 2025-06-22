@@ -344,3 +344,182 @@ if (!process.argv.slice(2).length) {
   console.log(chalk.gray('  mycli start-quest <id>    - Start a quest'));
   console.log(chalk.gray('  mycli progress            - Show quest progress'));
 }
+
+const allowedCommands = [
+  'status', 'chat', 'health', 'quests', 'get-score', 
+  'start-quest', 'quest-steps', 'complete-step', 
+  'complete-quest', 'next', 'progress', 'history', 'help',
+  'set-name', 'set-location', 'set-level', 'profile'
+];
+
+// Add help text for new commands
+function showHelp() {
+  console.log(chalk.blue('🧙‍♂️ myMCP CLI - Available Commands:'));
+  console.log(chalk.gray('─'.repeat(50)));
+  console.log(chalk.green('Basic Commands:'));
+  console.log('  status          - Show current game status');
+  console.log('  health          - Check engine connection');
+  console.log('  help            - Show this help message');
+  console.log('  history [n]     - Show last n messages (default: 5)');
+  console.log();
+  console.log(chalk.green('Player Commands:'));
+  console.log('  profile         - Show detailed player profile');
+  console.log('  set-name <name> - Change your character name');
+  console.log('  set-location <location> - Change your location');
+  console.log('  set-level <level> - Change your level (novice/apprentice/expert/master)');
+  console.log('  get-score       - Get current score');
+  console.log();
+  console.log(chalk.green('Chat & AI:'));
+  console.log('  chat <message>  - Chat with the AI guide');
+  console.log('  chat -i         - Start interactive chat mode');
+  console.log();
+  console.log(chalk.green('Quest Commands:'));
+  console.log('  quests          - List all quests');
+  console.log('  start-quest <id> - Start a quest');
+  console.log('  quest-steps     - View active quest steps');
+  console.log('  complete-step <id> - Complete a quest step');
+  console.log('  complete-quest  - Complete active quest');
+  console.log('  next            - Show next step to do');
+  console.log('  progress        - Show quest progress');
+  console.log(chalk.gray('─'.repeat(50)));
+}
+
+// Player editing commands
+async function setPlayerName(name) {
+  if (!name) {
+    console.log(chalk.red('❌ Please provide a name'));
+    return;
+  }
+  
+  try {
+    const apiClient = createApiClient();
+    const response = await apiClient.put(`/api/state/${config.playerId}/player`, {
+      name: name
+    });
+    
+    if (response.data.success) {
+      console.log(chalk.green(`✅ Name changed to: ${name}`));
+      const state = response.data.data;
+      console.log(chalk.cyan(`🧙‍♂️ Welcome, ${state.player.name}!`));
+    }
+  } catch (error) {
+    console.log(chalk.red('❌ Failed to update name'));
+  }
+}
+
+async function setPlayerLocation(location) {
+  if (!location) {
+    console.log(chalk.red('❌ Please provide a location'));
+    return;
+  }
+  
+  try {
+    const apiClient = createApiClient();
+    const response = await apiClient.put(`/api/state/${config.playerId}/player`, {
+      location: location
+    });
+    
+    if (response.data.success) {
+      console.log(chalk.green(`✅ Moved to: ${location}`));
+      const state = response.data.data;
+      console.log(chalk.cyan(`🌍 You are now in ${state.player.location}`));
+    }
+  } catch (error) {
+    console.log(chalk.red('❌ Failed to update location'));
+  }
+}
+
+async function setPlayerLevel(level) {
+  const validLevels = ['novice', 'apprentice', 'expert', 'master'];
+  
+  if (!level || !validLevels.includes(level)) {
+    console.log(chalk.red(`❌ Please provide a valid level: ${validLevels.join(', ')}`));
+    return;
+  }
+  
+  try {
+    const apiClient = createApiClient();
+    const response = await apiClient.put(`/api/state/${config.playerId}/player`, {
+      level: level
+    });
+    
+    if (response.data.success) {
+      console.log(chalk.green(`✅ Level changed to: ${level}`));
+      const state = response.data.data;
+      console.log(chalk.cyan(`🎯 You are now a ${state.player.level}!`));
+    }
+  } catch (error) {
+    console.log(chalk.red('❌ Failed to update level'));
+  }
+}
+
+async function showProfile() {
+  try {
+    const apiClient = createApiClient();
+    const response = await apiClient.get(`/api/state/${config.playerId}`);
+    const state = response.data.data;
+    const player = state.player;
+    
+    console.log(chalk.bold.blue('👤 Player Profile'));
+    console.log(chalk.gray('─'.repeat(40)));
+    console.log(chalk.green(`🆔 ID: ${player.id}`));
+    console.log(chalk.green(`📛 Name: ${player.name}`));
+    console.log(chalk.yellow(`⭐ Score: ${player.score} points`));
+    console.log(chalk.magenta(`🎯 Level: ${player.level}`));
+    console.log(chalk.cyan(`🌍 Location: ${player.location}`));
+    console.log(chalk.blue(`🎭 Status: ${player.status}`));
+    
+    if (state.inventory && state.inventory.items.length > 0) {
+      console.log(chalk.green(`🎒 Inventory: ${state.inventory.items.join(', ')}`));
+    } else {
+      console.log(chalk.gray('🎒 Inventory: Empty'));
+    }
+    
+    console.log(chalk.gray('─'.repeat(40)));
+    console.log(chalk.gray('💡 Tip: Use set-name, set-location, or set-level to edit'));
+  } catch (error) {
+    console.log(chalk.red('❌ Failed to fetch profile'));
+  }
+}
+
+// Update the main command handler
+async function main() {
+  const command = process.argv[2];
+  const args = process.argv.slice(3);
+
+  if (!command) {
+    showHelp();
+    return;
+  }
+
+  if (!allowedCommands.includes(command)) {
+    console.log(chalk.red(`❌ Unknown command: ${command}`));
+    showHelp();
+    return;
+  }
+
+  switch (command) {
+    case 'profile':
+      await showProfile();
+      break;
+      
+    case 'set-name':
+      await setPlayerName(args.join(' '));
+      break;
+      
+    case 'set-location':
+      await setPlayerLocation(args.join(' '));
+      break;
+      
+    case 'set-level':
+      await setPlayerLevel(args[0]);
+      break;
+      
+    case 'help':
+      showHelp();
+      break;
+      
+    default:
+      // ... existing cases ...
+  }
+}
