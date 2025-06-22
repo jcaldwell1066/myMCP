@@ -34,6 +34,7 @@ export const config = {
   engines: {
     // List of known engine endpoints
     endpoints: process.env.ENGINE_ENDPOINTS?.split(',') || [
+      'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3002',
       'http://localhost:3003'

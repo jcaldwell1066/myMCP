@@ -16,7 +16,7 @@ const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   ADMIN_PORT: process.env.ADMIN_PORT || '3500',
   REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
-  ENGINE_ENDPOINTS: process.env.ENGINE_ENDPOINTS || 'http://localhost:3001,http://localhost:3002,http://localhost:3003'
+  ENGINE_ENDPOINTS: process.env.ENGINE_ENDPOINTS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003'
 };
 
 // Build the admin module first
