@@ -2301,12 +2301,12 @@ class AdminDashboard {
         try {
             // Fetch available quests from the engine
             const response = await fetch('/api/proxy/api/quest-catalog?target=' + encodeURIComponent('http://localhost:3001'));
-            const data = await response.json();
+            const result = await response.json();
             
             const select = document.getElementById('questTemplateSelect');
-            if (select && data.quests) {
+            if (select && result.data && result.data.quests) {
                 select.innerHTML = '<option value="">Select a template...</option>';
-                data.quests.forEach(quest => {
+                result.data.quests.forEach(quest => {
                     const option = document.createElement('option');
                     option.value = quest.id;
                     option.textContent = quest.title;
