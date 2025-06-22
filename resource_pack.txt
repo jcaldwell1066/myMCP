@@ -1,6 +1,29 @@
 Shut Down! 🛑
 
+node tools/testing/reset-redis.js --dry-run
+
+🎮🎮🎮🎮🎮
+
+🗺️ 🗺️ 🗺️ 🗺️ 
+
 ✅✅✅✅✅
+
+🎒 Inventory
+🎮 Your Game State (jcadwell-mcp)
+
+🗺️ Available Adventures
+🗺️ Available Quests
+
+1. 🌐 Council of Three Realms (100 points)
+
+2. 🏰 Dungeon Keeper's Vigil (75 points)
+
+3. 🔮 Cryptomancer's Seal (125 points)
+
+📊 Keys to be deleted:
+ℹ️  DRY RUN MODE - No data will be deleted
+
+🎮 Your Game State (jcadwell-mcp)
 o
 ::ffff:127.0.0.1 - - [21/Jun/2025:21:21:19 +0000] "GET /api/status HTTP/1.1" 200 181 "-" "node"
 ::ffff:127.0.0.1 - - [21/Jun/2025:21:21:24 +0000] "GET /api/status HTTP/1.1" 200 180 "-" "node"

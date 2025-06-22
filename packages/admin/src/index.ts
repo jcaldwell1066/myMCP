@@ -44,6 +44,9 @@ export class AdminServer {
       metrics: new SystemMetricsService()
     };
 
+    // Connect health monitor to dashboard for event logging
+    this.services.health.setDashboard(this.services.dashboard);
+
     this.setupMiddleware();
     this.setupRoutes();
     this.setupWebSocket();

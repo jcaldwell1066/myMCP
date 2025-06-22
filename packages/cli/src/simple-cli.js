@@ -266,6 +266,24 @@ program
     }
   });
 
+// Help command
+program
+  .command('help')
+  .description('Show available commands')
+  .action(() => {
+    console.log(chalk.cyan('🗡️  myMCP CLI - Fantasy Chatbot Interface'));
+    console.log(chalk.gray('─'.repeat(50)));
+    program.outputHelp();
+    console.log();
+    console.log(chalk.yellow('💡 Quick Start:'));
+    console.log(chalk.gray('  mycli health              - Check engine connection'));
+    console.log(chalk.gray('  mycli status              - View player status'));
+    console.log(chalk.gray('  mycli chat "hi"           - Chat with AI guide'));
+    console.log(chalk.gray('  mycli quests              - List all available quests'));
+    console.log(chalk.gray('  mycli start-quest <id>    - Start a quest'));
+    console.log(chalk.gray('  mycli progress            - Show quest progress'));
+  });
+
 // Progress command
 program
   .command('progress')

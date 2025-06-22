@@ -59,6 +59,7 @@ export class HealthMonitor extends EventEmitter {
   private monitoringInterval?: NodeJS.Timeout;
   private engineHealthCache: Map<string, EngineHealth> = new Map();
   private healthChecks: Map<string, HealthCheck> = new Map();
+  private dashboard?: any; // Reference to dashboard service
 
   constructor(redisUrl: string) {
     super();
@@ -84,6 +85,11 @@ export class HealthMonitor extends EventEmitter {
     });
     
     this.initializeHealthChecks();
+  }
+
+  // Add method to set dashboard reference
+  setDashboard(dashboard: any) {
+    this.dashboard = dashboard;
   }
 
   private initializeHealthChecks() {
@@ -217,6 +223,8 @@ export class HealthMonitor extends EventEmitter {
 
         if (response.ok) {
           const data = await response.json() as any;
+          const previousHealth = this.engineHealthCache.get(endpoint);
+          
           health = {
             engineId: data.engineId || endpoint,
             url: endpoint,
@@ -237,9 +245,40 @@ export class HealthMonitor extends EventEmitter {
           if (health.responseTime && health.responseTime > config.monitoring.alertThresholds.engineResponseTime) {
             health.status = 'degraded';
           }
+
+          // Log engine status changes
+          if (previousHealth?.status !== health.status) {
+            this.dashboard?.logEvent(
+              health.status === 'online' ? 'info' : 'warning',
+              'engine',
+              `Engine ${health.engineId} is ${health.status}`,
+              { engineId: health.engineId, status: health.status, responseTime: health.responseTime }
+            );
+          }
+        } else {
+          // Log engine offline
+          const previousHealth = this.engineHealthCache.get(endpoint);
+          if (previousHealth?.status === 'online') {
+            this.dashboard?.logEvent(
+              'error',
+              'engine',
+              `Engine ${endpoint} went offline`,
+              { engineId: endpoint, error: `HTTP ${response.status}` }
+            );
+          }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Engine health check failed for ${endpoint}:`, error);
+        // Log engine error
+        const previousHealth = this.engineHealthCache.get(endpoint);
+        if (previousHealth?.status === 'online') {
+          this.dashboard?.logEvent(
+            'error',
+            'engine',
+            `Engine ${endpoint} health check failed`,
+            { engineId: endpoint, error: error.message || 'Unknown error' }
+          );
+        }
       }
 
       engines.push(health);
@@ -335,6 +374,7 @@ export class HealthMonitor extends EventEmitter {
         message: 'System health critical',
         health
       });
+      this.dashboard?.logEvent('error', 'health', 'System health is critical', { overall: health.overall });
     }
 
     // Check Redis latency
@@ -344,6 +384,7 @@ export class HealthMonitor extends EventEmitter {
         message: `High Redis latency: ${health.redis.latency}ms`,
         health
       });
+      this.dashboard?.logEvent('warning', 'redis', `High Redis latency: ${health.redis.latency}ms`, { latency: health.redis.latency });
     }
 
     // Check system resources
@@ -353,6 +394,7 @@ export class HealthMonitor extends EventEmitter {
         message: `High memory usage: ${health.system.memory.percentage.toFixed(1)}%`,
         health
       });
+      this.dashboard?.logEvent('warning', 'system', `High memory usage: ${health.system.memory.percentage.toFixed(1)}%`, { memory: health.system.memory });
     }
 
     const avgCpu = health.system.cpu.reduce((a, b) => a + b, 0) / health.system.cpu.length;
@@ -362,6 +404,7 @@ export class HealthMonitor extends EventEmitter {
         message: `High CPU usage: ${avgCpu.toFixed(1)}%`,
         health
       });
+      this.dashboard?.logEvent('warning', 'system', `High CPU usage: ${avgCpu.toFixed(1)}%`, { cpu: avgCpu });
     }
   }
 

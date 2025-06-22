@@ -120,9 +120,20 @@ export function setupRoutes(app: Application, services: Services) {
   app.post('/api/redis/query', async (req: Request, res: Response) => {
     try {
       const { command, args = [] } = req.body;
+      
+      // Log Redis query execution
+      services.dashboard.logEvent('info', 'redis', `Executing query: ${command}`, {
+        command,
+        argsCount: args.length
+      });
+      
       const result = await services.redis.executeQuery(command, args);
       res.json(result);
     } catch (error: any) {
+      services.dashboard.logEvent('error', 'redis', `Query failed: ${req.body.command}`, {
+        command: req.body.command,
+        error: error.message
+      });
       res.status(400).json({ error: error.message });
     }
   });
@@ -317,9 +328,10 @@ export function setupRoutes(app: Application, services: Services) {
       // Sanitize command to prevent injection
       const allowedCommands = ['status', 'chat', 'health', 'quests', 'get-score', 
                               'start-quest', 'quest-steps', 'complete-step', 
-                              'complete-quest', 'next', 'progress', 'history'];
+                              'complete-quest', 'next', 'progress', 'history', 'help'];
       
       if (!allowedCommands.includes(command)) {
+        services.dashboard.logEvent('warning', 'cli', `Blocked unauthorized command: ${command}`);
         return res.status(400).json({ 
           success: false, 
           error: `Command '${command}' is not allowed` 
@@ -352,6 +364,14 @@ export function setupRoutes(app: Application, services: Services) {
       
       console.log(`Executing CLI command: ${fullCommand} with engine: ${engineUrl}`);
       
+      // Log the CLI command execution
+      services.dashboard.logEvent('info', 'cli', `Executing command: ${command}`, {
+        command,
+        args,
+        engineUrl,
+        mode
+      });
+      
       const { stdout, stderr } = await execAsync(fullCommand, {
         env: { 
           ...process.env, 
@@ -359,6 +379,14 @@ export function setupRoutes(app: Application, services: Services) {
           ENGINE_URL: engineUrl // Pass the selected engine URL
         },
         timeout: 30000 // 30 second timeout
+      });
+
+      // Log successful command execution
+      services.dashboard.logEvent('info', 'cli', `Command completed: ${command}`, {
+        command,
+        success: true,
+        hasOutput: !!stdout,
+        hasError: !!stderr
       });
 
       res.json({
@@ -402,6 +430,7 @@ export function setupRoutes(app: Application, services: Services) {
     const { prefix = '' } = req.query;
     
     const commands = [
+      { command: 'help', description: 'Show available commands' },
       { command: 'status', description: 'Show current game status' },
       { command: 'health', description: 'Check engine connection' },
       { command: 'chat', description: 'Chat with the AI guide', requiresArgs: true },
