@@ -1,0 +1,475 @@
+{
+  "id": "mountain-lodge-ecommerce",
+  "title": "Alpine Retreat E-Commerce Setup",
+  "description": "Transform the Mountain Vista Lodge from a traditional booking system to a modern e-commerce experience offering lodging, activities, and retail merchandise.",
+  "category": "business-transformation",
+  "difficulty": "hard",
+  "estimatedTime": "2-3 weeks",
+  "rewards": {
+    "points": 500,
+    "achievements": ["Digital Transformation Expert", "E-Commerce Architect", "Resort Operations Specialist"]
+  },
+  "steps": [
+    {
+      "id": "lodge-requirements-analysis",
+      "description": "Conduct comprehensive analysis of lodge operations, customer needs, and technical requirements",
+      "completed": false,
+      "title": "Lodge Business & Technical Requirements Analysis",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "research",
+        "tags": ["business-analysis", "requirements-gathering", "hospitality", "user-research"],
+        "points": 75,
+        "estimatedDuration": "2-3 days",
+        "prerequisites": [],
+        "realWorldSkill": "Business Requirements Analysis"
+      },
+      "resources": {
+        "docs": [
+          {
+            "title": "Hospitality E-Commerce Best Practices",
+            "url": "https://hospitality-tech.guide/ecommerce",
+            "type": "guide",
+            "description": "Industry standards for hospitality online platforms"
+          },
+          {
+            "title": "Resort Operations Analysis Template",
+            "filename": "resort-analysis-template.md",
+            "type": "template",
+            "description": "Structured template for analyzing resort operations"
+          }
+        ],
+        "tools": [
+          {
+            "name": "Competitor Analysis Framework",
+            "type": "methodology",
+            "description": "Analyze similar resort e-commerce platforms"
+          },
+          {
+            "name": "Customer Journey Mapping",
+            "type": "design-tool",
+            "description": "Map the guest experience from discovery to post-stay"
+          }
+        ],
+        "examples": [
+          {
+            "name": "Aspen Lodge E-Commerce Case Study",
+            "type": "case-study",
+            "description": "Real-world implementation example"
+          }
+        ]
+      },
+      "execution": {
+        "type": "hybrid",
+        "launcher": {
+          "type": "guided-research",
+          "phases": [
+            "Stakeholder interviews with lodge management",
+            "Guest persona development and journey mapping",
+            "Competitive landscape analysis",
+            "Technical infrastructure assessment",
+            "Integration requirements documentation"
+          ]
+        },
+        "validation": {
+          "type": "criteria",
+          "criteria": [
+            "Complete stakeholder interview notes for at least 3 key roles",
+            "Documented guest personas with booking behaviors",
+            "Analysis of 5+ competitor platforms with feature comparison",
+            "Technical architecture requirements document",
+            "Integration map showing current systems and data flows"
+          ]
+        },
+        "hints": [
+          "Focus on seasonal booking patterns unique to mountain lodges",
+          "Consider equipment rental integration early in planning",
+          "Document current payment processing limitations"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "platform-architecture-design",
+      "description": "Design scalable e-commerce platform architecture with microservices for booking, inventory, and customer management",
+      "completed": false,
+      "title": "E-Commerce Platform Architecture Design",
+      "metadata": {
+        "difficulty": "hard",
+        "category": "development",
+        "tags": ["architecture", "microservices", "scalability", "system-design"],
+        "points": 100,
+        "estimatedDuration": "3-4 days",
+        "prerequisites": ["lodge-requirements-analysis"],
+        "realWorldSkill": "System Architecture Design"
+      },
+      "resources": {
+        "docs": [
+          {
+            "title": "Microservices Architecture Patterns",
+            "url": "https://microservices.io/patterns/",
+            "type": "reference",
+            "description": "Comprehensive microservices pattern library"
+          },
+          {
+            "title": "E-Commerce Architecture Blueprint",
+            "filename": "ecommerce-architecture-template.md",
+            "type": "template",
+            "description": "Template for designing e-commerce system architecture"
+          }
+        ],
+        "tools": [
+          {
+            "name": "Draw.io",
+            "url": "https://app.diagrams.net/",
+            "type": "diagramming",
+            "description": "Create system architecture diagrams"
+          },
+          {
+            "name": "C4 Model Templates",
+            "type": "methodology",
+            "description": "Structured approach to software architecture diagrams"
+          }
+        ],
+        "examples": [
+          {
+            "name": "Netflix Microservices Architecture",
+            "type": "case-study",
+            "description": "Large-scale microservices implementation"
+          },
+          {
+            "name": "Booking.com Platform Design",
+            "type": "case-study",
+            "description": "Hospitality-specific architecture patterns"
+          }
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "output",
+          "criteria": [
+            "System context diagram showing external integrations",
+            "Container diagram with services and communication patterns",
+            "Component diagrams for core services (booking, payment, inventory)",
+            "Database design with relationship models",
+            "API specification document with endpoints and data schemas",
+            "Security architecture with authentication and authorization flows"
+          ]
+        },
+        "hints": [
+          "Consider seasonal load patterns for infrastructure scaling",
+          "Plan for offline booking capabilities during poor connectivity",
+          "Design for PCI compliance from the start for payment processing"
+        ]
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "inventory-management-system",
+      "description": "Implement comprehensive inventory system for rooms, activities, equipment rentals, and retail merchandise",
+      "completed": false,
+      "title": "Multi-Category Inventory Management System",
+      "metadata": {
+        "difficulty": "hard",
+        "category": "development",
+        "tags": ["inventory", "real-time", "multi-category", "availability"],
+        "points": 125,
+        "estimatedDuration": "5-7 days",
+        "prerequisites": ["platform-architecture-design"],
+        "realWorldSkill": "Complex Inventory Management"
+      },
+      "resources": {
+        "docs": [
+          {
+            "title": "Hospitality Inventory Management Guide",
+            "type": "industry-guide",
+            "description": "Best practices for managing diverse hospitality inventory"
+          }
+        ],
+        "tools": [
+          {
+            "name": "Redis",
+            "type": "database",
+            "description": "Real-time inventory caching and session management"
+          },
+          {
+            "name": "PostgreSQL",
+            "type": "database",
+            "description": "Primary data store with ACID compliance"
+          }
+        ],
+        "examples": [
+          {
+            "name": "Airbnb Availability Engine",
+            "type": "case-study",
+            "description": "Real-time availability management at scale"
+          }
+        ]
+      },
+      "execution": {
+        "type": "automated",
+        "validation": {
+          "type": "test",
+          "criteria": [
+            "Unit tests for inventory service with 90%+ coverage",
+            "Integration tests for real-time availability updates",
+            "Load tests handling 1000+ concurrent booking attempts",
+            "Data consistency tests for simultaneous bookings",
+            "API documentation with example requests/responses"
+          ]
+        }
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "payment-processing-integration",
+      "description": "Integrate secure payment processing with support for deposits, cancellations, and refunds specific to hospitality",
+      "completed": false,
+      "title": "Hospitality-Optimized Payment Processing",
+      "metadata": {
+        "difficulty": "hard",
+        "category": "security",
+        "tags": ["payments", "PCI-compliance", "refunds", "deposits", "security"],
+        "points": 100,
+        "estimatedDuration": "4-5 days",
+        "prerequisites": ["platform-architecture-design"],
+        "realWorldSkill": "Secure Payment Integration"
+      },
+      "resources": {
+        "docs": [
+          {
+            "title": "PCI DSS Compliance Guide",
+            "url": "https://www.pcisecuritystandards.org/",
+            "type": "compliance",
+            "description": "Official PCI compliance requirements"
+          },
+          {
+            "title": "Stripe Hospitality Integration Guide",
+            "url": "https://stripe.com/docs/hospitality",
+            "type": "api-docs",
+            "description": "Payment processing for hospitality businesses"
+          }
+        ],
+        "tools": [
+          {
+            "name": "Stripe Payment Elements",
+            "type": "payment-api",
+            "description": "Secure payment form components"
+          },
+          {
+            "name": "Webhook Testing Tools",
+            "type": "testing",
+            "description": "Test payment event handling"
+          }
+        ]
+      },
+      "execution": {
+        "type": "hybrid",
+        "validation": {
+          "type": "checklist",
+          "criteria": [
+            "PCI DSS compliance assessment completed",
+            "Payment flows tested with test cards",
+            "Refund and cancellation processes implemented",
+            "Webhook handlers for payment events",
+            "Error handling for failed payments",
+            "Security audit of payment integration"
+          ]
+        }
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "guest-experience-optimization",
+      "description": "Create personalized guest experience with recommendations, loyalty programs, and communication automation",
+      "completed": false,
+      "title": "Personalized Guest Experience Engine",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "development",
+        "tags": ["personalization", "CRM", "loyalty", "automation", "guest-experience"],
+        "points": 85,
+        "estimatedDuration": "4-6 days",
+        "prerequisites": ["inventory-management-system", "payment-processing-integration"],
+        "realWorldSkill": "Customer Experience Design"
+      },
+      "resources": {
+        "docs": [
+          {
+            "title": "Hotel Guest Experience Optimization",
+            "type": "guide",
+            "description": "Strategies for enhancing guest satisfaction"
+          }
+        ],
+        "tools": [
+          {
+            "name": "Customer.io",
+            "type": "automation",
+            "description": "Guest communication automation"
+          },
+          {
+            "name": "Segment",
+            "type": "analytics",
+            "description": "Customer data platform for personalization"
+          }
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "criteria",
+          "criteria": [
+            "Guest profile system with preference tracking",
+            "Recommendation engine for activities and amenities",
+            "Automated communication workflows (booking confirmation, pre-arrival, post-stay)",
+            "Loyalty points system with redemption options",
+            "Guest feedback collection and analysis system"
+          ]
+        }
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "performance-monitoring-setup",
+      "description": "Implement comprehensive monitoring, logging, and alerting for the e-commerce platform",
+      "completed": false,
+      "title": "Production Monitoring & Observability",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "devops",
+        "tags": ["monitoring", "logging", "alerting", "observability", "performance"],
+        "points": 75,
+        "estimatedDuration": "3-4 days",
+        "prerequisites": ["guest-experience-optimization"],
+        "realWorldSkill": "Production System Monitoring"
+      },
+      "resources": {
+        "docs": [
+          {
+            "title": "Production Monitoring Best Practices",
+            "type": "guide",
+            "description": "Comprehensive monitoring strategy"
+          }
+        ],
+        "tools": [
+          {
+            "name": "DataDog",
+            "type": "monitoring",
+            "description": "Application and infrastructure monitoring"
+          },
+          {
+            "name": "PagerDuty",
+            "type": "alerting",
+            "description": "Incident management and alerting"
+          }
+        ]
+      },
+      "execution": {
+        "type": "automated",
+        "validation": {
+          "type": "test",
+          "criteria": [
+            "Application performance monitoring dashboards",
+            "Error tracking and alerting rules",
+            "Business metrics tracking (bookings, revenue, conversion)",
+            "Infrastructure monitoring (CPU, memory, disk)",
+            "Log aggregation and search capabilities",
+            "Incident response playbooks"
+          ]
+        }
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    },
+    {
+      "id": "launch-preparation",
+      "description": "Prepare for production launch with staff training, documentation, and go-live checklist",
+      "completed": false,
+      "title": "Production Launch Preparation",
+      "metadata": {
+        "difficulty": "medium",
+        "category": "coordination",
+        "tags": ["launch", "training", "documentation", "change-management"],
+        "points": 60,
+        "estimatedDuration": "2-3 days",
+        "prerequisites": ["performance-monitoring-setup"],
+        "realWorldSkill": "Change Management & Training"
+      },
+      "resources": {
+        "docs": [
+          {
+            "title": "Go-Live Checklist Template",
+            "type": "template",
+            "description": "Comprehensive launch preparation checklist"
+          }
+        ],
+        "tools": [
+          {
+            "name": "Notion",
+            "type": "documentation",
+            "description": "Staff training materials and runbooks"
+          }
+        ]
+      },
+      "execution": {
+        "type": "manual",
+        "validation": {
+          "type": "checklist",
+          "criteria": [
+            "Staff training completed with competency verification",
+            "User documentation and help guides created",
+            "Go-live checklist with rollback procedures",
+            "Backup and disaster recovery procedures tested",
+            "Customer communication plan for platform transition",
+            "Post-launch support schedule established"
+          ]
+        }
+      },
+      "progress": {
+        "attempts": 0,
+        "notes": [],
+        "artifacts": []
+      }
+    }
+  ],
+  "metadata": {
+    "totalPoints": 620,
+    "skillsLearned": [
+      "E-Commerce Architecture",
+      "Hospitality Industry Knowledge",
+      "Payment Security",
+      "Customer Experience Design",
+      "Production Operations"
+    ],
+    "realWorldApplications": [
+      "Resort and hotel booking platforms",
+      "Activity and equipment rental systems",
+      "Hospitality customer management",
+      "Seasonal business operations"
+    ]
+  }
+}
