@@ -223,3 +223,145 @@ export interface AdminEvent {
   message: string;
   details?: any;
 }
+
+// Quest Template and Editor Types
+export type QuestTemplateStatus = 'draft' | 'published' | 'archived';
+
+export interface QuestTemplate {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  status: QuestTemplateStatus;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  tags: string[];
+  category: string;
+  // Quest definition using enhanced format
+  questDefinition: {
+    id: string;
+    title: string;
+    description: string;
+    realWorldSkill: string;
+    fantasyTheme: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    estimatedDuration: string;
+    category: string;
+    tags: string[];
+    steps: EnhancedQuestStep[];
+    rewards: {
+      points: number;
+      achievements: string[];
+      items?: string[];
+    };
+    metadata: {
+      totalPoints: number;
+      skillsLearned: string[];
+      realWorldApplications: string[];
+    };
+  };
+}
+
+// Enhanced Quest Step for templates (imported from engine types)
+export interface EnhancedQuestStep {
+  id: string;
+  description: string;
+  completed: boolean;
+  title: string;
+  metadata: {
+    difficulty: 'easy' | 'medium' | 'hard';
+    category: 'development' | 'coordination' | 'research' | 'testing' | 'security' | 'devops' | 'collaboration' | 'monitoring' | 'documentation';
+    tags: string[];
+    points: number;
+    estimatedDuration?: string;
+    prerequisites?: string[];
+    realWorldSkill?: string;
+  };
+  resources: {
+    docs?: Array<{
+      title: string;
+      url?: string;
+      filename?: string;
+      type: string;
+      description: string;
+    }>;
+    tools?: Array<{
+      name: string;
+      url?: string;
+      type: string;
+      description: string;
+    }>;
+    examples?: Array<{
+      name: string;
+      type: string;
+      description: string;
+    }>;
+  };
+  execution: {
+    type: 'manual' | 'automated' | 'hybrid';
+    launcher?: {
+      type: string;
+      phases?: string[];
+      items?: string[];
+    };
+    validation: {
+      type: 'checklist' | 'test' | 'output' | 'confirmation' | 'file-exists' | 'criteria';
+      criteria: string[];
+    };
+    hints?: string[];
+  };
+  progress: {
+    attempts: number;
+    notes: string[];
+    artifacts: string[];
+  };
+}
+
+// Quest Editor Types
+export interface QuestEditorState {
+  currentTemplate: QuestTemplate | null;
+  templates: QuestTemplate[];
+  isEditing: boolean;
+  isDirty: boolean;
+  validationErrors: string[];
+  previewMode: boolean;
+}
+
+// Admin Dashboard Types
+export interface AdminDashboardData {
+  questMetrics: {
+    totalTemplates: number;
+    publishedTemplates: number;
+    draftTemplates: number;
+    activeQuests: number;
+    completedQuests: number;
+  };
+  playerMetrics: {
+    totalPlayers: number;
+    activePlayers: number;
+    averageScore: number;
+  };
+  systemMetrics: SystemMetrics;
+}
+
+// API Response Types for Quest Editor
+export interface QuestTemplateListResponse {
+  success: boolean;
+  data: {
+    templates: QuestTemplate[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  };
+  timestamp: Date;
+}
+
+export interface QuestTemplateResponse {
+  success: boolean;
+  data: QuestTemplate;
+  timestamp: Date;
+}

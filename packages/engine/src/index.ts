@@ -1231,5 +1231,441 @@ process.on('SIGTERM', () => {
   });
 });
 
+// Quest Template Management APIs
+app.get('/api/admin/quest-templates', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const status = req.query.status as string;
+    const category = req.query.category as string;
+    const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
+
+    // For now, return sample data. In production, this would use QuestTemplateService
+    const sampleTemplates = [
+      {
+        id: 'lodge-ecommerce',
+        name: 'Alpine Retreat E-Commerce Setup',
+        description: 'Transform a traditional mountain lodge into a modern e-commerce platform',
+        version: '1.2.0',
+        status: 'published',
+        createdBy: 'admin',
+        createdAt: new Date('2023-06-01'),
+        updatedAt: new Date('2023-06-15'),
+        tags: ['ecommerce', 'hospitality', 'business-transformation'],
+        category: 'business',
+        questDefinition: {
+          id: 'mountain-lodge-ecommerce',
+          title: 'Alpine Retreat E-Commerce Setup',
+          description: 'Transform the Mountain Vista Lodge from a traditional booking system to a modern e-commerce experience',
+          realWorldSkill: 'E-Commerce Platform Development',
+          fantasyTheme: 'Establishing a Trading Post in the Mountain Village',
+          difficulty: 'hard',
+          estimatedDuration: '2-3 weeks',
+          category: 'business-transformation',
+          tags: ['ecommerce', 'hospitality', 'microservices'],
+          steps: [],
+          rewards: { points: 620, achievements: ['Digital Transformation Expert'], items: [] },
+          metadata: { totalPoints: 620, skillsLearned: ['E-Commerce Architecture'], realWorldApplications: ['Resort booking platforms'] }
+        }
+      },
+      {
+        id: 'global-meeting-quest',
+        name: 'Council of Three Realms',
+        description: 'Master timezone coordination and meeting scheduling across global teams',
+        version: '1.0.0',
+        status: 'published',
+        createdBy: 'admin',
+        createdAt: new Date('2023-05-15'),
+        updatedAt: new Date('2023-05-20'),
+        tags: ['coordination', 'timezone', 'meetings'],
+        category: 'coordination',
+        questDefinition: {
+          id: 'council-three-realms',
+          title: 'The Council of Three Realms',
+          description: 'Gather allies from distant kingdoms (time zones) for the great council',
+          realWorldSkill: 'Global Team Coordination',
+          fantasyTheme: 'Diplomatic Mission Across Time Realms',
+          difficulty: 'medium',
+          estimatedDuration: '1-2 hours',
+          category: 'coordination',
+          tags: ['timezone', 'meetings', 'communication'],
+          steps: [],
+          rewards: { points: 150, achievements: ['Time Master'], items: [] },
+          metadata: { totalPoints: 150, skillsLearned: ['Meeting Coordination'], realWorldApplications: ['Global team management'] }
+        }
+      },
+      {
+        id: 'draft-quest-template',
+        name: 'Server Monitoring Quest',
+        description: 'Learn to monitor and maintain server health through adventure',
+        version: '0.5.0',
+        status: 'draft',
+        createdBy: 'admin',
+        createdAt: new Date('2023-06-10'),
+        updatedAt: new Date('2023-06-18'),
+        tags: ['monitoring', 'devops', 'servers'],
+        category: 'devops',
+        questDefinition: {
+          id: 'dungeon-keeper-vigil',
+          title: 'The Dungeon Keeper\'s Vigil',
+          description: 'Monitor the ancient servers in the Mountain of Processing',
+          realWorldSkill: 'Server Monitoring',
+          fantasyTheme: 'Guardian of the Digital Dungeons',
+          difficulty: 'medium',
+          estimatedDuration: '2-3 hours',
+          category: 'monitoring',
+          tags: ['servers', 'health-checks', 'alerts'],
+          steps: [],
+          rewards: { points: 200, achievements: ['System Guardian'], items: [] },
+          metadata: { totalPoints: 200, skillsLearned: ['Server Monitoring'], realWorldApplications: ['Production system maintenance'] }
+        }
+      }
+    ];
+
+    // Apply filters
+    let filteredTemplates = sampleTemplates;
+    if (status) {
+      filteredTemplates = filteredTemplates.filter(t => t.status === status);
+    }
+    if (category) {
+      filteredTemplates = filteredTemplates.filter(t => t.category === category);
+    }
+    if (tags) {
+      filteredTemplates = filteredTemplates.filter(t => 
+        tags.some(tag => t.tags.includes(tag))
+      );
+    }
+
+    // Pagination
+    const total = filteredTemplates.length;
+    const pages = Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const paginatedTemplates = filteredTemplates.slice(start, start + limit);
+
+    res.json({
+      success: true,
+      data: {
+        templates: paginatedTemplates,
+        pagination: { page, limit, total, pages }
+      },
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch quest templates',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Get single quest template
+app.get('/api/admin/quest-templates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Sample template data - in production would use QuestTemplateService
+    if (id === 'lodge-ecommerce') {
+      const template = {
+        id: 'lodge-ecommerce',
+        name: 'Alpine Retreat E-Commerce Setup',
+        description: 'Transform a traditional mountain lodge into a modern e-commerce platform',
+        version: '1.2.0',
+        status: 'published',
+        createdBy: 'admin',
+        createdAt: new Date('2023-06-01'),
+        updatedAt: new Date('2023-06-15'),
+        tags: ['ecommerce', 'hospitality', 'business-transformation'],
+        category: 'business',
+        questDefinition: JSON.parse(require('fs').readFileSync('./examples/lodge-ecommerce-quest.json', 'utf8'))
+      };
+      
+      res.json({
+        success: true,
+        data: template,
+        timestamp: new Date()
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Quest template not found',
+        timestamp: new Date()
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch quest template',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Create new quest template
+app.post('/api/admin/quest-templates', async (req, res) => {
+  try {
+    const templateData = req.body;
+    const createdBy = req.headers['x-user-id'] || 'admin';
+    
+    // Basic validation
+    if (!templateData.name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Template name is required',
+        timestamp: new Date()
+      });
+    }
+
+    // Create new template with default structure
+    const newTemplate = {
+      id: `template-${Date.now()}`, // In production, use proper UUID
+      name: templateData.name,
+      description: templateData.description || '',
+      version: '1.0.0',
+      status: 'draft',
+      createdBy,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      tags: templateData.tags || [],
+      category: templateData.category || 'general',
+      questDefinition: templateData.questDefinition || {
+        id: `quest-${Date.now()}`,
+        title: templateData.name,
+        description: templateData.description || 'Quest description goes here',
+        realWorldSkill: 'Skill to be learned',
+        fantasyTheme: 'Fantasy narrative theme',
+        difficulty: 'medium',
+        estimatedDuration: '30 minutes',
+        category: 'general',
+        tags: [],
+        steps: [{
+          id: `step-${Date.now()}`,
+          title: 'New Step',
+          description: 'Step description goes here',
+          completed: false,
+          metadata: {
+            difficulty: 'medium',
+            category: 'development',
+            tags: [],
+            points: 25
+          },
+          resources: { docs: [], tools: [], examples: [] },
+          execution: {
+            type: 'manual',
+            validation: {
+              type: 'checklist',
+              criteria: ['Complete the task successfully']
+            }
+          },
+          progress: { attempts: 0, notes: [], artifacts: [] }
+        }],
+        rewards: { points: 50, achievements: [], items: [] },
+        metadata: { totalPoints: 50, skillsLearned: [], realWorldApplications: [] }
+      }
+    };
+
+    res.json({
+      success: true,
+      data: newTemplate,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create quest template',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Update quest template
+app.put('/api/admin/quest-templates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    // In production, this would use QuestTemplateService.updateTemplate
+    const updatedTemplate = {
+      ...updates,
+      id,
+      updatedAt: new Date()
+    };
+
+    res.json({
+      success: true,
+      data: updatedTemplate,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update quest template',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Publish quest template
+app.post('/api/admin/quest-templates/:id/publish', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // In production, this would use QuestTemplateService.publishTemplate
+    res.json({
+      success: true,
+      message: `Template ${id} published successfully`,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to publish quest template',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Unpublish quest template
+app.post('/api/admin/quest-templates/:id/unpublish', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    res.json({
+      success: true,
+      message: `Template ${id} unpublished successfully`,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to unpublish quest template',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Delete quest template
+app.delete('/api/admin/quest-templates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    res.json({
+      success: true,
+      message: `Template ${id} deleted successfully`,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete quest template',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Duplicate quest template
+app.post('/api/admin/quest-templates/:id/duplicate', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    
+    // In production, this would use QuestTemplateService.duplicateTemplate
+    const duplicatedTemplate = {
+      id: `${id}-copy-${Date.now()}`,
+      name: name || `Copy of Template ${id}`,
+      status: 'draft',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    res.json({
+      success: true,
+      data: duplicatedTemplate,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to duplicate quest template',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Get admin dashboard data
+app.get('/api/admin/dashboard', async (req, res) => {
+  try {
+    // Get player statistics
+    const players = Object.values(gameStatesCache);
+    const totalPlayers = players.length;
+    const activePlayers = players.filter(p => p.player.status !== 'idle').length;
+    const totalScore = players.reduce((sum, p) => sum + p.player.score, 0);
+    const averageScore = totalPlayers > 0 ? Math.round(totalScore / totalPlayers) : 0;
+
+    // Get quest statistics
+    const questStats = players.reduce((stats, player) => {
+      stats.totalCompleted += player.quests.completed.length;
+      if (player.quests.active) stats.activeQuests++;
+      return stats;
+    }, { totalCompleted: 0, activeQuests: 0 });
+
+    // Template metrics (mock data)
+    const templateMetrics = {
+      totalTemplates: 10,
+      publishedTemplates: 6,
+      draftTemplates: 3,
+      archivedTemplates: 1
+    };
+
+    const dashboardData = {
+      questMetrics: {
+        totalTemplates: templateMetrics.totalTemplates,
+        publishedTemplates: templateMetrics.publishedTemplates,
+        draftTemplates: templateMetrics.draftTemplates,
+        activeQuests: questStats.activeQuests,
+        completedQuests: questStats.totalCompleted
+      },
+      playerMetrics: {
+        totalPlayers,
+        activePlayers,
+        averageScore
+      },
+      systemMetrics: {
+        uptime: process.uptime(),
+        memory: {
+          used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+          percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100)
+        },
+        cpu: { usage: Math.round(Math.random() * 20 + 5) }, // Mock CPU usage
+        activeSessions: wsClients.size,
+        totalQuests: templateMetrics.totalTemplates,
+        completedQuests: questStats.totalCompleted
+      }
+    };
+
+    res.json({
+      success: true,
+      data: dashboardData,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch dashboard data',
+      details: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
 export default app;
 
