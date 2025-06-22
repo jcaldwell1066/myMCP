@@ -237,6 +237,27 @@
             white-space: pre-wrap;
             word-break: break-word;
         }
+        
+        /* Compact Redis array display */
+        .redis-syntax .redis-line {
+            padding: 0;
+            line-height: 1.2;
+        }
+        
+        .redis-syntax > div[style*="margin-left"] {
+            margin-left: 0.5rem !important;
+        }
+        
+        .redis-array-bracket {
+            display: none;
+        }
+        
+        .redis-list-index {
+            display: inline-block;
+            min-width: 2rem;
+            color: #666;
+            font-size: 0.75rem;
+        }
 
         .quick-ref {
             font-size: 0.875rem;
