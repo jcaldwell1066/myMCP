@@ -1,0 +1,31 @@
+{
+  "name": "@mymcp/player-dashboard",
+  "version": "0.1.0",
+  "description": "myMCP Player Dashboard - React frontend using use-mcp",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "use-mcp": "^1.0.0",
+    "@mymcp/types": "file:../../shared/types",
+    "lucide-react": "^0.263.1",
+    "clsx": "^2.0.0",
+    "tailwindcss": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "typescript": "^5.0.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31"
+  }
+}
