@@ -176,14 +176,14 @@ async function executeQuickCommand(command, args) {
           return;
         }
         
-        const nameResponse = await apiClient.put(`/api/state/${config.playerId}/player`, {
+        const nameResponse = await apiClient.put(`/state/${config.playerId}/player`, {
           name: name
         });
         
         if (nameResponse.data.success) {
           console.log(chalk.green(`✅ Name changed to: ${name}`));
-          const state = nameResponse.data.data;
-          console.log(chalk.cyan(`🧙‍♂️ Welcome, ${state.player.name}!`));
+          const player = nameResponse.data.data;
+          console.log(chalk.cyan(`🧙‍♂️ Welcome, ${player.name}!`));
         }
         break;
         
@@ -194,14 +194,14 @@ async function executeQuickCommand(command, args) {
           return;
         }
         
-        const locationResponse = await apiClient.put(`/api/state/${config.playerId}/player`, {
+        const locationResponse = await apiClient.put(`/state/${config.playerId}/player`, {
           location: location
         });
         
         if (locationResponse.data.success) {
           console.log(chalk.green(`✅ Moved to: ${location}`));
-          const state = locationResponse.data.data;
-          console.log(chalk.cyan(`🌍 You are now in ${state.player.location}`));
+          const player = locationResponse.data.data;
+          console.log(chalk.cyan(`🌍 You are now in ${player.location}`));
         }
         break;
         
@@ -214,14 +214,14 @@ async function executeQuickCommand(command, args) {
           return;
         }
         
-        const levelResponse = await apiClient.put(`/api/state/${config.playerId}/player`, {
+        const levelResponse = await apiClient.put(`/state/${config.playerId}/player`, {
           level: level
         });
         
         if (levelResponse.data.success) {
           console.log(chalk.green(`✅ Level changed to: ${level}`));
-          const state = levelResponse.data.data;
-          console.log(chalk.cyan(`🎯 You are now a ${state.player.level}!`));
+          const player = levelResponse.data.data;
+          console.log(chalk.cyan(`🎯 You are now a ${player.level}!`));
         }
         break;
         

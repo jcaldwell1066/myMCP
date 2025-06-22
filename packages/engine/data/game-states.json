@@ -130,15 +130,47 @@
   "claude-player": {
     "player": {
       "id": "claude-player",
-      "name": "Claude the Explorer",
-      "score": 300,
+      "name": "Claude",
+      "score": 150,
       "level": "apprentice",
       "status": "in-quest",
       "location": "town",
-      "currentQuest": "server-health"
+      "currentQuest": "global-meeting"
     },
     "quests": {
       "available": [
+        {
+          "id": "server-health",
+          "title": "Dungeon Keeper's Vigil",
+          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
+          "realWorldSkill": "Server monitoring and system health checks",
+          "fantasyTheme": "Guardian of mystical computing crystals",
+          "status": "available",
+          "steps": [
+            {
+              "id": "enter-dungeon",
+              "description": "Venture into the server caverns",
+              "completed": false
+            },
+            {
+              "id": "check-crystals",
+              "description": "Examine the health of processing crystals",
+              "completed": false
+            },
+            {
+              "id": "report-status",
+              "description": "Document crystal conditions",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 75,
+            "items": [
+              "Crystal Monitor",
+              "System Rune"
+            ]
+          }
+        },
         {
           "id": "hmac-security",
           "title": "Cryptomancer's Seal",
@@ -173,95 +205,49 @@
         }
       ],
       "active": {
-        "id": "server-health",
-        "title": "Dungeon Keeper's Vigil",
-        "description": "Monitor the ancient servers deep in the Mountain of Processing.",
-        "realWorldSkill": "Server monitoring and system health checks",
-        "fantasyTheme": "Guardian of mystical computing crystals",
+        "id": "global-meeting",
+        "title": "Council of Three Realms",
+        "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
+        "realWorldSkill": "Timezone coordination and meeting scheduling",
+        "fantasyTheme": "Gathering allies across distant realms",
         "status": "active",
         "steps": [
           {
-            "id": "enter-dungeon",
-            "description": "Venture into the server caverns",
+            "id": "find-allies",
+            "description": "Locate suitable allies in different time zones",
             "completed": false
           },
           {
-            "id": "check-crystals",
-            "description": "Examine the health of processing crystals",
+            "id": "coordinate-meeting",
+            "description": "Find optimal meeting time for all parties",
             "completed": false
           },
           {
-            "id": "report-status",
-            "description": "Document crystal conditions",
+            "id": "confirm-attendance",
+            "description": "Confirm all allies can attend the council",
             "completed": false
           }
         ],
         "reward": {
-          "score": 75,
+          "score": 100,
           "items": [
-            "Crystal Monitor",
-            "System Rune"
+            "Council Seal",
+            "Diplomatic Medallion"
           ]
         }
       },
-      "completed": [
-        {
-          "id": "global-meeting",
-          "title": "Council of Three Realms",
-          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
-          "realWorldSkill": "Timezone coordination and meeting scheduling",
-          "fantasyTheme": "Gathering allies across distant realms",
-          "status": "completed",
-          "steps": [
-            {
-              "id": "find-allies",
-              "description": "Locate suitable allies in different time zones",
-              "completed": true
-            },
-            {
-              "id": "coordinate-meeting",
-              "description": "Find optimal meeting time for all parties",
-              "completed": true
-            },
-            {
-              "id": "confirm-attendance",
-              "description": "Confirm all allies can attend the council",
-              "completed": true
-            }
-          ],
-          "reward": {
-            "score": 100,
-            "items": [
-              "Council Seal",
-              "Diplomatic Medallion"
-            ]
-          }
-        }
-      ]
+      "completed": []
     },
     "inventory": {
-      "items": [
-        {
-          "id": "3bab473b-1a7a-43fb-bd59-b47d87f2891b",
-          "name": "Council Seal",
-          "description": "Reward from Council of Three Realms",
-          "type": "treasure"
-        },
-        {
-          "id": "682c160f-08c3-4f98-b248-fc2eebfdd44c",
-          "name": "Diplomatic Medallion",
-          "description": "Reward from Council of Three Realms",
-          "type": "treasure"
-        }
-      ],
+      "items": [],
       "capacity": 10,
       "status": "empty"
     },
     "session": {
       "id": "30a3f46f-de39-4be3-b0bf-a7bab65575bc",
       "startTime": "2025-06-20T02:00:17.512Z",
-      "lastAction": "2025-06-22T04:22:41.875Z",
-      "turnCount": 11,
+      "lastAction": "2025-06-20T07:04:53.257Z",
+      "turnCount": 3,
       "conversationHistory": [
         {
           "id": "1748c8ba-2a7a-40d0-90c4-08c7c98824ab",
@@ -285,58 +271,12 @@
             "confidence": 0.8,
             "contentFiltered": false
           }
-        },
-        {
-          "id": "e5e83352-aa72-4266-9902-80552c940206",
-          "timestamp": "2025-06-22T04:19:25.595Z",
-          "sender": "player",
-          "message": "Greetings, wise guide! I am ready to explore all the mysteries of this realm. Can you tell me more about my current quest and what I should expect?",
-          "type": "chat"
-        },
-        {
-          "id": "fb16511a-9b61-4dd7-84dd-07c9c4abc278",
-          "timestamp": "2025-06-22T04:19:38.314Z",
-          "sender": "bot",
-          "message": "*Eyes twinkling with ancient knowledge as morning light streams through the town square*\n\nAh, such eagerness brightens the very air, young Claude! The \"Council of Three Realms\" quest before thee is one of connection and harmony. *gestures to the rising sun* Just as the sun touches different lands at different hours, thou must seek allies across the vastness of time itself.\n\nThy first task is to locate companions who dwell in different temporal kingdoms - what common folk call \"time zones.\" Think of it as building a bridge across the hours of day and night. Thou shall need:\n- A warrior from the Eastern Realms\n- A sage from the Western Territories\n- A kindred spirit from thine own temporal domain\n\n*Adjusts crystalline pendant thoughtfully*\n\nWith 150 points to thy name, thou art but beginning thy journey. Yet every grand quest begins with a single step. Shall I share more specific guidance about finding these allies, or dost thou have other questions about the path ahead?",
-          "type": "chat",
-          "metadata": {
-            "provider": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
-            "tokensUsed": 246,
-            "responseTime": 12711,
-            "cached": false,
-            "confidence": 0.8,
-            "contentFiltered": false
-          }
-        },
-        {
-          "id": "d9ad0c11-4780-4376-9c5e-469f897709bd",
-          "timestamp": "2025-06-22T04:22:27.792Z",
-          "sender": "player",
-          "message": "I've started the Dungeon Keeper's Vigil quest! What should I expect as I venture into the server caverns?",
-          "type": "chat"
-        },
-        {
-          "id": "b6a677d6-890d-4d0b-84ab-46c7a552d25d",
-          "timestamp": "2025-06-22T04:22:41.727Z",
-          "sender": "bot",
-          "message": "*Adjusts flowing robes while studying an ancient crystalline map*\n\nAh, brave Claude! The server caverns are indeed a realm of both wonder and challenge. *holds Council Seal up to the morning light* 'Tis fortunate thou bears the Council's blessing, for these depths hold secrets most technical.\n\nHarken well to my counsel:\n- The caverns pulse with strange energies - what the ancients call \"data streams\"\n- Thy Diplomatic Medallion shall grant thee safe passage through the first gates\n- Be wary of the Spinning Wheels of Loading - they can entrance the unwary\n- Listen for the hum of the Server Guardians - their rhythmic sounds will guide thy path\n\n*Voice lowering to a knowing whisper*\n\nRemember young one, not all errors encountered are foes to be vanquished - some are merely signposts pointing to alternate paths. Should thou encounter the dreaded \"404 Specter,\" simply retrace thy steps with patience.\n\nArt thou prepared for what lies ahead? Or shall I share more wisdom about specific challenges within?",
-          "type": "chat",
-          "metadata": {
-            "provider": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
-            "tokensUsed": 253,
-            "responseTime": 13934,
-            "cached": false,
-            "confidence": 0.8,
-            "contentFiltered": false
-          }
         }
       ]
     },
     "metadata": {
       "version": "1.0.0",
-      "lastUpdated": "2025-06-22T04:22:41.875Z"
+      "lastUpdated": "2025-06-20T07:04:53.257Z"
     }
   },
   "default": {
@@ -4711,9 +4651,9 @@
       "lastUpdated": "2025-06-22T03:50:51.036Z"
     }
   },
-  "unified-player-1750568780514": {
+  "cli-player-1750569308834": {
     "player": {
-      "id": "unified-player-1750568780514",
+      "id": "cli-player-1750569308834",
       "name": "Hero",
       "score": 0,
       "level": "novice",
@@ -4861,205 +4801,664 @@
       "status": "empty"
     },
     "session": {
-      "id": "5065a721-b3b2-4309-91f5-4b8b8f97d3aa",
-      "startTime": "2025-06-22T05:06:37.518Z",
-      "lastAction": "2025-06-22T05:07:34.059Z",
-      "turnCount": 1,
-      "conversationHistory": [
-        {
-          "id": "c1afa171-9cf7-41c8-afa5-ab04c62d21d4",
-          "timestamp": "2025-06-22T05:07:19.636Z",
-          "sender": "player",
-          "message": "i want to start a new quest",
-          "type": "chat"
-        },
-        {
-          "id": "6575d784-62e2-48e9-95c7-477efe87ddb0",
-          "timestamp": "2025-06-22T05:07:33.872Z",
-          "sender": "bot",
-          "message": "*Adjusts my weathered robes while regarding you with kind, knowing eyes*\n\nAh, young hero! 'Tis heartening to see fresh courage stirring in the morning light. For one of thy novice standing, I sense three potential paths before thee:\n\n1. The Merchant's Plea - Local traders speak of troublesome rats in their storehouse\n2. The Herbalist's Task - Gathering medicinal mushrooms in the nearby woods\n3. The Missing Heirloom - A townsperson's cherished pendant was lost near the creek\n\nEach quest would suit thy current abilities well. Which path calls to thy spirit, brave one? I shall guide thee further once thou hast chosen.\n\n*Gestures to the different parts of town while speaking, my enchanted staff gleaming softly*",
-          "type": "chat",
-          "metadata": {
-            "provider": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
-            "tokensUsed": 179,
-            "responseTime": 14235,
-            "cached": false,
-            "confidence": 0.8,
-            "contentFiltered": false
-          }
-        }
-      ]
-    },
-    "metadata": {
-      "version": "1.0.0",
-      "lastUpdated": "2025-06-22T05:07:34.059Z"
-    }
-  },
-  "cli-player-1750568895807": {
-    "player": {
-      "id": "cli-player-1750568895807",
-      "name": "Hero",
-      "score": 0,
-      "level": "novice",
-      "status": "idle",
-      "location": "town"
-    },
-    "quests": {
-      "available": [
-        {
-          "id": "global-meeting",
-          "title": "Council of Three Realms",
-          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
-          "realWorldSkill": "Timezone coordination and meeting scheduling",
-          "fantasyTheme": "Gathering allies across distant realms",
-          "status": "available",
-          "steps": [
-            {
-              "id": "find-allies",
-              "description": "Locate suitable allies in different time zones",
-              "completed": false
-            },
-            {
-              "id": "coordinate-meeting",
-              "description": "Find optimal meeting time for all parties",
-              "completed": false
-            },
-            {
-              "id": "confirm-attendance",
-              "description": "Confirm all allies can attend the council",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 100,
-            "items": [
-              "Council Seal",
-              "Diplomatic Medallion"
-            ]
-          }
-        },
-        {
-          "id": "server-health",
-          "title": "Dungeon Keeper's Vigil",
-          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
-          "realWorldSkill": "Server monitoring and system health checks",
-          "fantasyTheme": "Guardian of mystical computing crystals",
-          "status": "available",
-          "steps": [
-            {
-              "id": "enter-dungeon",
-              "description": "Venture into the server caverns",
-              "completed": false
-            },
-            {
-              "id": "check-crystals",
-              "description": "Examine the health of processing crystals",
-              "completed": false
-            },
-            {
-              "id": "report-status",
-              "description": "Document crystal conditions",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 75,
-            "items": [
-              "Crystal Monitor",
-              "System Rune"
-            ]
-          }
-        },
-        {
-          "id": "hmac-security",
-          "title": "Cryptomancer's Seal",
-          "description": "Master the arcane arts of message authentication and integrity.",
-          "realWorldSkill": "HMAC cryptographic implementation",
-          "fantasyTheme": "Forging magical seals of authenticity",
-          "status": "available",
-          "steps": [
-            {
-              "id": "learn-theory",
-              "description": "Study the ancient cryptographic texts",
-              "completed": false
-            },
-            {
-              "id": "craft-seal",
-              "description": "Create your first authentication seal",
-              "completed": false
-            },
-            {
-              "id": "verify-seal",
-              "description": "Prove the seal's authenticity",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 125,
-            "items": [
-              "Cryptomancer Staff",
-              "HMAC Grimoire"
-            ]
-          }
-        },
-        {
-          "id": "release-milestone-v2",
-          "title": "Path to Release: Version 2.0",
-          "description": "Guide the project to its next major release milestone by completing critical development tasks.",
-          "realWorldSkill": "Software release management and project coordination",
-          "fantasyTheme": "Forging the legendary artifact of deployment",
-          "status": "available",
-          "steps": [
-            {
-              "id": "complete-testing",
-              "description": "Ensure all test suites pass and achieve 80% code coverage",
-              "completed": false
-            },
-            {
-              "id": "update-documentation",
-              "description": "Update all documentation including API docs and user guides",
-              "completed": false
-            },
-            {
-              "id": "deploy-staging",
-              "description": "Successfully deploy to staging environment and verify functionality",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 200,
-            "items": [
-              "Release Artifact",
-              "Deployment Scroll",
-              "Version Badge"
-            ]
-          }
-        }
-      ],
-      "active": null,
-      "completed": []
-    },
-    "inventory": {
-      "items": [],
-      "capacity": 10,
-      "status": "empty"
-    },
-    "session": {
-      "id": "75ed2b57-7a20-410d-a6d1-a7f7953f1a0d",
-      "startTime": "2025-06-22T05:08:15.885Z",
-      "lastAction": "2025-06-22T05:08:15.885Z",
+      "id": "2db4924b-1108-4b9b-a4e1-366651f4ee29",
+      "startTime": "2025-06-22T05:15:08.974Z",
+      "lastAction": "2025-06-22T05:15:08.974Z",
       "turnCount": 0,
       "conversationHistory": []
     },
     "metadata": {
       "version": "1.0.0",
-      "lastUpdated": "2025-06-22T05:08:15.885Z"
+      "lastUpdated": "2025-06-22T05:15:08.974Z"
     }
   },
-  "cli-player-1750568895823": {
+  "cli-player-1750569390237": {
     "player": {
-      "id": "cli-player-1750568895823",
+      "id": "cli-player-1750569390237",
+      "name": "Dragon Slayer",
+      "score": 0,
+      "level": "novice",
+      "status": "idle",
+      "location": "town"
+    },
+    "quests": {
+      "available": [
+        {
+          "id": "global-meeting",
+          "title": "Council of Three Realms",
+          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
+          "realWorldSkill": "Timezone coordination and meeting scheduling",
+          "fantasyTheme": "Gathering allies across distant realms",
+          "status": "available",
+          "steps": [
+            {
+              "id": "find-allies",
+              "description": "Locate suitable allies in different time zones",
+              "completed": false
+            },
+            {
+              "id": "coordinate-meeting",
+              "description": "Find optimal meeting time for all parties",
+              "completed": false
+            },
+            {
+              "id": "confirm-attendance",
+              "description": "Confirm all allies can attend the council",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 100,
+            "items": [
+              "Council Seal",
+              "Diplomatic Medallion"
+            ]
+          }
+        },
+        {
+          "id": "server-health",
+          "title": "Dungeon Keeper's Vigil",
+          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
+          "realWorldSkill": "Server monitoring and system health checks",
+          "fantasyTheme": "Guardian of mystical computing crystals",
+          "status": "available",
+          "steps": [
+            {
+              "id": "enter-dungeon",
+              "description": "Venture into the server caverns",
+              "completed": false
+            },
+            {
+              "id": "check-crystals",
+              "description": "Examine the health of processing crystals",
+              "completed": false
+            },
+            {
+              "id": "report-status",
+              "description": "Document crystal conditions",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 75,
+            "items": [
+              "Crystal Monitor",
+              "System Rune"
+            ]
+          }
+        },
+        {
+          "id": "hmac-security",
+          "title": "Cryptomancer's Seal",
+          "description": "Master the arcane arts of message authentication and integrity.",
+          "realWorldSkill": "HMAC cryptographic implementation",
+          "fantasyTheme": "Forging magical seals of authenticity",
+          "status": "available",
+          "steps": [
+            {
+              "id": "learn-theory",
+              "description": "Study the ancient cryptographic texts",
+              "completed": false
+            },
+            {
+              "id": "craft-seal",
+              "description": "Create your first authentication seal",
+              "completed": false
+            },
+            {
+              "id": "verify-seal",
+              "description": "Prove the seal's authenticity",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 125,
+            "items": [
+              "Cryptomancer Staff",
+              "HMAC Grimoire"
+            ]
+          }
+        },
+        {
+          "id": "release-milestone-v2",
+          "title": "Path to Release: Version 2.0",
+          "description": "Guide the project to its next major release milestone by completing critical development tasks.",
+          "realWorldSkill": "Software release management and project coordination",
+          "fantasyTheme": "Forging the legendary artifact of deployment",
+          "status": "available",
+          "steps": [
+            {
+              "id": "complete-testing",
+              "description": "Ensure all test suites pass and achieve 80% code coverage",
+              "completed": false
+            },
+            {
+              "id": "update-documentation",
+              "description": "Update all documentation including API docs and user guides",
+              "completed": false
+            },
+            {
+              "id": "deploy-staging",
+              "description": "Successfully deploy to staging environment and verify functionality",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 200,
+            "items": [
+              "Release Artifact",
+              "Deployment Scroll",
+              "Version Badge"
+            ]
+          }
+        }
+      ],
+      "active": null,
+      "completed": []
+    },
+    "inventory": {
+      "items": [],
+      "capacity": 10,
+      "status": "empty"
+    },
+    "session": {
+      "id": "31675aa3-8045-4be1-ae4e-356f115ce2a0",
+      "startTime": "2025-06-22T05:16:30.351Z",
+      "lastAction": "2025-06-22T05:16:30.352Z",
+      "turnCount": 0,
+      "conversationHistory": []
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "lastUpdated": "2025-06-22T05:16:30.352Z"
+    }
+  },
+  "cli-player-1750569439429": {
+    "player": {
+      "id": "cli-player-1750569439429",
+      "name": "Dragon Slayer",
+      "score": 0,
+      "level": "novice",
+      "status": "idle",
+      "location": "town"
+    },
+    "quests": {
+      "available": [
+        {
+          "id": "global-meeting",
+          "title": "Council of Three Realms",
+          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
+          "realWorldSkill": "Timezone coordination and meeting scheduling",
+          "fantasyTheme": "Gathering allies across distant realms",
+          "status": "available",
+          "steps": [
+            {
+              "id": "find-allies",
+              "description": "Locate suitable allies in different time zones",
+              "completed": false
+            },
+            {
+              "id": "coordinate-meeting",
+              "description": "Find optimal meeting time for all parties",
+              "completed": false
+            },
+            {
+              "id": "confirm-attendance",
+              "description": "Confirm all allies can attend the council",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 100,
+            "items": [
+              "Council Seal",
+              "Diplomatic Medallion"
+            ]
+          }
+        },
+        {
+          "id": "server-health",
+          "title": "Dungeon Keeper's Vigil",
+          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
+          "realWorldSkill": "Server monitoring and system health checks",
+          "fantasyTheme": "Guardian of mystical computing crystals",
+          "status": "available",
+          "steps": [
+            {
+              "id": "enter-dungeon",
+              "description": "Venture into the server caverns",
+              "completed": false
+            },
+            {
+              "id": "check-crystals",
+              "description": "Examine the health of processing crystals",
+              "completed": false
+            },
+            {
+              "id": "report-status",
+              "description": "Document crystal conditions",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 75,
+            "items": [
+              "Crystal Monitor",
+              "System Rune"
+            ]
+          }
+        },
+        {
+          "id": "hmac-security",
+          "title": "Cryptomancer's Seal",
+          "description": "Master the arcane arts of message authentication and integrity.",
+          "realWorldSkill": "HMAC cryptographic implementation",
+          "fantasyTheme": "Forging magical seals of authenticity",
+          "status": "available",
+          "steps": [
+            {
+              "id": "learn-theory",
+              "description": "Study the ancient cryptographic texts",
+              "completed": false
+            },
+            {
+              "id": "craft-seal",
+              "description": "Create your first authentication seal",
+              "completed": false
+            },
+            {
+              "id": "verify-seal",
+              "description": "Prove the seal's authenticity",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 125,
+            "items": [
+              "Cryptomancer Staff",
+              "HMAC Grimoire"
+            ]
+          }
+        },
+        {
+          "id": "release-milestone-v2",
+          "title": "Path to Release: Version 2.0",
+          "description": "Guide the project to its next major release milestone by completing critical development tasks.",
+          "realWorldSkill": "Software release management and project coordination",
+          "fantasyTheme": "Forging the legendary artifact of deployment",
+          "status": "available",
+          "steps": [
+            {
+              "id": "complete-testing",
+              "description": "Ensure all test suites pass and achieve 80% code coverage",
+              "completed": false
+            },
+            {
+              "id": "update-documentation",
+              "description": "Update all documentation including API docs and user guides",
+              "completed": false
+            },
+            {
+              "id": "deploy-staging",
+              "description": "Successfully deploy to staging environment and verify functionality",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 200,
+            "items": [
+              "Release Artifact",
+              "Deployment Scroll",
+              "Version Badge"
+            ]
+          }
+        }
+      ],
+      "active": null,
+      "completed": []
+    },
+    "inventory": {
+      "items": [],
+      "capacity": 10,
+      "status": "empty"
+    },
+    "session": {
+      "id": "b354940c-32ca-40c6-b455-c7653d55ba56",
+      "startTime": "2025-06-22T05:17:19.517Z",
+      "lastAction": "2025-06-22T05:17:19.517Z",
+      "turnCount": 0,
+      "conversationHistory": []
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "lastUpdated": "2025-06-22T05:17:19.517Z"
+    }
+  },
+  "cli-player-1750569458647": {
+    "player": {
+      "id": "cli-player-1750569458647",
+      "name": "Hero",
+      "score": 0,
+      "level": "novice",
+      "status": "idle",
+      "location": "cave"
+    },
+    "quests": {
+      "available": [
+        {
+          "id": "global-meeting",
+          "title": "Council of Three Realms",
+          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
+          "realWorldSkill": "Timezone coordination and meeting scheduling",
+          "fantasyTheme": "Gathering allies across distant realms",
+          "status": "available",
+          "steps": [
+            {
+              "id": "find-allies",
+              "description": "Locate suitable allies in different time zones",
+              "completed": false
+            },
+            {
+              "id": "coordinate-meeting",
+              "description": "Find optimal meeting time for all parties",
+              "completed": false
+            },
+            {
+              "id": "confirm-attendance",
+              "description": "Confirm all allies can attend the council",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 100,
+            "items": [
+              "Council Seal",
+              "Diplomatic Medallion"
+            ]
+          }
+        },
+        {
+          "id": "server-health",
+          "title": "Dungeon Keeper's Vigil",
+          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
+          "realWorldSkill": "Server monitoring and system health checks",
+          "fantasyTheme": "Guardian of mystical computing crystals",
+          "status": "available",
+          "steps": [
+            {
+              "id": "enter-dungeon",
+              "description": "Venture into the server caverns",
+              "completed": false
+            },
+            {
+              "id": "check-crystals",
+              "description": "Examine the health of processing crystals",
+              "completed": false
+            },
+            {
+              "id": "report-status",
+              "description": "Document crystal conditions",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 75,
+            "items": [
+              "Crystal Monitor",
+              "System Rune"
+            ]
+          }
+        },
+        {
+          "id": "hmac-security",
+          "title": "Cryptomancer's Seal",
+          "description": "Master the arcane arts of message authentication and integrity.",
+          "realWorldSkill": "HMAC cryptographic implementation",
+          "fantasyTheme": "Forging magical seals of authenticity",
+          "status": "available",
+          "steps": [
+            {
+              "id": "learn-theory",
+              "description": "Study the ancient cryptographic texts",
+              "completed": false
+            },
+            {
+              "id": "craft-seal",
+              "description": "Create your first authentication seal",
+              "completed": false
+            },
+            {
+              "id": "verify-seal",
+              "description": "Prove the seal's authenticity",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 125,
+            "items": [
+              "Cryptomancer Staff",
+              "HMAC Grimoire"
+            ]
+          }
+        },
+        {
+          "id": "release-milestone-v2",
+          "title": "Path to Release: Version 2.0",
+          "description": "Guide the project to its next major release milestone by completing critical development tasks.",
+          "realWorldSkill": "Software release management and project coordination",
+          "fantasyTheme": "Forging the legendary artifact of deployment",
+          "status": "available",
+          "steps": [
+            {
+              "id": "complete-testing",
+              "description": "Ensure all test suites pass and achieve 80% code coverage",
+              "completed": false
+            },
+            {
+              "id": "update-documentation",
+              "description": "Update all documentation including API docs and user guides",
+              "completed": false
+            },
+            {
+              "id": "deploy-staging",
+              "description": "Successfully deploy to staging environment and verify functionality",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 200,
+            "items": [
+              "Release Artifact",
+              "Deployment Scroll",
+              "Version Badge"
+            ]
+          }
+        }
+      ],
+      "active": null,
+      "completed": []
+    },
+    "inventory": {
+      "items": [],
+      "capacity": 10,
+      "status": "empty"
+    },
+    "session": {
+      "id": "fd88bba5-8fa6-4378-a412-5f46dfb9775a",
+      "startTime": "2025-06-22T05:17:38.728Z",
+      "lastAction": "2025-06-22T05:17:38.728Z",
+      "turnCount": 0,
+      "conversationHistory": []
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "lastUpdated": "2025-06-22T05:17:38.728Z"
+    }
+  },
+  "cli-player-1750569466785": {
+    "player": {
+      "id": "cli-player-1750569466785",
+      "name": "Hero",
+      "score": 0,
+      "level": "expert",
+      "status": "idle",
+      "location": "town"
+    },
+    "quests": {
+      "available": [
+        {
+          "id": "global-meeting",
+          "title": "Council of Three Realms",
+          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
+          "realWorldSkill": "Timezone coordination and meeting scheduling",
+          "fantasyTheme": "Gathering allies across distant realms",
+          "status": "available",
+          "steps": [
+            {
+              "id": "find-allies",
+              "description": "Locate suitable allies in different time zones",
+              "completed": false
+            },
+            {
+              "id": "coordinate-meeting",
+              "description": "Find optimal meeting time for all parties",
+              "completed": false
+            },
+            {
+              "id": "confirm-attendance",
+              "description": "Confirm all allies can attend the council",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 100,
+            "items": [
+              "Council Seal",
+              "Diplomatic Medallion"
+            ]
+          }
+        },
+        {
+          "id": "server-health",
+          "title": "Dungeon Keeper's Vigil",
+          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
+          "realWorldSkill": "Server monitoring and system health checks",
+          "fantasyTheme": "Guardian of mystical computing crystals",
+          "status": "available",
+          "steps": [
+            {
+              "id": "enter-dungeon",
+              "description": "Venture into the server caverns",
+              "completed": false
+            },
+            {
+              "id": "check-crystals",
+              "description": "Examine the health of processing crystals",
+              "completed": false
+            },
+            {
+              "id": "report-status",
+              "description": "Document crystal conditions",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 75,
+            "items": [
+              "Crystal Monitor",
+              "System Rune"
+            ]
+          }
+        },
+        {
+          "id": "hmac-security",
+          "title": "Cryptomancer's Seal",
+          "description": "Master the arcane arts of message authentication and integrity.",
+          "realWorldSkill": "HMAC cryptographic implementation",
+          "fantasyTheme": "Forging magical seals of authenticity",
+          "status": "available",
+          "steps": [
+            {
+              "id": "learn-theory",
+              "description": "Study the ancient cryptographic texts",
+              "completed": false
+            },
+            {
+              "id": "craft-seal",
+              "description": "Create your first authentication seal",
+              "completed": false
+            },
+            {
+              "id": "verify-seal",
+              "description": "Prove the seal's authenticity",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 125,
+            "items": [
+              "Cryptomancer Staff",
+              "HMAC Grimoire"
+            ]
+          }
+        },
+        {
+          "id": "release-milestone-v2",
+          "title": "Path to Release: Version 2.0",
+          "description": "Guide the project to its next major release milestone by completing critical development tasks.",
+          "realWorldSkill": "Software release management and project coordination",
+          "fantasyTheme": "Forging the legendary artifact of deployment",
+          "status": "available",
+          "steps": [
+            {
+              "id": "complete-testing",
+              "description": "Ensure all test suites pass and achieve 80% code coverage",
+              "completed": false
+            },
+            {
+              "id": "update-documentation",
+              "description": "Update all documentation including API docs and user guides",
+              "completed": false
+            },
+            {
+              "id": "deploy-staging",
+              "description": "Successfully deploy to staging environment and verify functionality",
+              "completed": false
+            }
+          ],
+          "reward": {
+            "score": 200,
+            "items": [
+              "Release Artifact",
+              "Deployment Scroll",
+              "Version Badge"
+            ]
+          }
+        }
+      ],
+      "active": null,
+      "completed": []
+    },
+    "inventory": {
+      "items": [],
+      "capacity": 10,
+      "status": "empty"
+    },
+    "session": {
+      "id": "5134f1e6-2045-4afd-a383-87ea42d4f4f6",
+      "startTime": "2025-06-22T05:17:46.896Z",
+      "lastAction": "2025-06-22T05:17:46.896Z",
+      "turnCount": 0,
+      "conversationHistory": []
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "lastUpdated": "2025-06-22T05:17:46.896Z"
+    }
+  },
+  "cli-player-1750569474798": {
+    "player": {
+      "id": "cli-player-1750569474798",
       "name": "Hero",
       "score": 0,
       "level": "novice",
@@ -5207,176 +5606,15 @@
       "status": "empty"
     },
     "session": {
-      "id": "8fab3de8-8540-4ae4-bd95-0d999aa1ac29",
-      "startTime": "2025-06-22T05:08:15.902Z",
-      "lastAction": "2025-06-22T05:08:15.902Z",
+      "id": "4cbffe91-52c4-4cdb-b629-d4bef4f7e577",
+      "startTime": "2025-06-22T05:17:54.875Z",
+      "lastAction": "2025-06-22T05:17:54.875Z",
       "turnCount": 0,
       "conversationHistory": []
     },
     "metadata": {
       "version": "1.0.0",
-      "lastUpdated": "2025-06-22T05:08:15.902Z"
-    }
-  },
-  "player:unified-player-1750568780514": {
-    "player": {
-      "id": "player:unified-player-1750568780514",
-      "name": "Hero",
-      "score": 0,
-      "level": "novice",
-      "status": "idle",
-      "location": "town"
-    },
-    "quests": {
-      "available": [
-        {
-          "id": "global-meeting",
-          "title": "Council of Three Realms",
-          "description": "Unite allies from distant kingdoms to coordinate a grand council meeting.",
-          "realWorldSkill": "Timezone coordination and meeting scheduling",
-          "fantasyTheme": "Gathering allies across distant realms",
-          "status": "available",
-          "steps": [
-            {
-              "id": "find-allies",
-              "description": "Locate suitable allies in different time zones",
-              "completed": false
-            },
-            {
-              "id": "coordinate-meeting",
-              "description": "Find optimal meeting time for all parties",
-              "completed": false
-            },
-            {
-              "id": "confirm-attendance",
-              "description": "Confirm all allies can attend the council",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 100,
-            "items": [
-              "Council Seal",
-              "Diplomatic Medallion"
-            ]
-          }
-        },
-        {
-          "id": "server-health",
-          "title": "Dungeon Keeper's Vigil",
-          "description": "Monitor the ancient servers deep in the Mountain of Processing.",
-          "realWorldSkill": "Server monitoring and system health checks",
-          "fantasyTheme": "Guardian of mystical computing crystals",
-          "status": "available",
-          "steps": [
-            {
-              "id": "enter-dungeon",
-              "description": "Venture into the server caverns",
-              "completed": false
-            },
-            {
-              "id": "check-crystals",
-              "description": "Examine the health of processing crystals",
-              "completed": false
-            },
-            {
-              "id": "report-status",
-              "description": "Document crystal conditions",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 75,
-            "items": [
-              "Crystal Monitor",
-              "System Rune"
-            ]
-          }
-        },
-        {
-          "id": "hmac-security",
-          "title": "Cryptomancer's Seal",
-          "description": "Master the arcane arts of message authentication and integrity.",
-          "realWorldSkill": "HMAC cryptographic implementation",
-          "fantasyTheme": "Forging magical seals of authenticity",
-          "status": "available",
-          "steps": [
-            {
-              "id": "learn-theory",
-              "description": "Study the ancient cryptographic texts",
-              "completed": false
-            },
-            {
-              "id": "craft-seal",
-              "description": "Create your first authentication seal",
-              "completed": false
-            },
-            {
-              "id": "verify-seal",
-              "description": "Prove the seal's authenticity",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 125,
-            "items": [
-              "Cryptomancer Staff",
-              "HMAC Grimoire"
-            ]
-          }
-        },
-        {
-          "id": "release-milestone-v2",
-          "title": "Path to Release: Version 2.0",
-          "description": "Guide the project to its next major release milestone by completing critical development tasks.",
-          "realWorldSkill": "Software release management and project coordination",
-          "fantasyTheme": "Forging the legendary artifact of deployment",
-          "status": "available",
-          "steps": [
-            {
-              "id": "complete-testing",
-              "description": "Ensure all test suites pass and achieve 80% code coverage",
-              "completed": false
-            },
-            {
-              "id": "update-documentation",
-              "description": "Update all documentation including API docs and user guides",
-              "completed": false
-            },
-            {
-              "id": "deploy-staging",
-              "description": "Successfully deploy to staging environment and verify functionality",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 200,
-            "items": [
-              "Release Artifact",
-              "Deployment Scroll",
-              "Version Badge"
-            ]
-          }
-        }
-      ],
-      "active": null,
-      "completed": []
-    },
-    "inventory": {
-      "items": [],
-      "capacity": 10,
-      "status": "empty"
-    },
-    "session": {
-      "id": "246939cb-65d7-4f80-84e1-e23097696505",
-      "startTime": "2025-06-22T05:08:42.333Z",
-      "lastAction": "2025-06-22T05:08:42.333Z",
-      "turnCount": 0,
-      "conversationHistory": []
-    },
-    "metadata": {
-      "version": "1.0.0",
-      "lastUpdated": "2025-06-22T05:08:42.333Z"
+      "lastUpdated": "2025-06-22T05:17:54.875Z"
     }
   }
 }
