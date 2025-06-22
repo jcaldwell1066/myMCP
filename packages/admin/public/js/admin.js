@@ -1,17 +1,22 @@
 // Admin Dashboard Client
 class AdminDashboard {
     constructor() {
-        this.socket = io();
+        this.socket = null;
         this.currentView = 'dashboard';
         this.data = {};
         this.customQueries = [];
         this.customApiRequests = [];
         this.initializeSocket();
         this.initializeUI();
+        this.initializeApiConsole();
+        this.initializeCLIConsole();
+        this.initializeQuestEditor();
         this.subscribeToUpdates();
     }
 
     initializeSocket() {
+        this.socket = io();
+
         this.socket.on('connect', () => {
             console.log('Connected to admin server');
             this.updateConnectionStatus(true);
@@ -389,33 +394,28 @@ class AdminDashboard {
     }
 
     switchView(view) {
-        // Update navigation
+        // Update sidebar
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.classList.toggle('active', item.dataset.view === view);
         });
 
-        // Hide all views
+        // Update views
         document.querySelectorAll('.view').forEach(v => {
             v.classList.add('hidden');
         });
 
-        // Show selected view
-        const viewElement = document.getElementById(`${view}-view`);
-        if (viewElement) {
-            viewElement.classList.remove('hidden');
+        const targetView = document.getElementById(`${view}-view`);
+        if (targetView) {
+            targetView.classList.remove('hidden');
+            this.currentView = view;
+            this.loadViewData(view);
         }
-
-        this.currentView = view;
-
-        // Load view-specific data
-        this.loadViewData(view);
     }
 
     async loadViewData(view) {
         switch (view) {
             case 'dashboard':
-                const dashboardData = await this.fetchData('/api/dashboard');
-                this.updateDashboard(dashboardData);
+                this.socket.emit('dashboard:refresh');
                 break;
             case 'health':
                 const healthData = await this.fetchData('/api/health');
@@ -436,35 +436,23 @@ class AdminDashboard {
             case 'redis':
                 const savedQueries = await this.fetchData('/api/redis/saved-queries');
                 this.updateSavedQueries(savedQueries);
-                // Auto-focus the Redis input
-                setTimeout(() => {
-                    const redisInput = document.getElementById('redisCommand');
-                    if (redisInput) redisInput.focus();
-                }, 100);
                 break;
             case 'api':
-                this.loadApiRequests();
-                // Auto-focus the API endpoint input
-                setTimeout(() => {
-                    const apiInput = document.getElementById('apiEndpoint');
-                    if (apiInput) apiInput.focus();
-                }, 100);
+                // API console doesn't need initial data
                 break;
             case 'cli':
-                this.loadCLICommands();
-                // Auto-focus the CLI input
-                setTimeout(() => {
-                    const cliInput = document.getElementById('cliCommand');
-                    if (cliInput) cliInput.focus();
-                }, 100);
+                // CLI console doesn't need initial data
                 break;
             case 'events':
-                const eventsData = await this.fetchData('/api/events');
-                this.updateEvents(eventsData);
+                const events = await this.fetchData('/api/events');
+                this.updateEvents(events);
                 break;
             case 'metrics':
-                const metricsData = await this.fetchData('/api/metrics');
-                this.updateMetrics(metricsData);
+                const metrics = await this.fetchData('/api/metrics');
+                this.updateMetrics(metrics);
+                break;
+            case 'quest-editor':
+                // Quest editor loads its own data
                 break;
         }
     }
@@ -2250,6 +2238,479 @@ class AdminDashboard {
             this.saveCustomCLICommands();
             this.loadCLICommands();
         }
+    }
+
+    // Quest Editor Methods
+    initializeQuestEditor() {
+        const newQuestBtn = document.getElementById('newQuestBtn');
+        const loadQuestBtn = document.getElementById('loadQuestBtn');
+        const saveQuestBtn = document.getElementById('saveQuestBtn');
+        const publishQuestBtn = document.getElementById('publishQuestBtn');
+        const questTemplateSelect = document.getElementById('questTemplateSelect');
+        const addStepBtn = document.getElementById('addStepBtn');
+
+        // Current quest being edited
+        this.currentQuest = null;
+        this.questSteps = [];
+        this.isDraft = true;
+
+        // Button handlers
+        if (newQuestBtn) {
+            newQuestBtn.addEventListener('click', () => this.createNewQuest());
+        }
+
+        if (loadQuestBtn) {
+            loadQuestBtn.addEventListener('click', () => this.showQuestLoader());
+        }
+
+        if (saveQuestBtn) {
+            saveQuestBtn.addEventListener('click', () => this.saveQuestDraft());
+        }
+
+        if (publishQuestBtn) {
+            publishQuestBtn.addEventListener('click', () => this.publishQuest());
+        }
+
+        if (questTemplateSelect) {
+            questTemplateSelect.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    this.loadQuestTemplate(e.target.value);
+                }
+            });
+        }
+
+        if (addStepBtn) {
+            addStepBtn.addEventListener('click', () => this.addQuestStep());
+        }
+
+        // Input change handlers for auto-preview
+        const questInputs = ['questId', 'questTitle', 'questDescription', 'questRealWorldSkill', 
+                           'questFantasyTheme', 'questScore', 'questItems'];
+        questInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', () => this.updateQuestPreview());
+            }
+        });
+
+        // Load quest templates
+        this.loadQuestTemplates();
+    }
+
+    async loadQuestTemplates() {
+        try {
+            // Fetch available quests from the engine
+            const response = await fetch('/api/proxy/api/quest-catalog?target=' + encodeURIComponent('http://localhost:3001'));
+            const data = await response.json();
+            
+            const select = document.getElementById('questTemplateSelect');
+            if (select && data.quests) {
+                select.innerHTML = '<option value="">Select a template...</option>';
+                data.quests.forEach(quest => {
+                    const option = document.createElement('option');
+                    option.value = quest.id;
+                    option.textContent = quest.title;
+                    option.dataset.quest = JSON.stringify(quest);
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load quest templates:', error);
+        }
+    }
+
+    createNewQuest() {
+        // Reset form
+        document.getElementById('questId').value = '';
+        document.getElementById('questTitle').value = '';
+        document.getElementById('questDescription').value = '';
+        document.getElementById('questRealWorldSkill').value = '';
+        document.getElementById('questFantasyTheme').value = '';
+        document.getElementById('questScore').value = '100';
+        document.getElementById('questItems').value = '';
+        
+        // Clear steps
+        this.questSteps = [];
+        this.updateQuestStepsList();
+        
+        // Update status
+        this.currentQuest = null;
+        this.isDraft = true;
+        this.updateQuestStatus('New quest - unsaved');
+        
+        // Enable save button
+        document.getElementById('saveQuestBtn').disabled = false;
+        document.getElementById('publishQuestBtn').disabled = true;
+        
+        // Update preview
+        this.updateQuestPreview();
+    }
+
+    loadQuestTemplate(questId) {
+        const select = document.getElementById('questTemplateSelect');
+        const option = select.querySelector(`option[value="${questId}"]`);
+        if (!option) return;
+
+        try {
+            const quest = JSON.parse(option.dataset.quest);
+            
+            // Fill form with quest data
+            document.getElementById('questId').value = quest.id + '-copy';
+            document.getElementById('questTitle').value = quest.title;
+            document.getElementById('questDescription').value = quest.description;
+            document.getElementById('questRealWorldSkill').value = quest.realWorldSkill || '';
+            document.getElementById('questFantasyTheme').value = quest.fantasyTheme || '';
+            document.getElementById('questScore').value = quest.reward?.score || 100;
+            document.getElementById('questItems').value = quest.reward?.items?.join(', ') || '';
+            
+            // Load steps
+            this.questSteps = quest.steps?.map(step => ({
+                id: step.id,
+                description: step.description,
+                completed: false
+            })) || [];
+            this.updateQuestStepsList();
+            
+            // Update template info
+            const infoDiv = document.getElementById('questTemplateInfo');
+            if (infoDiv) {
+                infoDiv.innerHTML = `
+                    <strong>Template: ${quest.title}</strong><br>
+                    <small>${quest.description}</small><br>
+                    <small>Steps: ${this.questSteps.length} | Score: ${quest.reward?.score || 0}</small>
+                `;
+            }
+            
+            // Update status
+            this.currentQuest = null;
+            this.isDraft = true;
+            this.updateQuestStatus('Template loaded - unsaved');
+            
+            // Enable save button
+            document.getElementById('saveQuestBtn').disabled = false;
+            document.getElementById('publishQuestBtn').disabled = true;
+            
+            // Update preview
+            this.updateQuestPreview();
+            
+        } catch (error) {
+            console.error('Failed to load quest template:', error);
+        }
+    }
+
+    addQuestStep() {
+        const stepId = prompt('Enter step ID (e.g., "find-artifact"):');
+        if (!stepId) return;
+
+        const stepDescription = prompt('Enter step description:');
+        if (!stepDescription) return;
+
+        this.questSteps.push({
+            id: stepId.toLowerCase().replace(/\s+/g, '-'),
+            description: stepDescription,
+            completed: false
+        });
+
+        this.updateQuestStepsList();
+        this.updateQuestPreview();
+    }
+
+    updateQuestStepsList() {
+        const container = document.getElementById('questStepsList');
+        if (!container) return;
+
+        if (this.questSteps.length === 0) {
+            container.innerHTML = '<div style="color: #666; padding: 1rem;">No steps added yet</div>';
+            return;
+        }
+
+        container.innerHTML = this.questSteps.map((step, index) => `
+            <div class="quest-step-item">
+                <div class="quest-step-number">${index + 1}</div>
+                <div class="quest-step-content">
+                    <input type="text" class="form-input" value="${step.id}" 
+                           onchange="dashboard.updateQuestStep(${index}, 'id', this.value)"
+                           placeholder="Step ID">
+                    <textarea class="form-textarea" rows="2" 
+                              onchange="dashboard.updateQuestStep(${index}, 'description', this.value)"
+                              placeholder="Step description">${step.description}</textarea>
+                </div>
+                <div class="quest-step-actions">
+                    <button class="btn btn-secondary" onclick="dashboard.moveQuestStep(${index}, -1)" 
+                            ${index === 0 ? 'disabled' : ''}>↑</button>
+                    <button class="btn btn-secondary" onclick="dashboard.moveQuestStep(${index}, 1)" 
+                            ${index === this.questSteps.length - 1 ? 'disabled' : ''}>↓</button>
+                    <button class="btn btn-secondary" onclick="dashboard.removeQuestStep(${index})">×</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateQuestStep(index, field, value) {
+        if (this.questSteps[index]) {
+            this.questSteps[index][field] = value;
+            this.updateQuestPreview();
+        }
+    }
+
+    moveQuestStep(index, direction) {
+        const newIndex = index + direction;
+        if (newIndex >= 0 && newIndex < this.questSteps.length) {
+            const temp = this.questSteps[index];
+            this.questSteps[index] = this.questSteps[newIndex];
+            this.questSteps[newIndex] = temp;
+            this.updateQuestStepsList();
+            this.updateQuestPreview();
+        }
+    }
+
+    removeQuestStep(index) {
+        if (confirm('Remove this step?')) {
+            this.questSteps.splice(index, 1);
+            this.updateQuestStepsList();
+            this.updateQuestPreview();
+        }
+    }
+
+    updateQuestPreview() {
+        const container = document.getElementById('questPreview');
+        if (!container) return;
+
+        const questData = this.getQuestFormData();
+        
+        if (!questData.title && !questData.description) {
+            container.innerHTML = '<div class="preview-placeholder">Create or load a quest to see preview</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="quest-preview-content">
+                <div class="quest-preview-title">${questData.title || 'Untitled Quest'}</div>
+                <div class="quest-preview-meta">
+                    <span>ID: ${questData.id || 'no-id'}</span>
+                    <span>Score: ${questData.score}</span>
+                    <span>Steps: ${this.questSteps.length}</span>
+                </div>
+                <div class="quest-preview-description">
+                    ${questData.description || 'No description provided'}
+                </div>
+                ${questData.realWorldSkill ? `
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong>Real World Skill:</strong> ${questData.realWorldSkill}
+                    </div>
+                ` : ''}
+                ${questData.fantasyTheme ? `
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong>Fantasy Theme:</strong> ${questData.fantasyTheme}
+                    </div>
+                ` : ''}
+                ${this.questSteps.length > 0 ? `
+                    <div class="quest-preview-steps">
+                        <h4>Quest Steps:</h4>
+                        ${this.questSteps.map((step, index) => `
+                            <div class="quest-preview-step">
+                                ${index + 1}. ${step.description} <small>(${step.id})</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                <div class="quest-preview-rewards">
+                    <h4>Rewards:</h4>
+                    <div>Score: ${questData.score} points</div>
+                    ${questData.items.length > 0 ? `
+                        <div>Items: ${questData.items.join(', ')}</div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    getQuestFormData() {
+        return {
+            id: document.getElementById('questId').value.trim(),
+            title: document.getElementById('questTitle').value.trim(),
+            description: document.getElementById('questDescription').value.trim(),
+            realWorldSkill: document.getElementById('questRealWorldSkill').value.trim(),
+            fantasyTheme: document.getElementById('questFantasyTheme').value.trim(),
+            score: parseInt(document.getElementById('questScore').value) || 100,
+            items: document.getElementById('questItems').value
+                .split(',')
+                .map(item => item.trim())
+                .filter(item => item.length > 0)
+        };
+    }
+
+    async saveQuestDraft() {
+        const questData = this.getQuestFormData();
+        
+        if (!questData.id || !questData.title) {
+            alert('Quest ID and Title are required');
+            return;
+        }
+
+        // Save to localStorage for now (in production, this would go to a backend)
+        const drafts = JSON.parse(localStorage.getItem('questDrafts') || '{}');
+        drafts[questData.id] = {
+            ...questData,
+            steps: this.questSteps,
+            status: 'draft',
+            lastModified: new Date().toISOString()
+        };
+        localStorage.setItem('questDrafts', JSON.stringify(drafts));
+
+        this.currentQuest = questData.id;
+        this.isDraft = true;
+        this.updateQuestStatus('Draft saved');
+        
+        // Enable publish button
+        document.getElementById('publishQuestBtn').disabled = false;
+        
+        // Show success message
+        this.showNotification('Quest draft saved successfully', 'success');
+    }
+
+    async publishQuest() {
+        const questData = this.getQuestFormData();
+        
+        if (!questData.id || !questData.title || !questData.description) {
+            alert('Quest ID, Title, and Description are required for publishing');
+            return;
+        }
+
+        if (this.questSteps.length === 0) {
+            alert('At least one quest step is required for publishing');
+            return;
+        }
+
+        if (!confirm('Publish this quest? It will become available to all players.')) {
+            return;
+        }
+
+        try {
+            // In production, this would send to the backend API
+            // For now, we'll simulate by adding to a published quests list
+            const published = JSON.parse(localStorage.getItem('publishedQuests') || '{}');
+            published[questData.id] = {
+                ...questData,
+                steps: this.questSteps,
+                status: 'published',
+                publishedAt: new Date().toISOString(),
+                reward: {
+                    score: questData.score,
+                    items: questData.items
+                }
+            };
+            localStorage.setItem('publishedQuests', JSON.stringify(published));
+
+            // Remove from drafts if it exists
+            const drafts = JSON.parse(localStorage.getItem('questDrafts') || '{}');
+            delete drafts[questData.id];
+            localStorage.setItem('questDrafts', JSON.stringify(drafts));
+
+            this.isDraft = false;
+            this.updateQuestStatus('Published');
+            
+            // Disable publish button, enable save
+            document.getElementById('publishQuestBtn').disabled = true;
+            document.getElementById('saveQuestBtn').disabled = false;
+            
+            // Show success message
+            this.showNotification('Quest published successfully!', 'success');
+            
+            // Reload templates to include the new quest
+            await this.loadQuestTemplates();
+            
+        } catch (error) {
+            console.error('Failed to publish quest:', error);
+            this.showNotification('Failed to publish quest', 'error');
+        }
+    }
+
+    showQuestLoader() {
+        // Create a modal to show available quests to load
+        const drafts = JSON.parse(localStorage.getItem('questDrafts') || '{}');
+        const published = JSON.parse(localStorage.getItem('publishedQuests') || '{}');
+        
+        const allQuests = [
+            ...Object.entries(drafts).map(([id, quest]) => ({ ...quest, source: 'draft' })),
+            ...Object.entries(published).map(([id, quest]) => ({ ...quest, source: 'published' }))
+        ];
+
+        if (allQuests.length === 0) {
+            alert('No saved quests found');
+            return;
+        }
+
+        // For simplicity, using prompt. In production, this would be a proper modal
+        const questList = allQuests.map((q, i) => 
+            `${i + 1}. ${q.title} (${q.source}) - ${q.id}`
+        ).join('\n');
+        
+        const choice = prompt(`Select a quest to load:\n\n${questList}\n\nEnter number:`);
+        if (!choice) return;
+
+        const index = parseInt(choice) - 1;
+        if (index >= 0 && index < allQuests.length) {
+            this.loadSavedQuest(allQuests[index]);
+        }
+    }
+
+    loadSavedQuest(quest) {
+        // Fill form with quest data
+        document.getElementById('questId').value = quest.id;
+        document.getElementById('questTitle').value = quest.title;
+        document.getElementById('questDescription').value = quest.description || '';
+        document.getElementById('questRealWorldSkill').value = quest.realWorldSkill || '';
+        document.getElementById('questFantasyTheme').value = quest.fantasyTheme || '';
+        document.getElementById('questScore').value = quest.score || 100;
+        document.getElementById('questItems').value = quest.items?.join(', ') || '';
+        
+        // Load steps
+        this.questSteps = quest.steps || [];
+        this.updateQuestStepsList();
+        
+        // Update status
+        this.currentQuest = quest.id;
+        this.isDraft = quest.source === 'draft';
+        this.updateQuestStatus(`Loaded ${quest.source} quest`);
+        
+        // Update buttons
+        document.getElementById('saveQuestBtn').disabled = false;
+        document.getElementById('publishQuestBtn').disabled = quest.source === 'published';
+        
+        // Update preview
+        this.updateQuestPreview();
+    }
+
+    updateQuestStatus(status) {
+        const statusElement = document.getElementById('questStatus');
+        if (statusElement) {
+            statusElement.textContent = status;
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Simple notification - in production, this would be a proper toast/notification system
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db'};
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 }
 
