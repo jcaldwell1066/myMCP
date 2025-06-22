@@ -553,9 +553,12 @@ export function setupRoutes(app: Application, services: Services) {
         })
       );
 
+      // Filter out null values first
+      const validQuests = quests.filter(q => q !== null);
+
       res.json({ 
-        quests: quests.filter(q => q !== null),
-        total: quests.length 
+        quests: validQuests,
+        total: validQuests.length 
       });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch quest catalog' });
