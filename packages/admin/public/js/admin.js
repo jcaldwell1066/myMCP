@@ -81,6 +81,9 @@ class AdminDashboard {
 
         // Redis console
         const redisInput = document.getElementById('redisCommand');
+        const redisSendBtn = document.getElementById('redisSendBtn');
+        const clearRedisBtn = document.getElementById('clearRedisConsole');
+        
         if (redisInput) {
             redisInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -103,6 +106,33 @@ class AdminDashboard {
                 redisInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
         }
+
+        // Redis Send button
+        if (redisSendBtn) {
+            redisSendBtn.addEventListener('click', () => {
+                const command = redisInput.value.trim();
+                if (command) {
+                    if (command.toLowerCase() === 'help') {
+                        this.showRedisHelp();
+                    } else if (command.toLowerCase() === 'clear') {
+                        this.clearRedisConsole();
+                    } else {
+                        this.executeRedisCommand(command);
+                    }
+                    redisInput.value = '';
+                }
+            });
+        }
+
+        // Redis Clear button
+        if (clearRedisBtn) {
+            clearRedisBtn.addEventListener('click', () => {
+                this.clearRedisConsole();
+            });
+        }
+
+        // Initialize Redis console resizing
+        this.initializeRedisResize();
 
         // Saved queries functionality
         const savedQuerySelect = document.getElementById('savedQuerySelect');
@@ -892,25 +922,16 @@ class AdminDashboard {
         
         const items = arr.map((item, index) => {
             const highlighted = this.highlightRedis(item);
-            return `<div class="redis-line">
-                <span class="redis-list-index">${index + 1})</span>
-                ${highlighted}
-            </div>`;
+            return `<div class="redis-line"><span class="redis-list-index">${index + 1})</span> ${highlighted}</div>`;
         }).join('');
         
-        return `<div class="redis-syntax">
-            <div class="redis-array-bracket">[</div>
-            <div style="margin-left: 1rem;">${items}</div>
-            <div class="redis-array-bracket">]</div>
-        </div>`;
+        return `<div class="redis-syntax">${items}</div>`;
     }
 
     highlightRedisObject(obj) {
         const entries = Object.entries(obj).map(([key, value]) => {
             const highlightedValue = this.highlightRedis(value);
-            return `<div class="redis-line">
-                <span class="redis-hash-field">${this.escapeHtml(key)}</span> → ${highlightedValue}
-            </div>`;
+            return `<div class="redis-line"><span class="redis-hash-field">${this.escapeHtml(key)}</span> → ${highlightedValue}</div>`;
         }).join('');
         
         return `<div class="redis-syntax">${entries}</div>`;
@@ -1035,7 +1056,8 @@ class AdminDashboard {
 
     clearRedisConsole() {
         const output = document.getElementById('redisOutput');
-        output.innerHTML = '<div class="redis-welcome">Console cleared. Type "help" for available commands.</div>';
+        output.innerHTML = '<div class="api-welcome">Redis Console cleared. Type "help" for available commands.</div>';
+        output.scrollTop = 0;
     }
 
     addEvent(event) {
@@ -2711,6 +2733,56 @@ class AdminDashboard {
             notification.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+
+    initializeRedisResize() {
+        const resizeHandle = document.getElementById('redisResizeHandle');
+        const resizableContainer = document.getElementById('redisConsoleResizable');
+        const redisConsole = resizableContainer?.querySelector('.api-console');
+        
+        if (!resizeHandle || !resizableContainer || !redisConsole) return;
+
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = resizableContainer.offsetHeight;
+            document.body.style.cursor = 'nwse-resize';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const deltaY = e.clientY - startY;
+            const newHeight = Math.min(Math.max(startHeight + deltaY, 300), window.innerHeight * 0.8);
+            
+            resizableContainer.style.height = newHeight + 'px';
+            redisConsole.style.height = newHeight + 'px';
+            
+            e.preventDefault();
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                
+                // Save the height preference to localStorage
+                const height = resizableContainer.offsetHeight;
+                localStorage.setItem('redisConsoleHeight', height);
+            }
+        });
+
+        // Restore saved height if available
+        const savedHeight = localStorage.getItem('redisConsoleHeight');
+        if (savedHeight) {
+            resizableContainer.style.height = savedHeight + 'px';
+            redisConsole.style.height = savedHeight + 'px';
+        }
     }
 }
 

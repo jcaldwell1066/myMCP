@@ -145,77 +145,11 @@
             font-weight: 600;
         }
 
-        .redis-console {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            border-radius: 4px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            display: flex;
-            flex-direction: column;
-            height: 500px;
-        }
-
-        .redis-header {
-            padding: 0.75rem 1rem;
-            background: #2d2d2d;
-            border-bottom: 1px solid #3e3e3e;
-            font-size: 0.875rem;
-            color: #999;
-        }
-
-        .redis-output {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-
-        .redis-output::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .redis-output::-webkit-scrollbar-track {
-            background: #2d2d2d;
-        }
-
-        .redis-output::-webkit-scrollbar-thumb {
-            background: #3e3e3e;
-            border-radius: 4px;
-        }
-
-        .redis-output::-webkit-scrollbar-thumb:hover {
-            background: #4e4e4e;
-        }
-
-        .redis-welcome {
-            color: #999;
-            font-style: italic;
-        }
-
-        .redis-input-container {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            background: #2d2d2d;
-            border-top: 1px solid #3e3e3e;
-        }
-
+        /* Redis Console styles - now using API console structure */
         .redis-prompt {
             color: #4CAF50;
             margin-right: 0.5rem;
             font-weight: bold;
-        }
-
-        .redis-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #d4d4d4;
-            padding: 0;
-            font-family: inherit;
-            font-size: 0.875rem;
-            outline: none;
         }
 
         .redis-command {
@@ -233,15 +167,24 @@
         }
 
         .redis-result {
-            margin-left: 1rem;
+            margin-left: 0;
             white-space: pre-wrap;
             word-break: break-word;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            line-height: 1.3;
         }
         
         /* Compact Redis array display */
         .redis-syntax .redis-line {
             padding: 0;
             line-height: 1.2;
+            margin: 0;
+        }
+        
+        .redis-syntax {
+            margin: 0;
+            padding: 0;
         }
         
         .redis-syntax > div[style*="margin-left"] {
@@ -257,6 +200,7 @@
             min-width: 2rem;
             color: #666;
             font-size: 0.75rem;
+            margin-right: 0.25rem;
         }
 
         .quick-ref {
@@ -1584,20 +1528,30 @@
                 <h2>Redis Console</h2>
                 <div class="dashboard-grid">
                     <div class="card" style="grid-column: 1 / -1;">
-                        <div class="redis-console">
-                            <div class="redis-header">Redis Console - Connected to <span id="redisUrl">localhost:6379</span></div>
-                            <div class="redis-output" id="redisOutput">
-                                <div class="redis-welcome">Welcome to Redis Console. Type 'help' for commands or use the saved queries.</div>
-                            </div>
-                            <div class="redis-input-container">
-                                <span class="redis-prompt">&gt;</span>
-                                <input type="text" class="redis-input" id="redisCommand" placeholder="Try: KEYS *, GET player:jcadwell-mcp, INFO, SMEMBERS game:players" autofocus>
+                        <div class="api-console-resizable" id="redisConsoleResizable">
+                            <div class="api-console">
+                                <div class="api-header">
+                                    <div class="api-target-container">
+                                        <span>Redis Console - Connected to </span>
+                                        <span id="redisUrl" style="color: #4CAF50; font-family: monospace;">redis-cloud</span>
+                                    </div>
+                                    <button id="clearRedisConsole" class="btn btn-secondary btn-sm" title="Clear console output">Clear</button>
+                                </div>
+                                <div class="api-output" id="redisOutput">
+                                    <div class="api-welcome">Welcome to Redis Console. Type 'help' for commands or use the saved queries.</div>
+                                </div>
+                                <div class="api-input-container">
+                                    <span class="redis-prompt">&gt;</span>
+                                    <input type="text" class="api-input" id="redisCommand" placeholder="Try: KEYS *, HGETALL collaborative-quest:*, ZREVRANGE game:leaderboard:score 0 -1" autofocus>
+                                    <button id="redisSendBtn" class="btn btn-primary">Execute</button>
+                                </div>
+                                <div class="resize-handle" id="redisResizeHandle"></div>
                             </div>
                         </div>
                     </div>
                     <div class="card">
                         <h3>Saved Queries</h3>
-                        <div class="saved-queries-container">
+                        <div class="saved-api-container">
                             <select id="savedQuerySelect" class="query-select">
                                 <option value="">Select a query...</option>
                             </select>
@@ -1609,22 +1563,23 @@
                         </div>
                     </div>
                     <div class="card">
-                        <h3>Quick Reference</h3>
+                        <h3>Quest Data Queries</h3>
                         <div class="quick-ref">
                             <div class="ref-section">
-                                <strong>Player Commands:</strong>
-                                <code>GET player:&lt;id&gt;</code>
+                                <strong>Quest Progress:</strong>
+                                <code>HGETALL collaborative-quest:*</code>
+                                <code>KEYS quest-participant:*</code>
+                                <code>KEYS quest-step:*</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>Leaderboard & Players:</strong>
+                                <code>ZREVRANGE game:leaderboard:score 0 -1 WITHSCORES</code>
                                 <code>SMEMBERS game:players</code>
                             </div>
                             <div class="ref-section">
-                                <strong>Leaderboard:</strong>
-                                <code>ZREVRANGE game:leaderboard:score 0 9</code>
-                            </div>
-                            <div class="ref-section">
-                                <strong>System:</strong>
-                                <code>INFO</code>
-                                <code>DBSIZE</code>
-                                <code>KEYS *</code>
+                                <strong>Communications:</strong>
+                                <code>LRANGE quest-communications:* 0 -1</code>
+                                <code>HGETALL pr-conflict:*</code>
                             </div>
                         </div>
                     </div>
