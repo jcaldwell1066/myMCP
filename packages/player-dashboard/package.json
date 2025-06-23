@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "description": "myMCP Player Dashboard - React frontend for game state visualization",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest"
