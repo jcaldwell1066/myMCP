@@ -60,7 +60,7 @@ export class MultiplayerService extends EventEmitter {
     // Initialize Socket.IO with Redis adapter
     this.io = new SocketServer(server, {
       cors: {
-        origin: ["http://localhost:3001", "http://localhost:3002", "http://localhost:3003"],
+        origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : ["http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://localhost:5173"],
         credentials: true
       }
     });
