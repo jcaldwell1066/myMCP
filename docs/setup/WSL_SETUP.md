@@ -1,85 +1,137 @@
-# myMCP WSL/Windows Setup Guide
+# WSL Setup Guide for myMCP
 
-This guide helps you set up myMCP in a WSL (Windows Subsystem for Linux) environment with proper CORS configuration.
+This guide helps you set up myMCP in a Windows Subsystem for Linux (WSL) environment with proper networking and CORS configuration.
+
+## 🔑 Prerequisites
+
+**CRITICAL SECURITY REQUIREMENTS:**
+- ✅ **API Keys Required**: You MUST have Anthropic and/or OpenAI API keys for AI features
+- ✅ **Redis Instance**: You need access to a Redis instance (local or cloud)
+- ❌ **Never Commit .env**: The .env file contains sensitive credentials and must never be committed to git
 
 ## Quick Setup
 
+### 1. Automated Setup (Recommended)
+
 ```bash
 # Run the automated WSL setup script
+chmod +x tools/setup/wsl-setup.sh
 ./tools/setup/wsl-setup.sh
 ```
 
-## Manual Setup
+**⚠️ IMPORTANT**: The script will create a `.env` file, but you MUST add your API keys manually:
 
-### 1. Get Your WSL IP Address
 ```bash
-# Get current WSL IP
-hostname -I | awk '{print $1}'
-# Example output: 172.20.80.209
+# Edit .env and add your credentials
+nano .env
+
+# Add these lines:
+ANTHROPIC_API_KEY=your_actual_anthropic_key_here
+OPENAI_API_KEY=your_actual_openai_key_here
+REDIS_URL=your_redis_connection_string
 ```
 
-### 2. Configure Environment Variables
-Create or update `.env` file:
+### 2. Manual Setup
+
+If you prefer manual setup:
+
 ```bash
-# Replace 172.20.80.209 with your actual WSL IP
-CORS_ORIGIN=http://localhost:3001,http://localhost:5173,http://172.20.80.209:5173
-VITE_ENGINE_URL=http://172.20.80.209:3000
+# 1. Copy environment template
+cp env.example .env
+
+# 2. Get your WSL IP address
+WSL_IP=$(hostname -I | awk '{print $1}')
+echo "Your WSL IP: $WSL_IP"
+
+# 3. Edit .env file and update:
+#    - CORS_ORIGIN=http://localhost:3001,http://localhost:5173,http://YOUR_WSL_IP:5173
+#    - VITE_ENGINE_URL=http://YOUR_WSL_IP:3000
+#    - ANTHROPIC_API_KEY=your_key_here
+#    - OPENAI_API_KEY=your_key_here
+#    - REDIS_URL=your_redis_url
+
+# 4. Create player dashboard environment
+echo "VITE_ENGINE_URL=http://$WSL_IP:3000" > packages/player-dashboard/.env.local
+
+# 5. Build engine with new CORS config
+npm run build --workspace=@mymcp/engine
 ```
 
-### 3. Start Services
+## 🔐 Security Checklist
+
+- [ ] ✅ `.env` file exists but is NOT committed to git
+- [ ] ✅ API keys are added to `.env` file
+- [ ] ✅ Redis URL is configured (no default passwords in production)
+- [ ] ✅ WSL IP address is configured for CORS
+- [ ] ❌ No sensitive credentials in any committed files
+
+## Starting the System
+
 ```bash
-# Start engine (in one terminal)
+# 1. Start the engine
 npm run start --workspace=@mymcp/engine
 
-# Start player dashboard (in another terminal)
+# 2. In another terminal, start the player dashboard
 npm run dev --workspace=@mymcp/player-dashboard
 
-# Optional: Start admin dashboard
-npm run start --workspace=@mymcp/admin
+# 3. Access the dashboard
+# Open browser to: http://YOUR_WSL_IP:5173
 ```
 
-### 4. Access URLs
-- **Player Dashboard**: http://YOUR_WSL_IP:5173
-- **Engine API**: http://YOUR_WSL_IP:3000
-- **Admin Dashboard**: http://YOUR_WSL_IP:3001
+## Access URLs
+
+After setup, you can access:
+
+- **Player Dashboard**: `http://YOUR_WSL_IP:5173`
+- **Engine API**: `http://YOUR_WSL_IP:3000`
+- **Admin Dashboard**: `http://YOUR_WSL_IP:3001`
+- **Health Check**: `http://YOUR_WSL_IP:3000/health`
 
 ## Troubleshooting
 
 ### CORS Errors
-If you see CORS errors:
-1. Check your WSL IP: `hostname -I`
-2. Update CORS_ORIGIN in `.env`
-3. Restart the engine
+If you see CORS errors, verify:
+1. Your WSL IP is correctly set in `CORS_ORIGIN`
+2. Engine has been rebuilt after CORS changes
+3. Both engine and dashboard are using the same WSL IP
 
-### IP Address Changes
-WSL IP can change after Windows reboot:
-1. Run `./tools/setup/wsl-setup.sh` again
-2. Or manually update `.env` with new IP
-3. Restart services
+### API Key Issues
+If AI features don't work:
+1. Verify API keys are set in `.env`
+2. Check engine logs for authentication errors
+3. Ensure keys have proper permissions/credits
 
-### Port Forwarding Issues
-If Windows can't access WSL services:
-1. Ensure Vite runs with `--host` flag
-2. Check Windows Firewall settings
-3. Try accessing via WSL IP instead of localhost
-
-## Advanced Configuration
-
-### Static WSL IP (Optional)
-For a permanent solution, consider setting up static WSL IP:
-- Use tools like `wsl2-boot` (see GitHub: ocroz/wsl2-boot)
-- Configure Windows Hyper-V networking
-- Set up port forwarding rules
-
-### Environment Variables Reference
+### WSL IP Changes
+WSL IP addresses can change after reboot:
 ```bash
-# CORS Configuration
-CORS_ORIGIN=http://localhost:3001,http://localhost:5173,http://WSL_IP:5173
+# Check current IP
+hostname -I | awk '{print $1}'
 
-# Engine URLs
-VITE_ENGINE_URL=http://WSL_IP:3000
-ENGINE_URL=http://WSL_IP:3000
-
-# Redis (shared cloud instance)
-REDIS_URL=redis://default:K2fw74hvSoiwLtyP5xeAzevBFXpXHvhU@redis-12991.c281.us-east-1-2.ec2.redns.redis-cloud.com:12991
+# Re-run setup script to update configuration
+./tools/setup/wsl-setup.sh
 ```
+
+## Network Architecture
+
+```
+Windows Host (172.20.80.1)
+    ↕ (Browser access)
+WSL Environment (172.20.80.209)
+    ├── Engine API (:3000)
+    ├── Admin Dashboard (:3001)
+    └── Player Dashboard (:5173)
+```
+
+## Security Notes
+
+- **Never commit `.env`**: Contains sensitive API keys and Redis credentials
+- **Use `.env.example`**: Template for creating your own `.env`
+- **Rotate keys regularly**: API keys should be rotated periodically
+- **Local development only**: This setup is for development, not production
+
+## Files Created/Modified
+
+- `.env` - Your local environment configuration (NOT committed)
+- `packages/player-dashboard/.env.local` - Vite environment variables
+- `packages/engine/src/index.ts` - Updated CORS parsing
+- Engine build artifacts in `packages/engine/dist/`
