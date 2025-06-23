@@ -1,7 +1,7 @@
 {
   "name": "@mymcp/player-dashboard",
   "version": "0.1.0",
-  "description": "myMCP Player Dashboard - React frontend using use-mcp",
+  "description": "myMCP Player Dashboard - React frontend for game state visualization",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,8 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "use-mcp": "^1.0.0",
+    "axios": "^1.6.0",
+    "socket.io-client": "^4.7.0",
     "@mymcp/types": "file:../../shared/types",
     "lucide-react": "^0.263.1",
     "clsx": "^2.0.0",
