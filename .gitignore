@@ -92,3 +92,5 @@ my-training-notes-PRIVATE.txt
 tsconfig.tsbuildinfo
 *.iml
 .env
+.env.backup
+.env.wsl-template
