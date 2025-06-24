@@ -202,6 +202,8 @@ node tools/setup/team-setup.sh         # Team training setup
 ## 📚 Documentation
 
 - **[🚀 Quick Start Guide](docs/QUICK_START.md)** - Get running in minutes
+- **[🏰 Team Demo Participation](docs/TEAM_DEMO_PARTICIPATION.md)** - Join the Council of Three Realms
+- **[⚡ Quick Setup Guide](docs/QUICK_SETUP_GUIDE.md)** - 15-minute setup for demo participants
 - **[💬 Slack Setup](docs/integrations/slack/README.md)** - Team integration
 - **[🤖 MCP Integration](docs/integrations/mcp/README.md)** - AI model setup
 - **[🌐 Multiplayer Guide](docs/multiplayer-setup.md)** - Distributed setup
@@ -224,14 +226,14 @@ redis-cli ping
 
 ## 🤝 Contributing
 
-We welcome contributions! The codebase is now cleaner and more organized:
+We welcome contributions! The codebase uses **hybrid development workflows** for the best balance of speed and quality:
 
-1. **No more cluttered root** - Tools organized in `tools/` directory
-2. **Portable paths** - No hardcoded usernames or paths
-3. **TypeScript throughout** - Type safety everywhere
-4. **Clean architecture** - Clear separation of concerns
+1. **Feature branches** - Use for substantial changes (gets PR review & CI validation)
+2. **Direct to main** - Use for small, safe changes (docs, bug fixes)
+3. **Quality gates** - PR workflows catch issues before they reach main
+4. **Clean architecture** - TypeScript throughout with clear separation
 
-See [Contributing Guide](docs/CONTRIBUTING.md) for details.
+See [Development Workflow Guide](docs/DEVELOPMENT_WORKFLOW.md) for choosing the right approach.
 
 ## 🔒 Security Notes
 

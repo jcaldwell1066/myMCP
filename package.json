@@ -35,7 +35,15 @@
     "slack:setup": "cd packages/slack-integration && cp .env.example .env && echo 'Please edit packages/slack-integration/.env with your Slack credentials'",
     "start:admin": "node tools/startup/start-admin.js",
     "start:full": "node tools/startup/start-full-system.js",
-    "build:all": "npm run build --workspaces"
+    "build:all": "npm run build --workspaces",
+    "dev:branch": "node tools/trunk-dev.js branch",
+    "dev:sync": "node tools/trunk-dev.js sync",
+    "dev:commit": "node tools/trunk-dev.js commit",
+    "dev:feature": "node tools/trunk-dev.js feature",
+    "dev:status": "node tools/trunk-dev.js status",
+    "dev:rollback": "node tools/trunk-dev.js rollback",
+    "dev:help": "node tools/trunk-dev.js help",
+    "demo:setup": "node tools/demo-setup.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
