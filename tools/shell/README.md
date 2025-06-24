@@ -73,7 +73,7 @@ source ~/.bashrc
 You can customize behavior with these environment variables:
 
 - `MYMCP_HOME` - Base directory for myMCP (default: `~/vibe/sub-modules/myMCP`)
-- `MCP_ENGINE_PORT` - Engine port (default: 3456)
+- `MCP_ENGINE_PORT` - Engine port (default: 3000)
 - `NODE_ENV` - Node environment (default: development)
 
 ## Examples

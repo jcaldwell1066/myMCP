@@ -26,30 +26,30 @@ This directory contains usage examples, sample files, and demonstrations for the
 ### Basic Commands
 ```bash
 # Check system status
-npm run dev:cli -- status
+npm run dev:cli status
 
 # Interactive chat session
-npm run dev:cli -- chat -i
+npm run dev:cli chat -i
 
 # Set player score
-npm run dev:cli -- set-score 250
+npm run dev:cli set-score 250
 
 # Start a quest
-npm run dev:cli -- start-quest global-meeting
+npm run dev:cli start-quest global-meeting
 ```
 
 ### Advanced Usage
 ```bash
 # View conversation history
-npm run dev:cli -- history --number 20
+npm run dev:cli history --number 20
 
 # Configure CLI settings
-npm run dev:cli -- config show
-npm run dev:cli -- config engineUrl http://localhost:3000
+npm run dev:cli config show
+npm run dev:cli config engineUrl http://localhost:3000
 
 # Quest management
-npm run dev:cli -- quests
-npm run dev:cli -- start-quest
+npm run dev:cli quests
+npm run dev:cli start-quest
 ```
 
 ## 🎮 Sample Quest Flows
@@ -57,22 +57,22 @@ npm run dev:cli -- start-quest
 ### Council of Three Realms (Global Meeting)
 ```bash
 # Start the timezone coordination quest
-npm run dev:cli -- start-quest global-meeting
+npm run dev:cli start-quest global-meeting
 
 # Check quest progress
-npm run dev:cli -- quests
+npm run dev:cli quests
 
 # Interact with quest narrative
-npm run dev:cli -- chat "What do I need to coordinate this meeting?"
+npm run dev:cli chat "What do I need to coordinate this meeting?"
 ```
 
 ### Dungeon Keeper's Vigil (Server Health)
 ```bash
 # Begin server monitoring quest
-npm run dev:cli -- start-quest server-health
+npm run dev:cli start-quest server-health
 
 # Learn about system monitoring
-npm run dev:cli -- chat "How do I check server health?"
+npm run dev:cli chat "How do I check server health?"
 ```
 
 ## 🔧 Development Examples

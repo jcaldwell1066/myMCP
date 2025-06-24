@@ -399,7 +399,7 @@ node --version  # Should be 18+
 Now that you have the basic setup working, explore these additional resources:
 
 ### 🎮 **Game Features & Quests**
-- **[Getting Started Guide](../GETTING_STARTED.md)** - Learn about the fantasy quest system
+- **[Getting Started Guide](QUICK_SETUP.md)** - Learn about the fantasy quest system
 - **[Team Demo Participation](../TEAM_DEMO_PARTICIPATION.md)** - Join collaborative adventures
 - **[Quest System Documentation](../pocketFlow/myMCP-docs/01_quest_system_.md)** - Deep dive into quests
 

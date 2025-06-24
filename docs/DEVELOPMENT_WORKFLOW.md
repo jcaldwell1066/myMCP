@@ -302,7 +302,7 @@ npm run dev:help                        # Show all commands
 
 ## 📚 **Related Documentation**
 
-- [Getting Started](GETTING_STARTED.md) - Basic development setup
+- [Getting Started](setup/QUICK_SETUP.md) - Basic development setup
 - [Testing Guide](packages/engine/docs/TESTING_GUIDE.md) - Comprehensive testing
 - [Startup Guide](STARTUP_GUIDE.md) - System startup procedures
 - [Contributing](CONTRIBUTING.md) - Code contribution guidelines

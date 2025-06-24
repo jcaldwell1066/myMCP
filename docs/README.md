@@ -6,7 +6,7 @@ Welcome to the myMCP project documentation! This directory contains all document
 
 ### Getting Started
 - [Main README](../README.md) - Project overview and quick start
-- [Getting Started Guide](GETTING_STARTED.md) - Detailed setup instructions
+- [Getting Started Guide](setup/QUICK_SETUP.md) - Detailed setup instructions
 - [Contributing Guide](CONTRIBUTING.md) - Development guidelines
 
 ### Technical Documentation
@@ -62,7 +62,7 @@ myMCP features three real-world skill quests wrapped in fantasy themes:
 
 ## 🔧 Development Workflow
 
-1. **Setup**: Follow [Getting Started Guide](GETTING_STARTED.md)
+1. **Setup**: Follow [Getting Started Guide](setup/QUICK_SETUP.md)
 2. **Development**: Use `npm run dev:*` scripts for component development
 3. **Testing**: Run integration tests in [../tests/](../tests/)
 4. **Contributing**: Follow [Contributing Guidelines](CONTRIBUTING.md)

@@ -1,21 +1,31 @@
 # Quick Start Guide
 
-## Choose Your Integration Path:
+**⚡ For the fastest setup experience, see our [Quick Setup Guide](setup/QUICK_SETUP.md)**
 
-### 1. Claude Desktop (MCP) Integration
-- See: [MCP Integration Guide](setup/MCP_INTEGRATION.md)
-- Perfect for: AI-assisted development with Claude
+## 🎯 Choose Your Path:
 
-### 2. Slack Integration  
-- See: [Slack Integration Guide](integrations/slack/README.md)
-- Perfect for: Team collaboration and notifications
+### 1. **Quick Setup** (Recommended)
+- **[Quick Setup Guide](setup/QUICK_SETUP.md)** - Get running in 15 minutes
+- **Perfect for:** New users, demo participants, quick evaluation
 
-### 3. Multiplayer/Team Setup
-- See: [Multiplayer Setup](setup/multiplayer-setup.md)
-- Perfect for: Team training scenarios
+### 2. **Platform-Specific Setup**
+- **[macOS Setup](setup/MACOS_SETUP_GUIDE.md)** - Comprehensive macOS guide with Zsh
+- **[WSL Setup](setup/WSL_SETUP.md)** - Windows Subsystem for Linux
+- **Perfect for:** Full development environment
 
-### 4. Basic CLI Usage
-- See: [Getting Started](GETTING_STARTED.md)
-- Perfect for: Individual developers
+### 3. **Integration Paths**
+- **[MCP Integration](setup/MCP_INTEGRATION.md)** - Connect with Claude Desktop
+- **[Slack Integration](integrations/slack/README.md)** - Team collaboration
+- **[Multiplayer Setup](setup/multiplayer-setup.md)** - Distributed teams
+- **Perfect for:** Team collaboration and AI integration
+
+### 4. **Advanced Setup**
+- **[System Startup Guide](../STARTUP_GUIDE.md)** - Multi-engine configurations
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Contributing guidelines
+- **Perfect for:** Advanced users and contributors
+
+---
+
+**Need help choosing?** Start with the [Quick Setup Guide](setup/QUICK_SETUP.md) - it works for 90% of use cases! 🚀
 
 For deployment, see the [Host Checklist](setup/HOST_CHECKLIST.md).

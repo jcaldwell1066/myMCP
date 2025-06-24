@@ -19,7 +19,7 @@ Use this checklist to ensure a smooth team training session.
 - [ ] Test connection: `redis-cli -u "redis://..." ping`
 
 ### Slack App Setup
-- [ ] Create Slack app following [SETUP.md](packages/slack-integration/SETUP.md)
+- [ ] Create Slack app following [Slack Integration Guide](../integrations/slack/README.md)
 - [ ] Get all required tokens:
   - [ ] Bot User OAuth Token (xoxb-...)
   - [ ] App-Level Token (xapp-...)

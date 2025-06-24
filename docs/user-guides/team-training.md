@@ -97,7 +97,7 @@ echo "  npm run dev:engine"
 The host runs the Slack integration:
 
 ```bash
-# Host creates Slack app (see packages/slack-integration/SETUP.md)
+# Host creates Slack app (see docs/integrations/slack/README.md)
 cd packages/slack-integration
 
 # Create .env with cloud Redis
