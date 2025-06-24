@@ -9,7 +9,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { Server } from 'http';
-import WebSocket, { WebSocketServer } from 'ws';
+// Note: WebSocket functionality now handled by Socket.IO in MultiplayerService
 import { v4 as uuidv4 } from 'uuid';
 import Joi from 'joi';
 import { 
@@ -61,8 +61,7 @@ if (!existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// WebSocket clients for real-time updates
-const wsClients = new Set<WebSocket>();
+// Note: Real-time client connections now managed by Socket.IO in MultiplayerService
 
 // Game state cache (in-memory for performance)
 let gameStatesCache: Record<string, GameState> = {};
@@ -303,25 +302,13 @@ app.use(cors({
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 
-// WebSocket broadcast function
+// Socket.IO broadcast function
 function broadcastStateUpdate(playerId: string, update: StateUpdate) {
-  // Use multiplayer service for cross-engine updates if available
+  // Use Socket.IO multiplayer service for real-time updates
   if (multiplayerService) {
     multiplayerService.broadcastPlayerUpdate(playerId, update.data as Partial<GameState>);
-  } else {
-    // Fallback to local WebSocket broadcast
-    const message = JSON.stringify({
-      type: 'STATE_UPDATE',
-      playerId,
-      update,
-    });
-    
-    wsClients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
   }
+  // Note: All real-time communication now handled via Socket.IO
 }
 
 // API Routes
@@ -337,7 +324,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     activeStates: Object.keys(gameStatesCache).length,
-    wsConnections: wsClients.size,
+    socketConnections: multiplayerService?.connectedClients || 0,
     llm: {
       enabled: hasWorkingLLM,
       providers: llmStatus,
@@ -355,7 +342,7 @@ app.get('/api/status', (req, res) => {
     status: 'ok',
     engineId: ENGINE_ID,
     isPrimary: IS_PRIMARY,
-    connectedClients: wsClients.size,
+    connectedClients: multiplayerService?.connectedClients || 0,
     onlinePlayers: Object.keys(gameStatesCache).filter(playerId => {
       const state = gameStatesCache[playerId];
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -1053,7 +1040,7 @@ app.get('/api/stats', (req, res) => {
       },
       system: {
         uptime: process.uptime(),
-        wsConnections: wsClients.size,
+        socketConnections: multiplayerService?.connectedClients || 0,
         memoryUsage: process.memoryUsage(),
       },
     },
@@ -1257,30 +1244,8 @@ httpServer.listen(PORT, () => {
   console.log(`⚡ Ready for ${multiplayerService ? 'multiplayer' : 'single-player'} action!`);
 });
 
-// WebSocket server for real-time updates
-const wss = new WebSocketServer({ server: httpServer });
-
-wss.on('connection', (ws) => {
-  console.log('🔌 WebSocket client connected');
-  wsClients.add(ws);
-  
-  // Send welcome message
-  ws.send(JSON.stringify({
-    type: 'WELCOME',
-    message: 'Connected to myMCP Engine',
-    timestamp: new Date(),
-  }));
-  
-  ws.on('close', () => {
-    console.log('🔌 WebSocket client disconnected');
-    wsClients.delete(ws);
-  });
-  
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
-    wsClients.delete(ws);
-  });
-});
+// Note: WebSocket functionality is now handled by Socket.IO in MultiplayerService
+// Real-time updates are managed through Socket.IO for better compatibility
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
