@@ -45,9 +45,12 @@ Here's how Claude might interact with our game:
 
 ```typescript
 // Claude checking player info
-const playerInfo = await getResource('mcp://game/player/123');
+const playerInfo = await getResource('mcp://game/player/player-123');
 // Claude starting a quest
-await executeTool('start_quest', { questId: 'dragon-quest' });
+await executeTool('start_quest', { 
+  playerId: 'player-123', 
+  questId: 'global-meeting' 
+});
 ```
 
 This code shows how Claude can get information and take actions in our game world!

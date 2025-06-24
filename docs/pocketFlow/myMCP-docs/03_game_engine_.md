@@ -48,10 +48,15 @@ Here's how to interact with the engine:
 
 ```typescript
 // Start a new quest
-async function startQuest(questId) {
-  const response = await fetch('/api/actions', {
+async function startQuest(questId, playerId) {
+  const response = await fetch(`http://localhost:3000/api/actions/${playerId}`, {
     method: 'POST',
-    body: JSON.stringify({ type: 'START_QUEST', questId })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      type: 'START_QUEST', 
+      payload: { questId },
+      playerId 
+    })
   });
 }
 ```

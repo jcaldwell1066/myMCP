@@ -45,14 +45,15 @@ const playerStats = {
 Here's how to check on things:
 
 ```typescript
-// Check system health
-dashboard.getHealth();
+// Check system health (admin dashboard at localhost:3500)
+fetch('http://localhost:3500/api/health');
 
 // Find a player
-dashboard.findPlayer('alice');
+fetch('http://localhost:3500/api/players?q=alice');
 
-// Watch live events
-dashboard.subscribeToEvents();
+// Watch live events via WebSocket
+const ws = new WebSocket('ws://localhost:3500');
+ws.onmessage = (event) => console.log(JSON.parse(event.data));
 ```
 
 ## How It Works Inside

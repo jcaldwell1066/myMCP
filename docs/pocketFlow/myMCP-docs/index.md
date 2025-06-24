@@ -3,7 +3,7 @@
 myMCP is a **fantasy-themed technical training platform** that transforms real-world technical tasks into engaging quest-based adventures. It uses an *AI-powered game engine* to turn mundane activities like meeting scheduling into epic quests like "Council of Three Realms". The system supports **multiple interfaces** (CLI, Web, Slack) and enables teams to learn technical skills through an immersive multiplayer experience with real-time coordination.
 
 
-**Source Repository:** [https://github.com/jcaldwell1066/myMCP](https://github.com/jcaldwell1066/myMCP)
+**Source Repository:** Contact repository maintainer for access
 
 ```mermaid
 flowchart TD

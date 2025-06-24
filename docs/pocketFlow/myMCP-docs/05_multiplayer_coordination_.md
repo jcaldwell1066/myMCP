@@ -51,11 +51,25 @@ const worldState = {
 Here's how to interact with other players:
 
 ```typescript
-// Send a message to everyone
-chat.sendGlobal("Hello everyone!");
+// Send a chat message via API
+await fetch('http://localhost:3000/api/actions/player-id', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    type: 'CHAT',
+    payload: { message: "Hello everyone!" }
+  })
+});
 
 // Move to a new location
-player.moveTo('forest');
+await fetch('http://localhost:3000/api/actions/player-id', {
+  method: 'POST', 
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    type: 'CHANGE_LOCATION',
+    payload: { location: 'forest' }
+  })
+});
 ```
 
 This code helps players talk and move around together!

@@ -24,7 +24,7 @@ Like checking each LEGO piece individually:
 ```typescript
 test('player should level up', () => {
   const player = createPlayer();
-  player.addScore(100);
+  player.addScore(150);  // Apprentice level starts at 100 points
   expect(player.level).toBe('apprentice');
 });
 ```
@@ -36,9 +36,11 @@ Like making sure LEGO pieces fit together:
 
 ```typescript
 test('complete quest flow', async () => {
-  const quest = startQuest('dragon-quest');
-  await quest.complete();
-  expect(player.score).toBeGreaterThan(0);
+  const playerId = 'test-player';
+  await startQuest('global-meeting', playerId);
+  await completeQuest(playerId);
+  const state = await getPlayerState(playerId);
+  expect(state.player.score).toBeGreaterThan(0);
 });
 ```
 
@@ -50,8 +52,11 @@ Here's how to run tests:
 # Run all tests
 npm test
 
-# Run specific tests
-npm run test:quests
+# Run API integration tests
+cd tests/api && npm test
+
+# Run specific engine tests
+npm run test --workspace=packages/engine
 ```
 
 This helps us find and fix problems before players see them!

@@ -55,8 +55,8 @@ Let's create a simple quest. First, we define our quest structure:
 
 ```typescript
 const simpleQuest = {
-  id: "council-of-three",
-  title: "Council of Three Realms",
+  id: "global-meeting",
+  title: "Council of Three Realms", 
   steps: ["find_allies", "send_invites", "confirm_council"]
 };
 ```
@@ -64,7 +64,11 @@ const simpleQuest = {
 Then we can start the quest through either the CLI or web interface:
 
 ```bash
-myMCP quest start council-of-three
+# Via CLI
+npm run dev:cli start-quest "Council of Three Realms"
+# or using the shorthand
+cd packages/cli && npm run shell
+> start-quest global-meeting
 ```
 
 ## How It Works Inside

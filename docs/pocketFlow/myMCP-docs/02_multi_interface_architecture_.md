@@ -56,14 +56,14 @@ Here's how you might check your score through different interfaces:
 
 ```bash
 # Via CLI
-mycli get-score
-> Score: 100
+npm run dev:cli status
+> Player Level: apprentice | Score: 100
 
 # Via Web (React component)
 <ScoreDisplay />  // Shows: "Score: 100"
 
 # Via Slack
-/mymcp score     // Shows: "Score: 100"
+/mymcp status     // Shows: "Score: 100"
 ```
 
 ## How It Works Inside
@@ -88,7 +88,7 @@ Let's see a simple implementation:
 ```typescript
 class GameInterface {
   async getScore() {
-    const response = await fetch('/api/state');
+    const response = await fetch('http://localhost:3000/api/state/player-id');
     const state = await response.json();
     return state.player.score;
   }
