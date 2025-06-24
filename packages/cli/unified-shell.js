@@ -42,7 +42,8 @@ function showBanner() {
   console.log(chalk.gray('• Get help: "How am I doing?" or "Show me quests"'));
   console.log();
   console.log(chalk.blue('Quick Commands (optional):'));
-  console.log(chalk.gray('• status, quests, history, help, clear, exit'));
+  console.log(chalk.gray('• status, profile, quests, history, help, clear, exit'));
+  console.log(chalk.gray('• set-name, set-location, set-level'));
   console.log(chalk.gray('─'.repeat(50)));
   console.log();
 }
@@ -144,6 +145,86 @@ async function executeQuickCommand(command, args) {
         }
         break;
         
+      case 'profile':
+        const profileResponse = await apiClient.get(`/state/${config.playerId}`);
+        const profileState = profileResponse.data.data;
+        const player = profileState.player;
+        
+        console.log(chalk.bold.blue('👤 Player Profile'));
+        console.log(chalk.gray('─'.repeat(40)));
+        console.log(chalk.green(`🆔 ID: ${player.id}`));
+        console.log(chalk.green(`📛 Name: ${player.name}`));
+        console.log(chalk.yellow(`⭐ Score: ${player.score} points`));
+        console.log(chalk.magenta(`🎯 Level: ${player.level}`));
+        console.log(chalk.cyan(`🌍 Location: ${player.location}`));
+        console.log(chalk.blue(`🎭 Status: ${player.status}`));
+        
+        if (profileState.inventory && profileState.inventory.items.length > 0) {
+          console.log(chalk.green(`🎒 Inventory: ${profileState.inventory.items.join(', ')}`));
+        } else {
+          console.log(chalk.gray('🎒 Inventory: Empty'));
+        }
+        
+        console.log(chalk.gray('─'.repeat(40)));
+        console.log(chalk.gray('💡 Tip: Use set-name, set-location, or set-level to edit'));
+        break;
+        
+      case 'set-name':
+        const name = args.join(' ');
+        if (!name) {
+          console.log(chalk.red('❌ Please provide a name'));
+          return;
+        }
+        
+        const nameResponse = await apiClient.put(`/state/${config.playerId}/player`, {
+          name: name
+        });
+        
+        if (nameResponse.data.success) {
+          console.log(chalk.green(`✅ Name changed to: ${name}`));
+          const player = nameResponse.data.data;
+          console.log(chalk.cyan(`🧙‍♂️ Welcome, ${player.name}!`));
+        }
+        break;
+        
+      case 'set-location':
+        const location = args.join(' ');
+        if (!location) {
+          console.log(chalk.red('❌ Please provide a location'));
+          return;
+        }
+        
+        const locationResponse = await apiClient.put(`/state/${config.playerId}/player`, {
+          location: location
+        });
+        
+        if (locationResponse.data.success) {
+          console.log(chalk.green(`✅ Moved to: ${location}`));
+          const player = locationResponse.data.data;
+          console.log(chalk.cyan(`🌍 You are now in ${player.location}`));
+        }
+        break;
+        
+      case 'set-level':
+        const level = args[0];
+        const validLevels = ['novice', 'apprentice', 'expert', 'master'];
+        
+        if (!level || !validLevels.includes(level)) {
+          console.log(chalk.red(`❌ Please provide a valid level: ${validLevels.join(', ')}`));
+          return;
+        }
+        
+        const levelResponse = await apiClient.put(`/state/${config.playerId}/player`, {
+          level: level
+        });
+        
+        if (levelResponse.data.success) {
+          console.log(chalk.green(`✅ Level changed to: ${level}`));
+          const player = levelResponse.data.data;
+          console.log(chalk.cyan(`🎯 You are now a ${player.level}!`));
+        }
+        break;
+        
       case 'quests':
         const questsResponse = await apiClient.get(`/quests/${config.playerId}`);
         const quests = questsResponse.data.data;
@@ -208,11 +289,15 @@ async function executeQuickCommand(command, args) {
         console.log(chalk.yellow('   "I need help understanding the game"'));
         console.log();
         console.log(chalk.cyan('⚡ Quick Commands:'));
-        console.log(chalk.gray('   status    - Show adventure status'));
-        console.log(chalk.gray('   quests    - List available quests'));
-        console.log(chalk.gray('   history   - Show recent conversations'));
-        console.log(chalk.gray('   clear     - Clear the screen'));
-        console.log(chalk.gray('   exit      - Leave the realm'));
+        console.log(chalk.gray('   status       - Show adventure status'));
+        console.log(chalk.gray('   profile      - Show detailed player profile'));
+        console.log(chalk.gray('   set-name     - Change your character name'));
+        console.log(chalk.gray('   set-location - Change your location'));  
+        console.log(chalk.gray('   set-level    - Change your level'));
+        console.log(chalk.gray('   quests       - List available quests'));
+        console.log(chalk.gray('   history      - Show recent conversations'));
+        console.log(chalk.gray('   clear        - Clear the screen'));
+        console.log(chalk.gray('   exit         - Leave the realm'));
         console.log();
         console.log(chalk.green('💡 Pro tip: Your guide understands natural language! Just speak normally.'));
         break;
@@ -249,7 +334,7 @@ async function processInput(input) {
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
   
-  const quickCommands = ['status', 'quests', 'history', 'help'];
+  const quickCommands = ['status', 'quests', 'history', 'help', 'profile', 'set-name', 'set-location', 'set-level'];
   
   if (quickCommands.includes(command)) {
     await executeQuickCommand(command, args);

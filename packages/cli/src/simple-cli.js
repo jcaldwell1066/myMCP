@@ -282,6 +282,10 @@ program
     console.log(chalk.gray('  mycli quests              - List all available quests'));
     console.log(chalk.gray('  mycli start-quest <id>    - Start a quest'));
     console.log(chalk.gray('  mycli progress            - Show quest progress'));
+    console.log(chalk.gray('  mycli profile             - Show detailed player profile'));
+    console.log(chalk.gray('  mycli set-name <name>     - Change your character name'));
+    console.log(chalk.gray('  mycli set-location <loc>  - Change location (town/forest/cave/shop)'));
+    console.log(chalk.gray('  mycli set-level <level>   - Change level (novice/apprentice/expert/master)'));
   });
 
 // Progress command
@@ -321,6 +325,109 @@ program
     }
   });
 
+// Profile command
+program
+  .command('profile')
+  .description('Show detailed player profile')
+  .action(async () => {
+    try {
+      const apiClient = createApiClient();
+      const response = await apiClient.get(`/state/${config.playerId}`);
+      const state = response.data.data;
+      const player = state.player;
+      
+      console.log(chalk.bold.blue('👤 Player Profile'));
+      console.log(chalk.gray('─'.repeat(40)));
+      console.log(chalk.green(`🆔 ID: ${player.id}`));
+      console.log(chalk.green(`📛 Name: ${player.name}`));
+      console.log(chalk.yellow(`⭐ Score: ${player.score} points`));
+      console.log(chalk.magenta(`🎯 Level: ${player.level}`));
+      console.log(chalk.cyan(`🌍 Location: ${player.location}`));
+      console.log(chalk.blue(`🎭 Status: ${player.status}`));
+      
+      if (state.inventory && state.inventory.items.length > 0) {
+        console.log(chalk.green(`🎒 Inventory: ${state.inventory.items.join(', ')}`));
+      } else {
+        console.log(chalk.gray('🎒 Inventory: Empty'));
+      }
+      
+      console.log(chalk.gray('─'.repeat(40)));
+      console.log(chalk.gray('💡 Tip: Use set-name, set-location, or set-level to edit'));
+    } catch (error) {
+      handleApiError(error, 'Failed to fetch profile');
+    }
+  });
+
+// Set name command
+program
+  .command('set-name <name>')
+  .description('Change your character name')
+  .action(async (name) => {
+    try {
+      const apiClient = createApiClient();
+      const response = await apiClient.put(`/state/${config.playerId}/player`, {
+        name: name
+      });
+      
+      if (response.data.success) {
+        console.log(chalk.green(`✅ Name changed to: ${name}`));
+        const player = response.data.data;
+        console.log(chalk.cyan(`🧙‍♂️ Welcome, ${player.name}!`));
+      }
+    } catch (error) {
+      handleApiError(error, 'Failed to update name');
+    }
+  });
+
+// Set location command
+program
+  .command('set-location <location>')
+  .description('Change your location')
+  .action(async (location) => {
+    try {
+      const apiClient = createApiClient();
+      const response = await apiClient.put(`/state/${config.playerId}/player`, {
+        location: location
+      });
+      
+      if (response.data.success) {
+        console.log(chalk.green(`✅ Moved to: ${location}`));
+        const player = response.data.data;
+        console.log(chalk.cyan(`🌍 You are now in ${player.location}`));
+      }
+    } catch (error) {
+      handleApiError(error, 'Failed to update location');
+    }
+  });
+
+// Set level command
+program
+  .command('set-level <level>')
+  .description('Change your level (novice/apprentice/expert/master)')
+  .action(async (level) => {
+    const validLevels = ['novice', 'apprentice', 'expert', 'master'];
+    
+    if (!validLevels.includes(level)) {
+      console.log(chalk.red(`❌ Please provide a valid level: ${validLevels.join(', ')}`));
+      return;
+    }
+    
+    try {
+      const apiClient = createApiClient();
+      const response = await apiClient.put(`/state/${config.playerId}/player`, {
+        level: level
+      });
+      
+      if (response.data.success) {
+        console.log(chalk.green(`✅ Level changed to: ${level}`));
+        const player = response.data.data;
+        console.log(chalk.cyan(`🎯 You are now a ${player.level}!`));
+      }
+    } catch (error) {
+      handleApiError(error, 'Failed to update level');
+    }
+  });
+
 // Set program info
 program
   .name('mycli')
@@ -343,4 +450,8 @@ if (!process.argv.slice(2).length) {
   console.log(chalk.gray('  mycli quests              - List all available quests'));
   console.log(chalk.gray('  mycli start-quest <id>    - Start a quest'));
   console.log(chalk.gray('  mycli progress            - Show quest progress'));
+  console.log(chalk.gray('  mycli profile             - Show detailed player profile'));
+  console.log(chalk.gray('  mycli set-name <name>     - Change your character name'));
+  console.log(chalk.gray('  mycli set-location <loc>  - Change location (town/forest/cave/shop)'));
+  console.log(chalk.gray('  mycli set-level <level>   - Change level (novice/apprentice/expert/master)'));
 }

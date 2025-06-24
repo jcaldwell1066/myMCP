@@ -455,4 +455,128 @@ export function setupRoutes(app: Application, services: Services) {
       timestamp: new Date().toISOString()
     });
   });
+
+  // Quest Editor endpoints
+  app.get('/api/quest-drafts', async (req: Request, res: Response) => {
+    try {
+      // In production, this would fetch from a database
+      // For now, we'll use Redis to store drafts
+      const drafts = await services.redis.searchKeys('quest:draft:*', 100);
+      const draftData = await Promise.all(
+        drafts.map(async (keyInfo) => {
+          const data = await services.redis.getKeyDetails(keyInfo.key);
+          return { key: keyInfo.key, ...JSON.parse(data.value || '{}') };
+        })
+      );
+      res.json(draftData);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch quest drafts' });
+    }
+  });
+
+  app.post('/api/quest-drafts', async (req: Request, res: Response) => {
+    try {
+      const questData = req.body;
+      if (!questData.id || !questData.title) {
+        return res.status(400).json({ error: 'Quest ID and title are required' });
+      }
+
+      // Store in Redis
+      const key = `quest:draft:${questData.id}`;
+      await services.redis.executeQuery('SET', [key, JSON.stringify({
+        ...questData,
+        status: 'draft',
+        lastModified: new Date().toISOString()
+      })]);
+
+      // Log the event
+      services.dashboard.logEvent('info', 'quest-editor', `Quest draft saved: ${questData.title}`, {
+        questId: questData.id
+      });
+
+      res.json({ success: true, questId: questData.id });
+    } catch (error: any) {
+      res.status(500).json({ error: 'Failed to save quest draft', details: error.message });
+    }
+  });
+
+  app.post('/api/quest-publish', async (req: Request, res: Response) => {
+    try {
+      const questData = req.body;
+      if (!questData.id || !questData.title || !questData.description) {
+        return res.status(400).json({ error: 'Quest ID, title, and description are required' });
+      }
+
+      if (!questData.steps || questData.steps.length === 0) {
+        return res.status(400).json({ error: 'At least one quest step is required' });
+      }
+
+      // Store as published quest
+      const key = `quest:published:${questData.id}`;
+      await services.redis.executeQuery('SET', [key, JSON.stringify({
+        ...questData,
+        status: 'published',
+        publishedAt: new Date().toISOString()
+      })]);
+
+      // Add to quest catalog set
+      await services.redis.executeQuery('SADD', ['quest:catalog', questData.id]);
+
+      // Remove from drafts if exists
+      const draftKey = `quest:draft:${questData.id}`;
+      await services.redis.executeQuery('DEL', [draftKey]);
+
+      // Log the event
+      services.dashboard.logEvent('info', 'quest-editor', `Quest published: ${questData.title}`, {
+        questId: questData.id,
+        score: questData.score,
+        steps: questData.steps.length
+      });
+
+      res.json({ success: true, questId: questData.id });
+    } catch (error: any) {
+      res.status(500).json({ error: 'Failed to publish quest', details: error.message });
+    }
+  });
+
+  app.get('/api/quest-catalog', async (req: Request, res: Response) => {
+    try {
+      // Get all published quests
+      const catalogKeys = await services.redis.executeQuery('SMEMBERS', ['quest:catalog']);
+      const questIds = catalogKeys.result || [];
+
+      const quests = await Promise.all(
+        questIds.map(async (questId: string) => {
+          const key = `quest:published:${questId}`;
+          const questData = await services.redis.getKeyDetails(key);
+          return questData.value ? JSON.parse(questData.value) : null;
+        })
+      );
+
+      // Filter out null values first
+      const validQuests = quests.filter(q => q !== null);
+
+      res.json({ 
+        quests: validQuests,
+        total: validQuests.length 
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch quest catalog' });
+    }
+  });
+
+  app.delete('/api/quest-drafts/:questId', async (req: Request, res: Response) => {
+    try {
+      const { questId } = req.params;
+      const key = `quest:draft:${questId}`;
+      
+      await services.redis.executeQuery('DEL', [key]);
+      
+      services.dashboard.logEvent('info', 'quest-editor', `Quest draft deleted: ${questId}`);
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete quest draft' });
+    }
+  });
 } 

@@ -145,77 +145,11 @@
             font-weight: 600;
         }
 
-        .redis-console {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            border-radius: 4px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            display: flex;
-            flex-direction: column;
-            height: 500px;
-        }
-
-        .redis-header {
-            padding: 0.75rem 1rem;
-            background: #2d2d2d;
-            border-bottom: 1px solid #3e3e3e;
-            font-size: 0.875rem;
-            color: #999;
-        }
-
-        .redis-output {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-
-        .redis-output::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .redis-output::-webkit-scrollbar-track {
-            background: #2d2d2d;
-        }
-
-        .redis-output::-webkit-scrollbar-thumb {
-            background: #3e3e3e;
-            border-radius: 4px;
-        }
-
-        .redis-output::-webkit-scrollbar-thumb:hover {
-            background: #4e4e4e;
-        }
-
-        .redis-welcome {
-            color: #999;
-            font-style: italic;
-        }
-
-        .redis-input-container {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            background: #2d2d2d;
-            border-top: 1px solid #3e3e3e;
-        }
-
+        /* Redis Console styles - now using API console structure */
         .redis-prompt {
             color: #4CAF50;
             margin-right: 0.5rem;
             font-weight: bold;
-        }
-
-        .redis-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #d4d4d4;
-            padding: 0;
-            font-family: inherit;
-            font-size: 0.875rem;
-            outline: none;
         }
 
         .redis-command {
@@ -233,15 +167,24 @@
         }
 
         .redis-result {
-            margin-left: 1rem;
+            margin-left: 0;
             white-space: pre-wrap;
             word-break: break-word;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            line-height: 1.3;
         }
         
         /* Compact Redis array display */
         .redis-syntax .redis-line {
             padding: 0;
             line-height: 1.2;
+            margin: 0;
+        }
+        
+        .redis-syntax {
+            margin: 0;
+            padding: 0;
         }
         
         .redis-syntax > div[style*="margin-left"] {
@@ -257,6 +200,7 @@
             min-width: 2rem;
             color: #666;
             font-size: 0.75rem;
+            margin-right: 0.25rem;
         }
 
         .quick-ref {
@@ -1144,6 +1088,234 @@
             border-radius: 4px;
             margin: 0.5rem 0;
         }
+
+        /* Quest Editor Styles */
+        .quest-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .quest-editor-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quest-status {
+            color: #999;
+            font-style: italic;
+        }
+
+        .quest-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .quest-templates {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quest-template-info {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #999;
+            min-height: 100px;
+        }
+
+        .quest-steps-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quest-steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quest-step-item {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            display: flex;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .quest-step-number {
+            background: #444;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .quest-step-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quest-step-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .quest-step-actions button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .quest-preview {
+            background: #2a2a2a;
+            padding: 1.5rem;
+            border-radius: 4px;
+            min-height: 200px;
+        }
+
+        .preview-placeholder {
+            color: #666;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .quest-preview-content {
+            color: #fff;
+        }
+
+        .quest-preview-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #4CAF50;
+        }
+
+        .quest-preview-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .quest-preview-description {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .quest-preview-steps {
+            margin-bottom: 1rem;
+        }
+
+        .quest-preview-steps h4 {
+            color: #4CAF50;
+            margin-bottom: 0.5rem;
+        }
+
+        .quest-preview-step {
+            padding-left: 1.5rem;
+            margin-bottom: 0.25rem;
+            position: relative;
+        }
+
+        .quest-preview-step:before {
+            content: "•";
+            position: absolute;
+            left: 0.5rem;
+            color: #666;
+        }
+
+        .quest-preview-rewards {
+            background: #1e1e1e;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .quest-preview-rewards h4 {
+            color: #f39c12;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2ecc71;
+        }
+
+        .btn-success:disabled {
+            background: #1a5d35;
+            opacity: 0.6;
+        }
+
+        /* Notification animations */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1162,6 +1334,7 @@
             <a class="sidebar-item" data-view="engines">⚙️ Engines</a>
             <a class="sidebar-item" data-view="players">👥 Players</a>
             <a class="sidebar-item" data-view="leaderboard">🏆 Leaderboard</a>
+            <a class="sidebar-item" data-view="quest-editor">📝 Quest Editor</a>
             <a class="sidebar-item" data-view="redis">🗄️ Redis Console</a>
             <a class="sidebar-item" data-view="api">🔌 API Console</a>
             <a class="sidebar-item" data-view="cli">🖥️ CLI Console</a>
@@ -1271,25 +1444,114 @@
                 </div>
             </div>
 
+            <!-- Quest Editor View -->
+            <div id="quest-editor-view" class="view hidden">
+                <h2>Quest Editor</h2>
+                <div class="dashboard-grid">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="quest-editor-header">
+                            <div class="quest-editor-actions">
+                                <button id="newQuestBtn" class="btn btn-primary">New Quest</button>
+                                <button id="loadQuestBtn" class="btn btn-secondary">Load Existing</button>
+                                <button id="saveQuestBtn" class="btn btn-secondary" disabled>Save Draft</button>
+                                <button id="publishQuestBtn" class="btn btn-success" disabled>Publish</button>
+                            </div>
+                            <div class="quest-status">
+                                <span id="questStatus">No quest loaded</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Quest Templates</h3>
+                        <div class="quest-templates">
+                            <select id="questTemplateSelect" class="query-select">
+                                <option value="">Select a template...</option>
+                            </select>
+                            <div id="questTemplateInfo" class="quest-template-info"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="grid-column: 2 / -1;">
+                        <h3>Quest Details</h3>
+                        <div class="quest-form">
+                            <div class="form-group">
+                                <label for="questId">Quest ID</label>
+                                <input type="text" id="questId" class="form-input" placeholder="unique-quest-id" />
+                            </div>
+                            <div class="form-group">
+                                <label for="questTitle">Title</label>
+                                <input type="text" id="questTitle" class="form-input" placeholder="Quest Title" />
+                            </div>
+                            <div class="form-group">
+                                <label for="questDescription">Description</label>
+                                <textarea id="questDescription" class="form-textarea" rows="3" placeholder="Quest description..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="questRealWorldSkill">Real World Skill</label>
+                                <input type="text" id="questRealWorldSkill" class="form-input" placeholder="e.g., Server monitoring, API testing" />
+                            </div>
+                            <div class="form-group">
+                                <label for="questFantasyTheme">Fantasy Theme</label>
+                                <input type="text" id="questFantasyTheme" class="form-input" placeholder="e.g., Guardian of mystical computing crystals" />
+                            </div>
+                            <div class="form-group">
+                                <label for="questScore">Reward Score</label>
+                                <input type="number" id="questScore" class="form-input" placeholder="100" min="0" step="25" />
+                            </div>
+                            <div class="form-group">
+                                <label for="questItems">Reward Items (comma-separated)</label>
+                                <input type="text" id="questItems" class="form-input" placeholder="Crystal Monitor, System Rune" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <h3>Quest Steps</h3>
+                        <div class="quest-steps-editor">
+                            <div id="questStepsList" class="quest-steps-list"></div>
+                            <button id="addStepBtn" class="btn btn-secondary">+ Add Step</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <h3>Preview</h3>
+                        <div class="quest-preview" id="questPreview">
+                            <div class="preview-placeholder">Create or load a quest to see preview</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Redis Console View -->
             <div id="redis-view" class="view hidden">
                 <h2>Redis Console</h2>
                 <div class="dashboard-grid">
                     <div class="card" style="grid-column: 1 / -1;">
-                        <div class="redis-console">
-                            <div class="redis-header">Redis Console - Connected to <span id="redisUrl">localhost:6379</span></div>
-                            <div class="redis-output" id="redisOutput">
-                                <div class="redis-welcome">Welcome to Redis Console. Type 'help' for commands or use the saved queries.</div>
-                            </div>
-                            <div class="redis-input-container">
-                                <span class="redis-prompt">&gt;</span>
-                                <input type="text" class="redis-input" id="redisCommand" placeholder="Try: KEYS *, GET player:jcadwell-mcp, INFO, SMEMBERS game:players" autofocus>
+                        <div class="api-console-resizable" id="redisConsoleResizable">
+                            <div class="api-console">
+                                <div class="api-header">
+                                    <div class="api-target-container">
+                                        <span>Redis Console - Connected to </span>
+                                        <span id="redisUrl" style="color: #4CAF50; font-family: monospace;">redis-cloud</span>
+                                    </div>
+                                    <button id="clearRedisConsole" class="btn btn-secondary btn-sm" title="Clear console output">Clear</button>
+                                </div>
+                                <div class="api-output" id="redisOutput">
+                                    <div class="api-welcome">Welcome to Redis Console. Type 'help' for commands or use the saved queries.</div>
+                                </div>
+                                <div class="api-input-container">
+                                    <span class="redis-prompt">&gt;</span>
+                                    <input type="text" class="api-input" id="redisCommand" placeholder="Try: KEYS *, HGETALL collaborative-quest:*, ZREVRANGE game:leaderboard:score 0 -1" autofocus>
+                                    <button id="redisSendBtn" class="btn btn-primary">Execute</button>
+                                </div>
+                                <div class="resize-handle" id="redisResizeHandle"></div>
                             </div>
                         </div>
                     </div>
                     <div class="card">
                         <h3>Saved Queries</h3>
-                        <div class="saved-queries-container">
+                        <div class="saved-api-container">
                             <select id="savedQuerySelect" class="query-select">
                                 <option value="">Select a query...</option>
                             </select>
@@ -1301,22 +1563,23 @@
                         </div>
                     </div>
                     <div class="card">
-                        <h3>Quick Reference</h3>
+                        <h3>Quest Data Queries</h3>
                         <div class="quick-ref">
                             <div class="ref-section">
-                                <strong>Player Commands:</strong>
-                                <code>GET player:&lt;id&gt;</code>
+                                <strong>Quest Progress:</strong>
+                                <code>HGETALL collaborative-quest:*</code>
+                                <code>KEYS quest-participant:*</code>
+                                <code>KEYS quest-step:*</code>
+                            </div>
+                            <div class="ref-section">
+                                <strong>Leaderboard & Players:</strong>
+                                <code>ZREVRANGE game:leaderboard:score 0 -1 WITHSCORES</code>
                                 <code>SMEMBERS game:players</code>
                             </div>
                             <div class="ref-section">
-                                <strong>Leaderboard:</strong>
-                                <code>ZREVRANGE game:leaderboard:score 0 9</code>
-                            </div>
-                            <div class="ref-section">
-                                <strong>System:</strong>
-                                <code>INFO</code>
-                                <code>DBSIZE</code>
-                                <code>KEYS *</code>
+                                <strong>Communications:</strong>
+                                <code>LRANGE quest-communications:* 0 -1</code>
+                                <code>HGETALL pr-conflict:*</code>
                             </div>
                         </div>
                     </div>
