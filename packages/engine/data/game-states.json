@@ -6449,11 +6449,12 @@
   "dashboard-player": {
     "player": {
       "id": "dashboard-player",
-      "name": "Hero",
-      "score": 0,
-      "level": "novice",
-      "status": "idle",
-      "location": "town"
+      "name": "Jeff the Code Wizard",
+      "score": 150,
+      "level": "apprentice",
+      "status": "in-quest",
+      "location": "forest",
+      "currentQuest": "hmac-security"
     },
     "quests": {
       "available": [
@@ -6522,38 +6523,6 @@
           }
         },
         {
-          "id": "hmac-security",
-          "title": "Cryptomancer's Seal",
-          "description": "Master the arcane arts of message authentication and integrity.",
-          "realWorldSkill": "HMAC cryptographic implementation",
-          "fantasyTheme": "Forging magical seals of authenticity",
-          "status": "available",
-          "steps": [
-            {
-              "id": "learn-theory",
-              "description": "Study the ancient cryptographic texts",
-              "completed": false
-            },
-            {
-              "id": "craft-seal",
-              "description": "Create your first authentication seal",
-              "completed": false
-            },
-            {
-              "id": "verify-seal",
-              "description": "Prove the seal's authenticity",
-              "completed": false
-            }
-          ],
-          "reward": {
-            "score": 125,
-            "items": [
-              "Cryptomancer Staff",
-              "HMAC Grimoire"
-            ]
-          }
-        },
-        {
           "id": "release-milestone-v2",
           "title": "Path to Release: Version 2.0",
           "description": "Guide the project to its next major release milestone by completing critical development tasks.",
@@ -6587,7 +6556,38 @@
           }
         }
       ],
-      "active": null,
+      "active": {
+        "id": "hmac-security",
+        "title": "Cryptomancer's Seal",
+        "description": "Master the arcane arts of message authentication and integrity.",
+        "realWorldSkill": "HMAC cryptographic implementation",
+        "fantasyTheme": "Forging magical seals of authenticity",
+        "status": "active",
+        "steps": [
+          {
+            "id": "learn-theory",
+            "description": "Study the ancient cryptographic texts",
+            "completed": true
+          },
+          {
+            "id": "craft-seal",
+            "description": "Create your first authentication seal",
+            "completed": false
+          },
+          {
+            "id": "verify-seal",
+            "description": "Prove the seal's authenticity",
+            "completed": false
+          }
+        ],
+        "reward": {
+          "score": 125,
+          "items": [
+            "Cryptomancer Staff",
+            "HMAC Grimoire"
+          ]
+        }
+      },
       "completed": []
     },
     "inventory": {
@@ -6598,13 +6598,37 @@
     "session": {
       "id": "23a8f29d-6caa-4f07-aef1-23faf17585e5",
       "startTime": "2025-06-23T23:44:32.848Z",
-      "lastAction": "2025-06-23T23:44:32.848Z",
-      "turnCount": 0,
-      "conversationHistory": []
+      "lastAction": "2025-06-24T00:02:26.727Z",
+      "turnCount": 3,
+      "conversationHistory": [
+        {
+          "id": "d0d44013-2857-4866-a45d-52450592a47f",
+          "timestamp": "2025-06-24T00:02:26.530Z",
+          "sender": "player",
+          "message": "How am I doing on my quest progress?",
+          "type": "chat"
+        },
+        {
+          "id": "6b9f2e33-ee7f-4f9e-9a6f-a42b719e09f2",
+          "timestamp": "2025-06-24T00:02:26.531Z",
+          "sender": "bot",
+          "message": "Thy current quest \"Cryptomancer's Seal\" progresses well, brave Jeff the Code Wizard. The next step awaits: Create your first authentication seal",
+          "type": "chat",
+          "metadata": {
+            "provider": "fallback",
+            "model": "template-based",
+            "tokensUsed": 0,
+            "responseTime": 0,
+            "cached": false,
+            "confidence": 0.3,
+            "contentFiltered": false
+          }
+        }
+      ]
     },
     "metadata": {
       "version": "1.0.0",
-      "lastUpdated": "2025-06-23T23:44:32.848Z"
+      "lastUpdated": "2025-06-24T00:02:26.727Z"
     }
   }
 }
