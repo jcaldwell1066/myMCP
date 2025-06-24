@@ -3,7 +3,7 @@ import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
 interface PlayerState {
-  playerId: string;
+  id: string;
   name: string;
   level: string;
   score: number;
@@ -49,7 +49,7 @@ function App() {
       // Load player state
       const response = await axios.get(`${engineUrl}/api/state/${playerId}`);
       setPlayerState((response.data as any).data?.player || {
-        playerId,
+        id: playerId,
         name: 'Dashboard Player',
         level: 'apprentice',
         score: 0,
@@ -62,7 +62,7 @@ function App() {
       
       // Set demo data when engine is not available
       setPlayerState({
-        playerId,
+        id: playerId,
         name: 'Demo Player',
         level: 'apprentice',
         score: 42,
