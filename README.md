@@ -201,12 +201,18 @@ node tools/setup/team-setup.sh         # Team training setup
 
 ## 📚 Documentation
 
+### **Essential Guides**
 - **[🚀 Quick Start Guide](docs/QUICK_START.md)** - Get running in minutes
+- **[🎭 Walkthrough Guides](docs/walkthrough-guides/)** - Step-by-step multiplayer adventures
 - **[🏰 Team Demo Participation](docs/TEAM_DEMO_PARTICIPATION.md)** - Join the Council of Three Realms
+
+### **Setup & Configuration**
 - **[⚡ Quick Setup Guide](docs/setup/QUICK_SETUP.md)** - 15-minute setup for demo participants
 - **[💬 Slack Setup](docs/integrations/slack/README.md)** - Team integration
 - **[🤖 MCP Integration](docs/integrations/mcp/README.md)** - AI model setup
 - **[🌐 Multiplayer Guide](docs/multiplayer-setup.md)** - Distributed setup
+
+### **Complete Resources**
 - **[📖 Full Documentation](docs/README.md)** - Everything else
 
 ## 🧪 Testing Your Setup
