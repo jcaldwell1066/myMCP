@@ -12,7 +12,7 @@ const { execSync } = require('child_process');
 console.log('📦 myMCP Pre-Release Packaging');
 console.log('==============================');
 
-const version = '0.1.0-pre-release';
+const version = '1.3.0';
 const packageName = `myMCP-${version}`;
 const distDir = path.join(process.cwd(), 'dist');
 const packageDir = path.join(distDir, packageName);

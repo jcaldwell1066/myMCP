@@ -504,7 +504,7 @@ export class SlackIntegration {
           
         case 'active':
           const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
-          const activeQuests = state.data.data?.quests?.active || [];
+          const activeQuests = (state.data as any).data?.quests?.active || [];
           
           const activeBlocks: KnownBlock[] = [
             {
@@ -596,7 +596,7 @@ export class SlackIntegration {
           break;
         case 'add':
           const currentState = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
-          const currentScore = currentState.data.data?.player?.score || 0;
+          const currentScore = (currentState.data as any).data?.player?.score || 0;
           response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
             type: 'SET_SCORE',
             payload: { score: currentScore + value },
@@ -605,7 +605,7 @@ export class SlackIntegration {
           break;
         case 'subtract':
           const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
-          const score = state.data.data?.player?.score || 0;
+          const score = (state.data as any).data?.player?.score || 0;
           response = await axios.post(`${this.config.engineUrl}/api/actions/${playerId}`, {
             type: 'SET_SCORE',
             payload: { score: Math.max(0, score - value) },
@@ -617,7 +617,7 @@ export class SlackIntegration {
           return;
       }
 
-      const newScore = response.data.data?.player?.score || 0;
+      const newScore = (response.data as any).data?.player?.score || 0;
       await respond({
         blocks: [
           {
@@ -674,8 +674,8 @@ export class SlackIntegration {
           
         case 'list':
           const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
-          const locations = state.data.data?.world?.locations || [];
-          const currentLocation = state.data.data?.player?.currentLocation || 'unknown';
+          const locations = (state.data as any).data?.world?.locations || [];
+          const currentLocation = (state.data as any).data?.player?.currentLocation || 'unknown';
           
           const locationBlocks: KnownBlock[] = [
             {
@@ -824,7 +824,7 @@ export class SlackIntegration {
           
         case 'list':
           const state = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
-          const inventory = state.data.data?.inventory?.items || [];
+          const inventory = (state.data as any).data?.inventory?.items || [];
           
           const inventoryBlocks: KnownBlock[] = [
             {
@@ -969,10 +969,10 @@ export class SlackIntegration {
       
       try {
         const healthResponse = await axios.get(`${this.config.engineUrl}/health`);
-        engineHealth = healthResponse.data;
+        engineHealth = healthResponse.data as any;
         
         const statsResponse = await axios.get(`${this.config.engineUrl}/api/stats`);
-        engineStats = statsResponse.data.data;
+        engineStats = (statsResponse.data as any).data;
       } catch (error) {
         console.error('Failed to get engine health:', error);
       }
@@ -997,8 +997,8 @@ export class SlackIntegration {
       for (const player of players) {
         try {
           const state = await axios.get(`${this.config.engineUrl}/api/state/${player.playerId}`);
-          if (state.data.data?.quests?.active) activeQuestsCount++;
-          totalMessages += state.data.data?.session?.conversationHistory?.length || 0;
+          if ((state.data as any).data?.quests?.active) activeQuestsCount++;
+          totalMessages += (state.data as any).data?.session?.conversationHistory?.length || 0;
         } catch (e) {
           // Skip if player state can't be fetched
         }
@@ -1271,12 +1271,12 @@ export class SlackIntegration {
       const response = await axios.get(`${this.config.engineUrl}/api/state/${playerId}`);
       const playerData: PlayerStats = {
         playerId,
-        name: response.data.data?.player?.name || 'Unknown',
-        level: response.data.data?.player?.level || 'apprentice',
-        score: response.data.data?.player?.score || 0,
-        currentQuest: response.data.data?.player?.currentQuest,
-        location: response.data.data?.player?.location || 'town',
-        achievements: response.data.data?.player?.achievements || [],
+        name: (response.data as any).data?.player?.name || 'Unknown',
+        level: (response.data as any).data?.player?.level || 'apprentice',
+        score: (response.data as any).data?.player?.score || 0,
+        currentQuest: (response.data as any).data?.player?.currentQuest,
+        location: (response.data as any).data?.player?.location || 'town',
+        achievements: (response.data as any).data?.player?.achievements || [],
         lastActive: Date.now()
       };
       
@@ -1323,7 +1323,7 @@ export class SlackIntegration {
   private async getAvailableQuests(): Promise<any[]> {
     try {
       const response = await axios.get(`${this.config.engineUrl}/api/quests/default-player`);
-      return response.data.data?.available || [];
+      return (response.data as any).data?.available || [];
     } catch (error) {
       return [];
     }
@@ -1338,7 +1338,7 @@ export class SlackIntegration {
         playerId: playerId
       });
       
-      const responseMessage = response.data.data?.botResponse?.message || response.data.data?.message || 'No response from game engine.';
+      const responseMessage = (response.data as any).data?.botResponse?.message || (response.data as any).data?.message || 'No response from game engine.';
       
       await say({
         text: responseMessage,
@@ -1366,7 +1366,7 @@ export class SlackIntegration {
         payload: { message },
         playerId: playerId
       });
-      return response.data.data?.botResponse?.message || response.data.data?.message || 'No response from game engine.';
+      return (response.data as any).data?.botResponse?.message || (response.data as any).data?.message || 'No response from game engine.';
     } catch (error) {
       console.error('Chat error:', error);
       return 'Sorry, I couldn\'t send that message to the game.';
@@ -1389,7 +1389,7 @@ export class SlackIntegration {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `✅ Quest started successfully!\n${response.data.data?.quest || ''} - ${response.data.data?.status || ''}`
+              text: `✅ Quest started successfully!\n${(response.data as any).data?.quest || ''} - ${(response.data as any).data?.status || ''}`
             }
           }
         ]

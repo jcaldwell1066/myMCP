@@ -1,6 +1,6 @@
 {
   "name": "mymcp",
-  "version": "0.1.0",
+  "version": "1.3.0",
   "description": "myMCP Lunch and Learn Project - Multi-interface chatbot system for lunch and learn demo",
   "private": true,
   "workspaces": [
