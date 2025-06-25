@@ -78,6 +78,8 @@ These guides show you **exactly what happens** when self-organizing teams use my
 | *Morning coordination → Afternoon reflection → Crisis response → End-of-day synthesis* | *Shows team antifragility and continuous learning* |
 | 🚀 **Friday Sprint Rescue: From Chaos to Flow State** | [**Team Transformation**](friday-sprint-rescue.md) |
 | *Alice, Bob, Carol help struggling 12-person sprint team achieve scrum harmony* | *Demonstrates scaling coordination principles to organizational impact* |
+| 🐉 **Blue/Green Dungeon Master: Zane's Deployment Guide** | [**Production Infrastructure**](blue-green-dungeon-master.md) |
+| *Fantasy RPG guide to seamless IS_PRIMARY transitions and worker scaling* | *Practical commands for production-grade Blue/Green deployments* |
 
 ### 🤝 **Individual Team Perspectives**
 **Experience the same Thursday from different viewpoints:**
@@ -200,11 +202,12 @@ reflection       │ generated         │ team insights     │ summary │ wor
 - **Superpower**: Helping teams discover coordination patterns and achieve collective intelligence
 - **Evolution**: Thursday strategic analysis → Friday organizational transformation capability
 
-### 🐉 **Zane The Dragon Borne Paladin** - The Agentic Guardian
-- **Role**: Cross-modal DevOps assistance and workflow optimization
-- **Superpower**: Moving between systems to provide contextual help
-- **Thursday Philosophy**: "I guard the realm of productive workflows"
-- **Signature Move**: Appearing exactly when teams need technical guidance
+### 🐉 **Zane The Dragon Borne Paladin** - The Distributed Realm Guardian
+- **Role**: Cross-modal DevOps mastery and distributed infrastructure leadership
+- **Superpower**: Seamless Blue/Green transitions and worker army coordination
+- **Evolution**: Thursday workflow optimization → Friday team assistance → Production deployment mastery
+- **Philosophy**: "A true realm never sleeps, and leadership must flow like dragon fire"
+- **Signature Magic**: Zero-downtime IS_PRIMARY transitions while adventurers quest uninterrupted
 
 ### 💼 **Karl** - The Perpetually Busy Colleague
 - **Role**: Represents everyone struggling with information overload
@@ -231,14 +234,21 @@ reflection       │ generated         │ team insights     │ summary │ wor
 ├─ Afternoon: Enable flow state across all technical boundaries
 └─ Result: Transform dysfunction → harmony, 43% → 89% sprint completion
 
-🎯 SCALING IMPACT: Distributed Coordination Principles
+🐉 PRODUCTION: Distributed Infrastructure Mastery
+├─ Blue/Green DM transitions with zero adventurer downtime
+├─ IS_PRIMARY leadership flowing seamlessly between engines
+├─ Worker army scaling for growing realm populations
+└─ Result: Production-grade deployments with fantasy RPG guidance
+
+🎯 SCALING IMPACT: Complete Distributed Mastery
 ├─ Individual Excellence + Team Coordination = Multiplicative Value
 ├─ Technical Boundaries → Coordination Capabilities  
 ├─ Sustainable High Performance Through Systems, Not Heroics
 ├─ AI-Assisted Intelligence Amplifies Human Coordination
-└─ Organizational Transformation Through Team Transformation Mastery
+├─ Production Infrastructure = Zero-Downtime Realm Evolution
+└─ Organizational + Technical Transformation Through Distributed Intelligence
 ```
 
-*Each guide shows how myMCP's distributed coordination principles scale from individual productivity to team mastery to organizational transformation.*
+*Each guide shows how myMCP's distributed coordination principles scale from individual productivity to team mastery to organizational transformation and production infrastructure excellence.*
 
-**Ready to begin the complete team evolution adventure?** 🗡️✨🐉🚀 
+**Ready to begin the complete distributed mastery adventure?** 🗡️✨🐉🚀🏰 
